@@ -1,0 +1,71 @@
+//.fade-enter-active,
+//.fade-leave-active {
+//	transition: all .3s ease;
+//}
+//
+//.fade-enter,
+//.fade-leave-to {
+//	opacity: 0;
+//}
+html {
+  background: theme("colors.base.background");
+}
+
+::selection {
+  color: theme("colors.font.secondary");
+  background: rgba(0, 0, 0, 0); /* WebKit/Blink Browsers */
+}
+::-moz-selection {
+  color: theme("colors.font.secondary");
+  background: rgba(0, 0, 0, 0); /* WebKit/Blink Browsers */
+}
+
+:root {
+  --fontPrimary: #ffffff;
+  --fontSecondary: #57f8fd;
+  --fontDark: #172a38;
+  --gradientStart: #57f8fd;
+  --gradientMiddle: #4574fc;
+  --gradientEnd: #9140fa;
+  --background:#211f2c;
+  --sidebarBackground: #272636;
+  --sidebarBorder: #313040;
+}
+
+
+.slideY-up-enter {
+  transform: translateY(100vh);
+}
+.slideY-up-enter-to {
+  transform: translateY(0);
+}
+.slideY-up-enter-active {
+  transition: transform 0.5s cubic-bezier(0, 0.5, 0.5, 1);
+}
+.slideY-up-leave {
+  transform: translateY(0);
+}
+.slideY-up-leave-to {
+  transform: translateY(-100vh);
+}
+.slideY-up-leave-active {
+  transition: transform 0.5s cubic-bezier(0.5, 0, 1, 0.5);
+}
+.slideY-down-enter {
+  transform: translateY(-100vh);
+}
+.slideY-down-enter-to {
+  transform: translateY(0);
+}
+.slideY-down-enter-active {
+  transition: transform 0.5s cubic-bezier(0, 0.5, 0.5, 1);
+}
+.slideY-down-leave {
+  transform: translateY(0);
+}
+.slideY-down-leave-to {
+  transform: translateY(100vh);
+}
+.slideY-down-leave-active {
+  transition: transform 0.5s cubic-bezier(0.5, 0, 1, 0.5);
+}

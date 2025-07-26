@@ -1,0 +1,12 @@
+{
+  "projects": {
+    "default": "pletcher-portfolio-app"
+  },
+  "targets": {},
+  "etags": {
+    "pletcher-portfolio-app": {
+      "extensionInstances": {}
+    }
+  },
+  "dataconnectEmulatorConfig": {}
+}
