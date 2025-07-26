@@ -8,12 +8,30 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: Production  # <-- matches your GitHub environment name exactly
+    environment: Production
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Show secret example
-        run: echo "API_KEY is $API_KEY"
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18  # or whatever version you use
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./frontend
         env:
-          API_KEY: ${{ secrets.API_KEY }}
+          API_KEY: ${{ secrets.API_KEY }}  # example usage
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./frontend/dist  # change if your build output is elsewhere
+          cname: bcpletcher.com  # remove this line if you're not using a custom domain
