@@ -34,4 +34,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./frontend/dist  # change if your build output is elsewhere
+          publish_branch: gh-pages
           cname: bcpletcher.com  # remove this line if you're not using a custom domain
