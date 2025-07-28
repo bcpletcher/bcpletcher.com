@@ -4,9 +4,9 @@
   "type": "module",
   "version": "1.0",
   "scripts": {
-    "serve": "NODE_ENV=development vite --config='vite.config.dev.mjs'",
-    "build": "vite build  --config='vite.config.prod.mjs'",
-    "preview": "vite preview --config='./vite.config.prod.mjs'",
+    "serve": "NODE_ENV=development vite --config=vite.config.dev.mjs",
+    "build": "vite build --config=vite.config.prod.mjs",
+    "preview": "vite preview --config=vite.config.prod.mjs",
     "lint": "eslint ."
   },
   "dependencies": {
