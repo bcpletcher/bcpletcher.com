@@ -147,8 +147,8 @@ onMounted(() => {
       .cap {
         flex: 0 0 60px;
         background: linear-gradient(
+          to bottom,
           theme("colors.gradient.end"),
-          theme("colors.gradient.middle"),
           theme("colors.gradient.start")
         );
       }
@@ -169,8 +169,8 @@ onMounted(() => {
         }
         &:last-child {
           background: linear-gradient(
+            to bottom,
             theme("colors.gradient.end"),
-            theme("colors.gradient.middle"),
             theme("colors.gradient.start")
           );
         }
@@ -180,8 +180,8 @@ onMounted(() => {
       .cap {
         flex: 0 0 25%;
         background: linear-gradient(
+          to bottom,
           theme("colors.gradient.start"),
-          theme("colors.gradient.middle"),
           theme("colors.gradient.end")
         );
       }
@@ -219,17 +219,16 @@ onMounted(() => {
   }
   p:first-of-type {
     background: theme("colors.gradient.start");
-    -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   p:last-of-type {
     background: -webkit-linear-gradient(
       0deg,
-      theme("colors.gradient.start") 20%,
-      theme("colors.gradient.middle"),
+      theme("colors.gradient.start"),
       theme("colors.gradient.end")
     );
-    -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   text-transform: uppercase;
@@ -240,7 +239,6 @@ onMounted(() => {
   background-image: linear-gradient(
     to right,
     theme("colors.gradient.start"),
-    theme("colors.gradient.middle"),
     theme("colors.gradient.end")
   );
   border-radius: 40px;
@@ -282,18 +280,15 @@ onMounted(() => {
 }
 .btnContact {
   letter-spacing: 1px;
-  //height: 25px;
   border: solid 1px transparent;
   border-bottom: none;
-  //outline: none;
 }
 
 .btnContact:after {
   content: "";
-  background: -webkit-linear-gradient(
-    left,
-    theme("colors.gradient.start") 20%,
-    theme("colors.gradient.middle"),
+  background-image: linear-gradient(
+    to right,
+    theme("colors.gradient.start"),
     theme("colors.gradient.end")
   );
   display: block;
@@ -355,18 +350,14 @@ onMounted(() => {
   .name.gradientText {
     display: block;
     margin: 0 auto !important;
-    -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     p {
       float: none;
-      background: -webkit-linear-gradient(
+      background-image: linear-gradient(
         0deg,
-        theme("colors.gradient.start") 20%,
-        theme("colors.gradient.middle"),
+        theme("colors.gradient.start"),
         theme("colors.gradient.end")
       );
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
   }
   .name.gradientText p,

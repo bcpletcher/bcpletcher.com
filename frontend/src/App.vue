@@ -7,7 +7,7 @@
     <div
       class="pointer-events-none fixed inset-0 z-30 transition duration-300 lg:absolute"
       :style="{
-        background: `radial-gradient(600px at ${mouseX}px ${mouseY}px, rgba(29, 78, 216, 0.15), transparent 80%)`,
+        background: `radial-gradient(600px at ${mouseX}px ${mouseY}px, rgba(29, 78, 216, 0.05), transparent 50%)`,
       }"
     ></div>
     <router-view v-slot="{ Component }">
