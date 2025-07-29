@@ -22,13 +22,37 @@
             <p>HI I'M</p>
             <p>BENJAMIN PLETCHER</p>
           </div>
-          <div class="introduction">
+          <div
+            class="introduction text-base flex flex-col gap-2 max-w-[600px] mr-[10%] opacity-80 leading-snug mb-4"
+          >
             <p>
-              I am a UX/UI Designer & Full Stack Developer from Norton Shores,
-              Michigan
+              I'm a developer who loves building clean, accessible, and
+              well-crafted user interfaces. I enjoy working where design and
+              development meet, bringing ideas to life with a focus on polish,
+              performance, and usability.
             </p>
-            <p>Enthusiast in all phases of the development process.</p>
-            <p>I'm a minimalist who truly believes that less is more.</p>
+            <p>
+              Right now, I'm working as a full stack developer, with a strong
+              focus on front-end engineering and accessibility. I help build and
+              maintain UI components that serve as the foundation for scalable,
+              inclusive interfaces, while also contributing to the backend to
+              support robust, end-to-end functionality.
+            </p>
+            <p>
+              Over the years, I’ve worked in a variety of environments from
+              small studios and startups to large teams and enterprise projects
+              helping shape products across different industries. In my free
+              time, I’ve been building a platform, which helps designers easily
+              create professional cover art. I've led development across the
+              full stack, from designing the API and integrating third-party
+              services to crafting a smooth, responsive front-end experience.
+            </p>
+<!--            <p>-->
+<!--              I am a UX/UI Designer & Full Stack Developer from Norton Shores,-->
+<!--              Michigan-->
+<!--            </p>-->
+<!--            <p>Enthusiast in all phases of the development process.</p>-->
+<!--            <p>I'm a minimalist who truly believes that less is more.</p>-->
           </div>
           <div class="actions">
             <router-link :to="{ path: '/scrapbook' }">
@@ -210,10 +234,6 @@ onMounted(() => {
   .introduction {
     padding: 20px 0;
     color: #dadada;
-    p {
-      font-size: 1.2rem;
-      margin-bottom: 10px;
-    }
   }
 }
 .gradientText {
