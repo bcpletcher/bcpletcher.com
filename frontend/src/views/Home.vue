@@ -58,8 +58,7 @@
       <div class="overlay"></div>
       <transition name="fade">
         <img
-          v-if="settingsStore.resources"
-          :src="settingsStore.resources.images.homepage"
+          :src="heroSrc"
           alt="hero-column"
         />
       </transition>
@@ -74,6 +73,10 @@ import { useSettingsStore } from "@/stores/settings.js";
 
 const isReady = ref(false);
 const settingsStore = useSettingsStore();
+
+const heroSrc = ref(
+  "https://firebasestorage.googleapis.com/v0/b/pletcher-portfolio-app.firebasestorage.app/o/Assets%2Fself-column.jpg?alt=media&token=0cab3d20-86f9-4b05-82c8-caceb460c65a"
+);
 
 const showContact = () => {
   settingsStore.sidebarFocus = "Contact";
