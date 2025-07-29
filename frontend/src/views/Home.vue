@@ -23,7 +23,7 @@
             <p>BENJAMIN PLETCHER</p>
           </div>
           <div
-            class="introduction text-base flex flex-col gap-2 max-w-[600px] mr-[10%] opacity-80 leading-snug mb-4"
+            class="introduction text-base flex flex-col gap-2 max-w-[600px] mr-[10%] opacity-80 leading-snug"
           >
             <p>
               I'm a developer who loves building clean, accessible, and
@@ -47,14 +47,8 @@
               full stack, from designing the API and integrating third-party
               services to crafting a smooth, responsive front-end experience.
             </p>
-<!--            <p>-->
-<!--              I am a UX/UI Designer & Full Stack Developer from Norton Shores,-->
-<!--              Michigan-->
-<!--            </p>-->
-<!--            <p>Enthusiast in all phases of the development process.</p>-->
-<!--            <p>I'm a minimalist who truly believes that less is more.</p>-->
           </div>
-          <div class="actions">
+          <div class="actions pt-4">
             <router-link :to="{ path: '/scrapbook' }">
               <template #default="{ href, navigate }">
                 <a :href="href" class="btnScrapbook" @click="navigate">
@@ -217,6 +211,8 @@ onMounted(() => {
 }
 
 .contentHolder {
+  overflow: auto;
+  padding: 3rem 0;
   .name {
     p {
       clear: both;
