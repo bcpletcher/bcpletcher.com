@@ -17,7 +17,7 @@
           alt=""
         />
         <div
-          class="absolute inset-0 bg-black/60 md:bg-gradient-start/70 md:opacity-40 group-hover:opacity-0 transition-slow"
+          class="absolute inset-0 bg-black/50 md:bg-gradient-end/50 md:opacity-40 group-hover:opacity-0 transition-slow"
         />
       </a>
     </div>
@@ -25,7 +25,7 @@
     <div class="z-20 content flex flex-col justify-center p-8 md:p-0">
       <div class="flex flex-col">
         <p
-          class="leading-none md:text-sm my-2 text-font-secondary"
+          class="leading-none md:text-sm my-2 text-font-secondary tracking-wide"
           :class="{
             'text-right': !props.reversed && !isBreakpointOrBelow('sm'),
           }"
@@ -33,7 +33,7 @@
           {{ props.eyebrow }}
         </p>
         <a
-          class="leading-none text-2xl md:text-xl font-bold mb-4 text-font-primary/80 transition-standard"
+          class="leading-none text-2xl md:text-xl font-semibold tracking-wide mb-4 text-font-primary/75 transition-standard"
           :href="props.url"
           target="_blank"
           :class="[
@@ -71,7 +71,7 @@
           }"
         >
           <button
-            class="text-font-primary/80 hover:text-gradient-start transition-standard"
+            class="text-font-primary/75 hover:text-gradient-start transition-standard"
             @click="showSlideshowModal()"
           >
             <i class="fa-regular fa-images"></i>
@@ -80,7 +80,7 @@
             v-if="props.url"
             :href="props.url"
             target="_blank"
-            class="text-font-primary/80 hover:text-gradient-start transition-standard"
+            class="text-font-primary/75 hover:text-gradient-start transition-standard"
           >
             <i class="fa-solid fa-arrow-up-right-from-square"></i>
           </a>

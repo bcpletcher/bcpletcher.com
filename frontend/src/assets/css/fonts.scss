@@ -1,17 +1,19 @@
-* {
-  font-family: 'larsseit', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-@font-face {
-  font-family: 'larsseit';
-  src: url('@/assets/fonts/larsseit-light.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'larsseit';
-  src: url('@/assets/fonts/larsseit-medium.ttf') format('truetype');
-  font-weight: bold;
-  font-style: normal;
-}
+@import "@fontsource/inter/index.css";
+
+//* {
+//  font-family: 'larsseit', sans-serif;
+//  -webkit-font-smoothing: antialiased;
+//  -moz-osx-font-smoothing: grayscale;
+//}
+//@font-face {
+//  font-family: 'larsseit';
+//  src: url('@/assets/fonts/larsseit-light.ttf') format('truetype');
+//  font-weight: normal;
+//  font-style: normal;
+//}
+//@font-face {
+//  font-family: 'larsseit';
+//  src: url('@/assets/fonts/larsseit-medium.ttf') format('truetype');
+//  font-weight: bold;
+//  font-style: normal;
+//}

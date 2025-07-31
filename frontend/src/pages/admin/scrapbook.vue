@@ -13,6 +13,7 @@
           <div class="flex gap-2">
             <button
               class="text-font-primary/80 hover:text-gradient-start transition-standard"
+              @click="editEntry()"
             >
               <i class="far fa-edit"></i>
             </button>
@@ -31,13 +32,10 @@
 </template>
 
 <script setup>
-import { ref, useTemplateRef } from "vue";
+import { useTemplateRef } from "vue";
 import BaseLayout from "@/components/shared/base-layout.vue";
 import CreateEntryModal from "@/components/admin/create-entry-modal.vue";
-import { useSettingsStore } from "@/stores/settings.js";
 import ScrapbookTable from "@/components/scrapbook/table.vue";
 
-const showModal = ref(false);
 const createEntryModalRef = useTemplateRef("createEntryModalRef");
-const settingsStore = useSettingsStore();
 </script>

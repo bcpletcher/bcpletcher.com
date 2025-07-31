@@ -1,87 +1,137 @@
 <template>
   <div
-    id="pageHomepage"
     class="flex bg-base-background"
     :class="isReady ? 'opacity-100' : 'opacity-0'"
   >
-    <div class="content flex-1 relative">
-      <div class="lines ml-[8%] w-full h-full flex">
+    <div class="flex-1 relative overflow-y-auto">
+      <div class="px-[8%] w-full h-full flex justify-between">
         <template v-for="i in 4" :key="i">
-          <div class="line flex flex-col bg-base-background">
-            <div v-if="i !== 4" class="top cap opacity-25"></div>
+          <div
+            class="line flex flex-col flex-none basis-[5px] bg-base-background"
+            :class="{
+              'pt-[10%] pb-[5%]': i === 1,
+              'pt-[5%] pb-[15%]': i === 3,
+            }"
+          >
+            <!-- Top Cap -->
+            <div
+              v-if="i !== 4"
+              class="cap opacity-25 flex-none basis-[60px] rounded"
+              :class="{
+                'bg-gray-600': i === 2 || i === 3,
+                'bg-gradient-to-t from-gradient-start to-gradient-end': i === 1,
+              }"
+            ></div>
+
+            <!-- Spacer -->
             <div class="flex-1"></div>
-            <div class="bottom cap opacity-25"></div>
+
+            <!-- Bottom Cap -->
+            <div
+              class="cap opacity-25 flex-none rounded"
+              :class="[
+                i < 4 ? 'basis-[60px]' : 'basis-[25%]',
+                {
+                  'bg-gray-600': i === 2,
+                  'bg-gradient-to-t from-gradient-start to-gradient-end':
+                    i === 1 || i === 3,
+                  'bg-gradient-to-b from-gradient-start to-gradient-end':
+                    i === 4,
+                },
+              ]"
+            ></div>
           </div>
-          <div class="flex-1"></div>
         </template>
       </div>
-      <div class="primaryBox">
-        <div class="flex-1"></div>
-        <div class="contentHolder">
-          <div class="name gradientText">
-            <p>HI I'M</p>
-            <p>BENJAMIN PLETCHER</p>
+      <div
+        class="absolute top-0 left-0 z-10 w-full h-full flex flex-col justify-center"
+      >
+        <div
+          class="px-8 md:px-[10%] flex flex-col pt-20 pb-12 h-full sm:h-auto md:py-8 md:gap-6 gap-8"
+        >
+          <div class="flex flex-col uppercase">
+            <p
+              class="leading-none text-[24px] mb-2 text-transparent bg-gradient-to-r from-gradient-start to-gradient-start bg-clip-text"
+            >
+              HI I'M
+            </p>
+            <p
+              class="leading-none font-light text-[30px] md:text-[50px] xl:text-[60px] md:ml-[-4px] text-transparent bg-gradient-to-r from-gradient-start to-gradient-end bg-clip-text"
+            >
+              BENJAMIN PLETCHER
+            </p>
           </div>
           <div
-            class="introduction text-base flex flex-col gap-2 max-w-[600px] mr-[10%] opacity-80 leading-snug"
+            class="text-font-primary text-base flex flex-col gap-2 max-w-[600px] opacity-90 leading-snug"
           >
-            <p>
-              I'm a developer who loves building clean, accessible, and
-              well-crafted user interfaces. I enjoy working where design and
-              development meet, bringing ideas to life with a focus on polish,
-              performance, and usability.
-            </p>
-            <p>
-              Right now, I'm working as a full stack developer, with a strong
-              focus on front-end engineering and accessibility. I help build and
-              maintain UI components that serve as the foundation for scalable,
-              inclusive interfaces, while also contributing to the backend to
-              support robust, end-to-end functionality.
-            </p>
-            <p>
-              Over the years, I’ve worked in a variety of environments from
-              small studios and startups to large teams and enterprise projects
-              helping shape products across different industries. In my free
-              time, I’ve been building a platform, which helps designers easily
-              create professional cover art. I've led development across the
-              full stack, from designing the API and integrating third-party
-              services to crafting a smooth, responsive front-end experience.
+            <p
+              v-for="(line, index) in aboutCopy"
+              :key="index"
+              class="text-font-primary/75 tracking-wide leading-normal text-sm md:text-base"
+            >
+              {{ line }}
             </p>
           </div>
-          <div class="actions pt-4">
-            <router-link :to="{ path: '/scrapbook' }">
+          <div class="flex gap-8 sm:gap-6 flex-col sm:flex-row mt-auto">
+            <router-link to="/scrapbook" custom>
               <template #default="{ href, navigate }">
-                <a :href="href" class="btnScrapbook" @click="navigate">
-                  <span class="pointer-events-none">
-                    <label class="leading-none mt-1 pointer-events-none"
-                      >VIEW SCRAPBOOK</label
+                <a
+                  :href="href"
+                  :class="[
+                    'rounded-[40px] text-font-primary uppercase p-1 tracking-widest inline-block',
+                    'bg-gradient-to-r from-gradient-start to-gradient-end',
+                    'mx-auto sm:mx-0',
+                  ]"
+                  @click="navigate"
+                >
+                  <div
+                    :class="[
+                      'px-4 py-3 pointer-events-none w-full h-full flex items-center justify-center ',
+                      'bg-base-background rounded-[40px]',
+                    ]"
+                  >
+                    <p
+                      class="leading-none mt-1 pointer-events-none text-sm pb-0.5"
                     >
-                  </span>
+                      VIEW SCRAPBOOK
+                    </p>
+                  </div>
                 </a>
               </template>
             </router-link>
-            <p class="spaceText">OR JUST</p>
+            <p
+              :class="[
+                'tracking-widest text-font-primary/75 content-center text-sm',
+                'hidden sm:inline-block',
+              ]"
+            >
+              OR JUST
+            </p>
             <a
-              class="btnContact pb-1 text-font-primary inline-block relative cursor-pointer"
+              :class="[
+                'my-auto text-font-primary inline-block cursor-pointer tracking-widest text-sm mb-10 sm:mb-auto',
+                'relative after:content-[\'\'] after:absolute after:-bottom-2 after:h-[2px] after:w-full after:bg-gradient-to-r after:from-gradient-start after:to-gradient-end',
+                'mx-auto sm:mx-0',
+              ]"
               @click="showContact"
             >
               <p>GET IN TOUCH</p>
             </a>
           </div>
         </div>
-        <div class="flex-1"></div>
       </div>
     </div>
-    <div class="banner">
-      <div class="overlay"></div>
-      <transition name="fade">
-        <img
-          :src="heroSrc"
-          alt="hero-column"
-        />
-      </transition>
+    <div class="hidden lg:flex flex-none basis-[25%] h-full relative w-[300px]">
+      <div
+        class="absolute inset-0 z-[2] bg-base-background opacity-[92%]"
+      ></div>
+      <img
+        class="z-[1] min-w-full h-full object-cover bg-cover bg-left bg-no-repeat"
+        :src="heroSrc"
+        alt="hero-column"
+      />
     </div>
-    <div class="end"></div>
+    <div class="hidden lg:flex flex-none basis-[10%] bg-base-background"></div>
   </div>
 </template>
 
@@ -96,6 +146,12 @@ const heroSrc = ref(
   "https://firebasestorage.googleapis.com/v0/b/pletcher-portfolio-app.firebasestorage.app/o/Assets%2Fself-column.jpg?alt=media&token=0cab3d20-86f9-4b05-82c8-caceb460c65a"
 );
 
+const aboutCopy = ref([
+  "I'm a developer who loves building clean, accessible, and well-crafted user interfaces. I enjoy working where design and development meet, bringing ideas to life with a focus on polish, performance, and usability.",
+  "Right now, I'm working as a full stack developer, with a strong focus on front-end engineering and accessibility. I help build and maintain UI components that serve as the foundation for scalable, inclusive interfaces, while also contributing to the backend to support robust, end-to-end functionality.",
+  "Over the years, I’ve worked in a variety of environments from small studios and startups to large teams and enterprise projects helping shape products across different industries. In my free time, I’ve been building a platform, which helps designers easily create professional cover art. I've led development across the full stack, from designing the API and integrating third-party services to crafting a smooth, responsive front-end experience.",
+]);
+
 const showContact = () => {
   settingsStore.sidebarFocus = "Contact";
   settingsStore.expanded = true;
@@ -107,285 +163,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
-#pageHomepage {
-  .content {
-    .primaryBox {
-      z-index: 10;
-      height: 100%;
-      width: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-      display: flex;
-      flex-direction: column;
-      .contentHolder {
-        flex: 0 0 1;
-      }
-      .name,
-      .introduction,
-      .actions {
-        margin-left: 10%;
-      }
-    }
-  }
-  .banner {
-    flex: 0 0 25%;
-    width: 300px; /*or 70%, or what you want*/
-    height: 100%; /*or 70%, or what you want*/
-    position: relative;
-    .overlay {
-      z-index: 2;
-      position: absolute;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      right: 0;
-      background: rgb(33, 31, 44);
-      opacity: 0.92;
-    }
-    img {
-      z-index: 1;
-      min-width: 100%;
-      height: 100%;
-      object-fit: cover;
-      background-size: cover;
-      background-position: center left;
-      background-repeat: no-repeat;
-    }
-  }
-  .end {
-    flex: 0 0 10%;
-    background: theme("colors.base.background");
-  }
-}
-
-.content .lines {
-  .line {
-    flex: 0 0 5px;
-    &:nth-child(1) {
-      padding: 10% 0 5% 0;
-      .cap {
-        flex: 0 0 60px;
-        background: linear-gradient(
-          to bottom,
-          theme("colors.gradient.end"),
-          theme("colors.gradient.start")
-        );
-      }
-    }
-    &:nth-child(3) {
-      padding: 5% 0 15% 0;
-      .cap {
-        flex: 0 0 60px;
-        background: #504e5a;
-      }
-    }
-    &:nth-child(5) {
-      padding: 15% 0 10% 0;
-      .cap {
-        flex: 0 0 60px;
-        &:first-child {
-          background: #504e5a;
-        }
-        &:last-child {
-          background: linear-gradient(
-            to bottom,
-            theme("colors.gradient.end"),
-            theme("colors.gradient.start")
-          );
-        }
-      }
-    }
-    &:nth-child(7) {
-      .cap {
-        flex: 0 0 25%;
-        background: linear-gradient(
-          to bottom,
-          theme("colors.gradient.start"),
-          theme("colors.gradient.end")
-        );
-      }
-    }
-  }
-}
-
-.contentHolder {
-  overflow: auto;
-  padding: 3rem 0;
-  .name {
-    p {
-      clear: both;
-      float: left;
-    }
-    p:first-of-type {
-      font-size: 24px;
-    }
-    p:last-of-type {
-      font-size: 64px;
-      line-height: 64px;
-      height: 64px;
-    }
-  }
-  .introduction {
-    padding: 20px 0;
-    color: #dadada;
-  }
-}
-.gradientText {
-  &.name p:last-of-type {
-    margin-left: -4px;
-  }
-  p:first-of-type {
-    background: theme("colors.gradient.start");
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  p:last-of-type {
-    background: -webkit-linear-gradient(
-      0deg,
-      theme("colors.gradient.start"),
-      theme("colors.gradient.end")
-    );
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  text-transform: uppercase;
-  display: inline-block;
-  margin-bottom: 0;
-}
-.btnScrapbook {
-  background-image: linear-gradient(
-    to right,
-    theme("colors.gradient.start"),
-    theme("colors.gradient.end")
-  );
-  border-radius: 40px;
-  box-sizing: border-box;
-  color: var(--fontPrimary);
-  display: inline-block;
-  height: 50px;
-  letter-spacing: 1px;
-  outline: none;
-  margin: 0 auto;
-  padding: 4px;
-  position: relative;
-  text-decoration: none;
-  text-transform: uppercase;
-  width: 200px;
-  z-index: 2;
-  span {
-    align-items: center;
-    background: #211f2c;
-    border-radius: 40px;
-    display: flex;
-    justify-content: center;
-    height: 100%;
-    transition: background 0.5s ease;
-    width: 100%;
-    label {
-      height: 16px;
-      font-size: 16px;
-    }
-  }
-}
-.spaceText {
-  letter-spacing: 1px;
-  color: #ffffff;
-  display: inline-block;
-  padding: 0 40px;
-  height: 50px;
-  font-size: 16px;
-}
-.btnContact {
-  letter-spacing: 1px;
-  border: solid 1px transparent;
-  border-bottom: none;
-}
-
-.btnContact:after {
-  content: "";
-  background-image: linear-gradient(
-    to right,
-    theme("colors.gradient.start"),
-    theme("colors.gradient.end")
-  );
-  display: block;
-  height: 2px;
-  width: 120px;
-  position: absolute;
-  bottom: 0;
-}
-@media screen and (min-width: 901px) and (max-width: 1140px) {
-  .name.gradientText,
-  .introduction,
-  .actions {
-    margin-left: 5% !important;
-  }
-  .name.gradientText p {
-    &:first-of-type {
-      font-size: 1.5rem !important;
-    }
-    &:last-of-type {
-      font-size: 3rem !important;
-    }
-  }
-}
-
-@media screen and (min-width: 0px) and (max-width: 900px) {
-  .name.gradientText p {
-    &:first-of-type {
-      font-size: 1.3rem !important;
-    }
-    &:last-of-type {
-      font-size: 2.3rem !important;
-    }
-  }
-}
-@media screen and (min-width: 0px) and (max-width: 900px) {
-  .actions .btnScrapbook,
-  .actions .btnContact,
-  .actions .spaceText {
-    display: block;
-    margin: 0 auto;
-  }
-  .actions .spaceText {
-    height: 70px;
-    line-height: 70px !important;
-    width: 100% !important;
-    text-align: center !important;
-    padding: 0 !important;
-  }
-  .actions .btnContact {
-    width: 125px;
-  }
-}
-@media screen and (max-width: 600px) {
-  .name.gradientText,
-  .introduction,
-  .actions {
-    margin: 0 5% !important;
-  }
-  .name.gradientText {
-    display: block;
-    margin: 0 auto !important;
-    -webkit-text-fill-color: transparent;
-    p {
-      float: none;
-      background-image: linear-gradient(
-        0deg,
-        theme("colors.gradient.start"),
-        theme("colors.gradient.end")
-      );
-    }
-  }
-  .name.gradientText p,
-  .introduction p {
-    text-align: center;
-  }
-  .banner,
-  .end {
-    display: none;
-  }
-}
-</style>
+<style scoped lang="scss"></style>

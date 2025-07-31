@@ -1,7 +1,9 @@
 <template>
   <div class="h-full text-font-primary flex flex-col gap-16 overflow-auto">
     <div v-for="(section, sIndex) in experienceList" :key="sIndex">
-      <h4 class="pb-4 opacity-80 uppercase text-xs font-bold tracking-[2px]">
+      <h4
+        class="pb-4 text-font-primary/75 uppercase text-xs font-semibold tracking-widest"
+      >
         {{ section.label }}
       </h4>
       <div class="grid grid-cols-2 gap-2 text-sm leading-tight">

@@ -12,12 +12,12 @@ html {
 }
 
 ::selection {
-  color: theme("colors.font.secondary");
-  background: rgba(0, 0, 0, 0); /* WebKit/Blink Browsers */
+  color: theme("colors.gray.950");
+  background: theme("colors.font.secondary"); /* WebKit/Blink Browsers */
 }
 ::-moz-selection {
-  color: theme("colors.font.secondary");
-  background: rgba(0, 0, 0, 0); /* WebKit/Blink Browsers */
+  color: theme("colors.gray.950");
+  background: theme("colors.font.secondary"); /* WebKit/Blink Browsers */
 }
 
 :root {

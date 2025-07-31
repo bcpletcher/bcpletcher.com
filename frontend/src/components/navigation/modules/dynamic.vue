@@ -47,7 +47,7 @@
                       : 'after:left-1/2',
                     'animated fadeInUp',
                     'relative transition-standard cursor-pointer pb-[7px]',
-                    'text-font-primary uppercase font-bold text-[11px] tracking-[0.2rem]',
+                    'text-font-primary uppercase font-semibold text-[11px] tracking-[0.2rem]',
                     'after:absolute after:content-[\'\'] after:transition-standard after:bottom-0 after:h-[2px] after:w-0 after:bg-gradient-start ',
                     'hover:text-gradient-start hover:after:w-full hover:after:left-0',
                   ]"
@@ -82,7 +82,7 @@
                   target="_blank"
                   class="text-md text-font-primary opacity-60 transition-standard hover:opacity-100"
                 >
-                  <i :class="['fa', item.icon]" />
+                  <i :class="['fa fa-brands', item.icon]" />
                 </a>
               </li>
             </ul>
@@ -122,8 +122,8 @@ const socialLinks = ref([
     icon: "fa-linkedin",
   },
   {
-    href: "https://dribbble.com/bcpletcher",
-    icon: "fa-dribbble",
+    href: "https://www.goodreads.com/bcpletcher",
+    icon: "fa-goodreads",
   },
 ]);
 const contentWidth = computed(() => {

@@ -6,16 +6,20 @@ export default {
       colors: {
         font: {
           primary: "#ffffff",
-          secondary: "#5EEAD4",
-          tertiary: "#172a38",
+          secondary: "#62cff4",
+          tertiary: "#0077b6",
         },
+        // gradient: {
+        //   start: "#5EEAD4",
+        //   end: "#8369D1",
+        // },
         gradient: {
-          start: "#5EEAD4",
-          end: "#8369D1",
+          start: "#62cff4",
+          end: "#0077b6",
         },
         base: {
-          background: "#211f2c",
-          sidebar: "#272636",
+          background: "#0f172a",
+          sidebar: "#0b1121",
           border: "#313040",
         },
         gray: {
