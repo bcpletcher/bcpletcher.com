@@ -31,9 +31,10 @@ coverage
 /firebase/functions/node_modules/
 /firebase/functions/node_modules/*
 
-# Firebase service account key
+# Ignore Firebase service account keys
+firebase/functions/key.json
+functions/key.json
 key.json
-/firebase/functions/key.json
 
 # Client Configuration
 .env*

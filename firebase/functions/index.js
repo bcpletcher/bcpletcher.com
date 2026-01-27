@@ -1,9 +1,7 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const serviceAccount = require("./key.json");
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://pletcher-portfolio-app.firebaseio.com",
 });
 
