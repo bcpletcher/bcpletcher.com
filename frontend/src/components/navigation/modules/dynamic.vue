@@ -21,7 +21,7 @@
                 <img
                   v-if="settingsStore.resources"
                   class="w-full h-full"
-                  :src="settingsStore.resources.images.logo"
+                  src="./../../../assets/images/logo.svg"
                   alt="BP Logo"
                 />
               </div>

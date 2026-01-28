@@ -127,7 +127,7 @@
       ></div>
       <img
         class="z-[1] min-w-full h-full object-cover bg-cover bg-left bg-no-repeat"
-        :src="heroSrc"
+        src="../assets/images/self-column.jpg"
         alt="hero-column"
       />
     </div>
@@ -141,10 +141,6 @@ import { useSettingsStore } from "@/stores/settings.js";
 
 const isReady = ref(false);
 const settingsStore = useSettingsStore();
-
-const heroSrc = ref(
-  "https://firebasestorage.googleapis.com/v0/b/pletcher-portfolio-app.firebasestorage.app/o/Assets%2Fself-column.jpg?alt=media&token=0cab3d20-86f9-4b05-82c8-caceb460c65a"
-);
 
 const aboutCopy = ref([
   "I'm a developer who loves building clean, accessible, and well-crafted user interfaces. I enjoy working where design and development meet, bringing ideas to life with a focus on polish, performance, and usability.",

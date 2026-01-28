@@ -38,4 +38,8 @@ import CreateEntryModal from "@/components/admin/create-entry-modal.vue";
 import ScrapbookTable from "@/components/scrapbook/table.vue";
 
 const createEntryModalRef = useTemplateRef("createEntryModalRef");
+
+const editEntry = () => {
+  createEntryModalRef.value.showModal();
+};
 </script>
