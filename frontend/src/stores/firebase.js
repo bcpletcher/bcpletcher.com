@@ -14,6 +14,13 @@ const firebaseConfig = {
   appId: import.meta.env.FIREBASE_APP_ID,
   measurementId: import.meta.env.FIREBASE_MEASUREMENT_ID,
 };
+
+console.log("[FirebaseConfig]", firebaseConfig);
+
+if (!firebaseConfig.apiKey) {
+  console.error("[FirebaseConfig] Missing FIREBASE_API_KEY; Firebase Auth will fail.");
+}
+
 const firebaseApp = initializeApp(firebaseConfig);
 
 // Initialize Firebase services
