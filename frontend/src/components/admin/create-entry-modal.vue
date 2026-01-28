@@ -1,19 +1,30 @@
 <template>
-  <Modal :visible="visible" title="Create Entry" @close="visible = false">
+  <Modal
+    :visible="visible"
+    :title="isEdit ? 'Edit Entry' : 'Create Entry'"
+    @close="visible = false"
+  >
     <div class="flex flex-col gap-2">
       <tw-input-group
         :value="documentModel.id"
         label="Id"
+        :disabled="isEdit"
         @update-value="documentModel.id = $event"
       />
       <tw-input-group
+        :value="documentModel.data.year"
+        label="Year"
+        type="number"
+        @update-value="documentModel.data.year = $event"
+      />
+      <tw-input-group
         :value="documentModel.data.eyebrow"
-        label="Eyebrow"
+        label="Company Name"
         @update-value="documentModel.data.eyebrow = $event"
       />
       <tw-input-group
         :value="documentModel.data.title"
-        label="Title"
+        label="Project Name"
         @update-value="documentModel.data.title = $event"
       />
       <tw-input-group
@@ -122,7 +133,9 @@
     <template #footer>
       <div class="flex justify-end gap-4">
         <button class="btn-secondary" @click="cancel">Cancel</button>
-        <button class="btn-primary" @click="submit">Submit</button>
+        <button class="btn-primary" @click="submit">
+          {{ isEdit ? "Update" : "Submit" }}
+        </button>
       </div>
     </template>
   </Modal>
@@ -138,12 +151,14 @@ const settingsStore = useSettingsStore();
 
 const firebaseStore = useFirebaseStore();
 const visible = ref(false);
+const isEdit = ref(false);
 
 const documentModel = ref({
   id: null,
   data: {
     order: 0,
     eyebrow: null,
+    year: null,
     title: null,
     description: null,
     hero: null,
@@ -158,15 +173,96 @@ const removeImage = (index, key) => {
   documentModel.value.data[key].splice(index, 1);
 };
 const submit = async () => {
-  documentModel.value.order = settingsStore.scrapbook
-    ? Object.keys(settingsStore.scrapbook).length + 1
-    : 0;
+  if (
+    documentModel.value.data.year !== null &&
+    documentModel.value.data.year !== ""
+  ) {
+    const yearNumber = Number(documentModel.value.data.year);
+    if (!Number.isNaN(yearNumber)) {
+      documentModel.value.data.year = yearNumber;
+    }
+  }
 
-  await firebaseStore.dataCreateScrapbookDocument(documentModel.value);
+  ["images", "summary", "technology"].forEach((key) => {
+    if (Array.isArray(documentModel.value.data[key])) {
+      documentModel.value.data[key] = documentModel.value.data[key].filter(
+        (v) => v !== null && v !== undefined && v !== ""
+      );
+    }
+  });
+
+  if (isEdit.value) {
+    const payload = documentModel.value;
+    await firebaseStore.dataUpdateScrapbookDocument(payload);
+
+    // Update local cache so UI reflects the change immediately
+    if (settingsStore.scrapbook && payload.id) {
+      settingsStore.scrapbook = {
+        ...settingsStore.scrapbook,
+        [payload.id]: {
+          ...(settingsStore.scrapbook[payload.id] || {}),
+          ...payload.data,
+        },
+      };
+      localStorage.setItem(
+        "scrapbookCache",
+        JSON.stringify(settingsStore.scrapbook)
+      );
+    }
+  } else {
+    documentModel.value.order = settingsStore.scrapbook
+      ? Object.keys(settingsStore.scrapbook).length + 1
+      : 0;
+
+    const payload = documentModel.value;
+    const result = await firebaseStore.dataCreateScrapbookDocument(payload);
+
+    // If create succeeded and we got an id back, update cache as well
+    const newId = (result && result.id) || payload.id;
+    if (newId) {
+      settingsStore.scrapbook = {
+        ...(settingsStore.scrapbook || {}),
+        [newId]: payload.data,
+      };
+      localStorage.setItem(
+        "scrapbookCache",
+        JSON.stringify(settingsStore.scrapbook)
+      );
+    }
+  }
+
   cancel();
 };
 
-const showModal = async () => {
+const showModal = async (existingEntry) => {
+  if (existingEntry) {
+    isEdit.value = true;
+    documentModel.value = {
+      id: existingEntry.name,
+      data: {
+        order: existingEntry.order ?? 0,
+        eyebrow: existingEntry.eyebrow ?? null,
+        year: existingEntry.year ?? null,
+        title: existingEntry.title ?? null,
+        description: existingEntry.description ?? null,
+        hero: existingEntry.hero ?? null,
+        images: Array.isArray(existingEntry.images)
+          ? [...existingEntry.images]
+          : [],
+        summary: Array.isArray(existingEntry.summary)
+          ? [...existingEntry.summary]
+          : [],
+        technology: Array.isArray(existingEntry.technology)
+          ? [...existingEntry.technology]
+          : [],
+        url: existingEntry.url ?? null,
+        deleted: existingEntry.deleted ?? false,
+      },
+    };
+  } else {
+    isEdit.value = false;
+  }
+
   visible.value = true;
 };
 
@@ -176,6 +272,7 @@ const cancel = () => {
     data: {
       order: 0,
       eyebrow: null,
+      year: null,
       title: null,
       description: null,
       hero: null,
@@ -186,6 +283,7 @@ const cancel = () => {
       deleted: false,
     },
   };
+  isEdit.value = false;
 
   visible.value = false;
 };

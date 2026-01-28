@@ -1,4 +1,3 @@
-
 exports.getCollection = (data, context, firestore, collectionName) => {
   return firestore
       .collection(`${collectionName}/`)
@@ -67,22 +66,20 @@ exports.updateScrapbookDocumentOrder = async (data, context, firestore, collecti
   }
 };
 
-// exports.updateDocument = (data, context, firestore, collectionName) => {
-//   const {updates} = data; // 'updates' should be an array of objects with 'id' and 'data'
-//   const batch = firestore.batch();
-//
-//   updates.forEach((update) => {
-//     const docRef = firestore.collection(collectionName).doc(update.id);
-//     batch.set(docRef, update.data, {merge: true}); // Merge updates into existing data
-//   });
-//
-//   return batch
-//       .commit()
-//       .then(() => {
-//         return {success: true, message: "Collection updated successfully."};
-//       })
-//       .catch((error) => {
-//         console.error(`Error updating ${collectionName}:`, error);
-//         return {success: false, error: error.message};
-//       });
-// };
+exports.updateDocument = async (data, context, firestore, collectionName) => {
+  try {
+    if (!data || !data.document || !data.document.id) {
+      return {success: false, error: "Missing document id for update."};
+    }
+
+    const {id, data: documentData} = data.document;
+    const docRef = firestore.collection(collectionName).doc(id);
+
+    await docRef.set(documentData, {merge: true});
+
+    return {success: true, message: "Document updated successfully.", id: docRef.id};
+  } catch (error) {
+    console.error(`Error updating document in ${collectionName}:`, error);
+    return {success: false, error: error.message};
+  }
+};

@@ -18,7 +18,7 @@
       @end="onDragEnd"
     >
       <div
-        v-for="(row, key, index) in scrapbookItems"
+        v-for="(row, index) in scrapbookItems"
         :key="index"
         class="px-4 flex gap-4 text-left transition-standard"
         :class="{ 'hover:bg-gradient-start/10': !dragging }"
@@ -61,7 +61,7 @@
         </div>
         <template v-if="props.isAdmin">
           <td class="my-auto py-3 w-16">
-            <slot />
+            <slot :row="row" :index="index" />
           </td>
         </template>
       </div>
@@ -97,21 +97,43 @@ watch(
     if (!settingsStore.scrapbook) {
       scrapbookItems.value = [];
     } else {
-      scrapbookItems.value = Object.entries(settingsStore.scrapbook)
-        .filter(([item]) => !item.deleted) // Remove items marked as deleted
-        .map(([name, item]) => ({ name, ...item })); // Map to preserve the name
+      scrapbookItems.value = Object.entries(settingsStore.scrapbook).map(
+        ([name, item]) => ({ name, ...item })
+      ); // Preserve all items, including deleted
 
-      // Sorting logic based on whether the user is admin or not
       if (props.isAdmin) {
-        scrapbookItems.value.sort((a, b) => a.order - b.order); // Sort by order
-      } else {
+        // Admin view: active items first by order, then deleted ones by year desc, then order
         scrapbookItems.value.sort((a, b) => {
-          const yearComparison = b.year - a.year; // Sort by year (newest first)
+          const aDeleted = !!a.deleted;
+          const bDeleted = !!b.deleted;
+
+          if (aDeleted !== bDeleted) {
+            return aDeleted - bDeleted; // false (0) before true (1)
+          }
+
+          if (!aDeleted && !bDeleted) {
+            // Both active: sort by order
+            return (a.order || 0) - (b.order || 0);
+          }
+
+          // Both deleted: newest year first, then order
+          const yearComparison = (b.year || 0) - (a.year || 0);
           if (yearComparison !== 0) {
             return yearComparison;
           }
-          return a.order - b.order; // Then sort by order
+          return (a.order || 0) - (b.order || 0);
         });
+      } else {
+        // Public view: ignore deleted, same behavior as before
+        scrapbookItems.value = scrapbookItems.value
+          .filter((item) => !item.deleted)
+          .sort((a, b) => {
+            const yearComparison = (b.year || 0) - (a.year || 0); // Sort by year (newest first)
+            if (yearComparison !== 0) {
+              return yearComparison;
+            }
+            return (a.order || 0) - (b.order || 0); // Then sort by order
+          });
       }
     }
   },
@@ -126,6 +148,13 @@ const onDragEnd = async () => {
   });
 
   settingsStore.scrapbook = getUpdatedScrapbookObject();
+  // Persist updated order to localStorage cache as well
+  if (settingsStore.scrapbook) {
+    localStorage.setItem(
+      "scrapbookCache",
+      JSON.stringify(settingsStore.scrapbook)
+    );
+  }
   await firebaseStore.dataUpdateScrapbookDocumentOrder(settingsStore.scrapbook);
 };
 

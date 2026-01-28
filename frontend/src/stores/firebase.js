@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import { initializeApp, setLogLevel } from "firebase/app";
-
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
@@ -15,10 +14,6 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
-
-console.log("API Key:", import.meta.env.VITE_FIREBASE_API_KEY);
-
-
 const firebaseApp = initializeApp(firebaseConfig);
 
 // Initialize Firebase services
@@ -45,7 +40,7 @@ import { adminSignIn } from "./actions/admin/adminSignIn";
 import { dataGetCollection } from "./actions/data/dataGetCollection";
 import { dataCreateDocument } from "@/stores/actions/data/dataCreateDocument.js";
 import { dataUpdateScrapbookDocumentOrder } from "@/stores/actions/data/dataUpdateScrapbookDocumentOrder.js";
-// import { dataUpdateDcoument } from "./actions/data/dataUpdateDocument";
+import { dataUpdateDocument } from "@/stores/actions/data/dataUpdateDocument.js";
 
 export const useFirebaseStore = defineStore("firebase", {
   state: () => ({
@@ -65,10 +60,6 @@ export const useFirebaseStore = defineStore("firebase", {
         "resourcesCache"
       );
     },
-    // dataUpdateContentDocument(updates) {
-    //   return dataUpdateDocument(this.functions, "updateContent", updates);
-    // },
-
     dataGetScrapbookCollection() {
       return dataGetCollection(
         this.functions,
@@ -80,6 +71,13 @@ export const useFirebaseStore = defineStore("firebase", {
       return dataCreateDocument(
         this.functions,
         "createScrapbookDocument",
+        document
+      );
+    },
+    dataUpdateScrapbookDocument(document) {
+      return dataUpdateDocument(
+        this.functions,
+        "updateScrapbookDocument",
         document
       );
     },

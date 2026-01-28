@@ -11,17 +11,9 @@ const database = require("./functions/database");
 exports.getContentCollection = functions.https.onCall((data, context) => {
   return database.getCollection(data, context, firestore, "content");
 });
-// exports.updateContentDocument = functions.https.onCall((data, context) => {
-//   return database.updateDocument(data, context, firestore, "content");
-// });
-
 exports.getResourcesCollection = functions.https.onCall((data, context) => {
   return database.getCollection(data, context, firestore, "resources");
 });
-// exports.updateResourcesDocument = functions.https.onCall((data, context) => {
-//   return database.updateDocument(data, context, firestore, "resources");
-// });
-
 
 exports.getScrapbookCollection = functions.https.onCall((data, context) => {
   return database.getCollection(data, context, firestore, "scrapbook");
@@ -33,6 +25,6 @@ exports.updateScrapbookDocumentOrder = functions.https.onCall((data, context) =>
   console.log(data);
   return database.updateScrapbookDocumentOrder(data, context, firestore, "scrapbook");
 });
-// exports.updateScrapbookDocument = functions.https.onCall((data, context) => {
-//   return database.updateDocument(data, context, firestore, "scrapbook");
-// });
+exports.updateScrapbookDocument = functions.https.onCall((data, context) => {
+  return database.updateDocument(data, context, firestore, "scrapbook");
+});

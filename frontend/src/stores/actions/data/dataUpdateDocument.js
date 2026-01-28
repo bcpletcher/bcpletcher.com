@@ -1,9 +1,9 @@
 import { httpsCallable } from "firebase/functions";
 
-export async function dataUpdateDocument(functions, functionName, updates) {
+export async function dataUpdateDocument(functions, functionName, document) {
   try {
     const updateFunction = httpsCallable(functions, functionName);
-    const result = await updateFunction({ updates }); // Pass the updates as an object
+    const result = await updateFunction({ document });
     return result.data;
   } catch (error) {
     console.error(`Error updating ${functionName}:`, error);

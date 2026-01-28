@@ -47,7 +47,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import Sidebar from "@/components/navigation/sidebar.vue";
 import Notifications from "@/components/shared/notifications.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
@@ -90,8 +90,34 @@ onMounted(async () => {
 
   isMounted.value = true;
   window.addEventListener("mousemove", updateMousePosition);
+
+  // Hydrate scrapbook from localStorage first for faster initial render
+  const cachedScrapbook = localStorage.getItem("scrapbookCache");
+  if (cachedScrapbook) {
+    try {
+      settingsStore.scrapbook = JSON.parse(cachedScrapbook);
+    } catch (e) {
+      console.warn("Failed to parse scrapbookCache from localStorage", e);
+      localStorage.removeItem("scrapbookCache");
+    }
+  }
+
+  // Always fetch fresh data from Firestore and overwrite cache
   settingsStore.resources = await firebaseStore.dataGetResourcesCollection();
   settingsStore.scrapbook = await firebaseStore.dataGetScrapbookCollection();
+
+  // Keep scrapbook cached in localStorage whenever it changes
+  watch(
+    () => settingsStore.scrapbook,
+    (val) => {
+      if (val) {
+        localStorage.setItem("scrapbookCache", JSON.stringify(val));
+      } else {
+        localStorage.removeItem("scrapbookCache");
+      }
+    },
+    { deep: true, immediate: true }
+  );
 });
 onUnmounted(() => {
   window.removeEventListener("mousemove", updateMousePosition);
