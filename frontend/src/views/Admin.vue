@@ -53,7 +53,6 @@ const isReady = ref(false);
 onMounted(() => {
   firebaseStore.auth.onAuthStateChanged((user) => {
     if (user) {
-      console.log("User", user);
       settingsStore.user = user;
     } else {
       settingsStore.user = {};

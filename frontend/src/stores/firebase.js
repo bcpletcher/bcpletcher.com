@@ -15,8 +15,6 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-console.log("[FirebaseConfig]", firebaseConfig);
-
 if (!firebaseConfig.apiKey) {
   console.error(
     "[FirebaseConfig] Missing VITE_FIREBASE_API_KEY; Firebase Auth will fail."

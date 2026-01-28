@@ -3,7 +3,6 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 export async function adminSignIn(auth, email, password) {
   await signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
-      console.log(userCredential);
       return userCredential.user;
     })
     .catch((error) => {

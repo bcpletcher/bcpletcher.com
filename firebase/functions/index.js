@@ -22,7 +22,6 @@ exports.createScrapbookDocument = functions.https.onCall((data, context) => {
   return database.createDocument(data, context, firestore, "scrapbook");
 });
 exports.updateScrapbookDocumentOrder = functions.https.onCall((data, context) => {
-  console.log(data);
   return database.updateScrapbookDocumentOrder(data, context, firestore, "scrapbook");
 });
 exports.updateScrapbookDocument = functions.https.onCall((data, context) => {

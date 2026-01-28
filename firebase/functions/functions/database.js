@@ -32,7 +32,6 @@ exports.createDocument = async (data, context, firestore, collectionName) => {
 };
 
 exports.updateScrapbookDocumentOrder = async (data, context, firestore, collectionName) => {
-  console.log(data);
   try {
     // Fetch all documents in the collection
     const snapshot = await firestore.collection(collectionName).get();
