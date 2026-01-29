@@ -4,7 +4,9 @@
     :title="isEdit ? 'Edit Entry' : 'Create Entry'"
     @close="visible = false"
   >
-    <div class="flex flex-col gap-2">
+    <div
+      class="flex flex-col gap-2 max-h-[70vh] pr-2 overflow-y-auto scrollbar-thin scrollbar-thumb-gradient-start scrollbar-track-black/30"
+    >
       <tw-input-group
         :value="documentModel.id"
         label="Id"
@@ -37,69 +39,115 @@
         label="Site URL"
         @update-value="documentModel.data.url = $event"
       />
-      <tw-input-group
-        :value="documentModel.data.hero"
-        label="Hero Image URL"
-        @update-value="documentModel.data.hero = $event"
-      />
+
       <div class="flex flex-col">
         <div class="flex justify-between py-1">
           <label class="my-auto">Images</label>
-          <button
-            class="rounded-full w-6 h-6 border-2 border-font-primary flex flex-col justify-center hover:border-gradient-start hover:text-gradient-start transition-standard"
-            @click="documentModel.data.images.push(null)"
-          >
-            <i class="far fa-plus mx-auto"></i>
-          </button>
         </div>
 
         <div
-          v-for="(item, index) in documentModel.data.images"
-          :key="index"
-          class="flex gap-2"
+          class="mb-2 border-2 border-dashed border-font-primary/40 rounded-lg bg-black/20 hover:border-gradient-start hover:bg-gradient-start/10 transition-standard cursor-pointer flex flex-col items-center justify-center px-4 py-4 text-center"
+          @click="fileInputRef?.click()"
+          @dragover.prevent
+          @dragenter.prevent
+          @drop.prevent="onImageFilesDropped($event)"
         >
-          <tw-input-group
-            :value="item"
-            class="flex-1"
-            @update-value="documentModel.data.images[index] = $event"
+          <input
+            ref="fileInputRef"
+            type="file"
+            accept="image/*"
+            multiple
+            class="hidden"
+            @change="onImageFilesSelected($event)"
           />
-          <button
-            class="w-6 flex flex-col justify-center text-red-500 transition-standard my-auto pt-1"
-            @click="removeImage(index, 'images')"
-          >
-            <i class="far fa-minus mx-auto text-2xl"></i>
-          </button>
-        </div>
-      </div>
-      <div class="flex flex-col">
-        <div class="flex justify-between py-1">
-          <label class="my-auto">Summary</label>
-          <button
-            class="rounded-full w-6 h-6 border-2 border-font-primary flex flex-col justify-center hover:border-gradient-start hover:text-gradient-start transition-standard"
-            @click="documentModel.data.summary.push(null)"
-          >
-            <i class="far fa-plus mx-auto"></i>
-          </button>
+          <p class="text-sm text-font-primary mb-1">
+            Drag & drop images here, or
+            <span class="text-gradient-start">click to browse</span>
+          </p>
+          <p class="text-xs text-font-primary/60">
+            (1080x1920 .webp recommended)
+          </p>
         </div>
 
-        <div
-          v-for="(item, index) in documentModel.data.summary"
-          :key="index"
-          class="flex gap-2"
+        <VueDraggableNext
+          v-model="documentModel.data.images"
+          :disabled="documentModel.data.images.length < 2 || isSubmitting"
+          class="grid grid-cols-3 gap-4"
         >
-          <tw-input-group
-            :value="item"
-            class="flex-1"
-            @update-value="documentModel.data.summary[index] = $event"
-          />
-          <button
-            class="w-6 flex flex-col justify-center text-red-500 transition-standard my-auto pt-1"
-            @click="removeImage(index, 'summary')"
+          <div
+            v-for="(item, index) in documentModel.data.images"
+            :key="`committed-${index}`"
+            class="relative group cursor-move rounded-lg overflow-hidden bg-black/20"
           >
-            <i class="far fa-minus mx-auto text-2xl"></i>
-          </button>
+            <div
+              class="w-full aspect-video flex-shrink-0 bg-black/30 flex items-center justify-center transition-opacity duration-200 group-hover:opacity-60"
+            >
+              <img
+                :src="item"
+                alt="Preview"
+                class="w-full h-full object-cover"
+              />
+            </div>
+
+            <!-- Featured star: always visible when active, hover-only when inactive -->
+            <button
+              class="absolute top-2 left-2 pointer-events-auto w-7 h-7 flex items-center justify-center bg-black/70 rounded-full transition-opacity duration-200"
+              :class="[
+                documentModel.data.hero === item
+                  ? 'text-yellow-400 opacity-100'
+                  : 'text-white opacity-0 group-hover:opacity-100',
+              ]"
+              type="button"
+              @click.stop="setHeroImage(item)"
+            >
+              <i
+                :class="
+                  documentModel.data.hero === item
+                    ? 'fa-solid fa-star'
+                    : 'fa-regular fa-star'
+                "
+              ></i>
+            </button>
+
+            <!-- Delete: hover-only -->
+            <button
+              class="absolute top-2 right-2 pointer-events-auto w-7 h-7 flex flex-col justify-center text-red-500 bg-black/70 rounded-full transition-standard flex-shrink-0 opacity-0 group-hover:opacity-100"
+              type="button"
+              @click.stop="queueRemoval(index, 'images')"
+            >
+              <i class="far fa-minus mx-auto text-xl"></i>
+            </button>
+          </div>
+        </VueDraggableNext>
+
+        <!-- Pending (not yet uploaded) image previews -->
+        <div
+          v-if="!isSubmitting && pendingFiles.length"
+          class="grid grid-cols-3 gap-4 mt-2 opacity-80"
+        >
+          <div
+            v-for="(pending, pIndex) in pendingFiles"
+            :key="`pending-${pIndex}`"
+            class="relative rounded-lg overflow-hidden bg-black/20"
+          >
+            <div
+              class="w-full aspect-video bg-black/30 flex items-center justify-center"
+            >
+              <img
+                :src="pending.previewUrl"
+                alt="Pending preview"
+                class="w-full h-full object-cover opacity-80"
+              />
+            </div>
+            <div
+              class="absolute bottom-2 left-2 px-2 py-1 text-[10px] uppercase tracking-wide bg-black/70 text-white rounded-full"
+            >
+              Pending
+            </div>
+          </div>
         </div>
       </div>
+
       <div class="flex flex-col">
         <div class="flex justify-between py-1">
           <label class="my-auto">Technology</label>
@@ -132,9 +180,16 @@
     </div>
     <template #footer>
       <div class="flex justify-end gap-4">
-        <button class="btn-secondary" @click="cancel">Cancel</button>
-        <button class="btn-primary" @click="submit">
-          {{ isEdit ? "Update" : "Submit" }}
+        <button
+          class="btn-secondary"
+          :disabled="isSubmitting"
+          @click="cancel"
+        >
+          Cancel
+        </button>
+        <button class="btn-primary" :disabled="isSubmitting" @click="submit">
+          <span v-if="isSubmitting">{{ isEdit ? "Updating..." : "Submitting..." }}</span>
+          <span v-else>{{ isEdit ? "Update" : "Submit" }}</span>
         </button>
       </div>
     </template>
@@ -146,14 +201,15 @@ import Modal from "@/components/shared/modal.vue";
 import TwInputGroup from "@/components/shared/tw-input-group.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
+import { VueDraggableNext } from "vue-draggable-next";
 
 const settingsStore = useSettingsStore();
-
 const firebaseStore = useFirebaseStore();
 const visible = ref(false);
 const isEdit = ref(false);
+const isSubmitting = ref(false);
 
-const documentModel = ref({
+const emptyDocument = () => ({
   id: null,
   data: {
     order: 0,
@@ -162,79 +218,232 @@ const documentModel = ref({
     title: null,
     description: null,
     hero: null,
-    images: [],
-    summary: [],
+    images: [], // committed image URLs only
     technology: [],
     url: null,
     deleted: false,
   },
 });
+
+const documentModel = ref(emptyDocument());
+
+const pendingRemovals = ref({
+  images: [],
+  technology: [],
+});
+
+// Track new files selected in this session (not yet uploaded)
+const pendingFiles = ref([]); // { file: File, previewUrl: string }
+
+const fileInputRef = ref(null);
+
+const setHeroImage = (url) => {
+  // If this image is already the hero, do nothing (don't allow unselecting)
+  if (documentModel.value.data.hero === url) return;
+
+  documentModel.value.data.hero = url;
+
+  const images = documentModel.value.data.images;
+  const index = images.indexOf(url);
+  if (index > 0) {
+    images.splice(index, 1);
+    images.unshift(url);
+  }
+};
+
+const queueRemoval = (index, key) => {
+  const arr = documentModel.value.data[key];
+  const value = arr[index];
+
+  if (key === "images" && value) {
+    pendingRemovals.value.images.push(value);
+    if (documentModel.value.data.hero === value) {
+      documentModel.value.data.hero = null;
+    }
+  }
+
+  arr.splice(index, 1);
+};
+
+// removeImage is no longer used in the template; keep a simple helper for non-image lists if needed
 const removeImage = (index, key) => {
   documentModel.value.data[key].splice(index, 1);
 };
-const submit = async () => {
-  if (
-    documentModel.value.data.year !== null &&
-    documentModel.value.data.year !== ""
-  ) {
-    const yearNumber = Number(documentModel.value.data.year);
-    if (!Number.isNaN(yearNumber)) {
-      documentModel.value.data.year = yearNumber;
-    }
-  }
 
-  ["images", "summary", "technology"].forEach((key) => {
-    if (Array.isArray(documentModel.value.data[key])) {
-      documentModel.value.data[key] = documentModel.value.data[key].filter(
-        (v) => v !== null && v !== undefined && v !== ""
-      );
-    }
+const onImageFilesDropped = async (event) => {
+  const files = Array.from(event.dataTransfer?.files || []).filter((file) =>
+    file.type.startsWith("image/")
+  );
+  if (!files.length) return;
+
+  console.log(
+    "Files dropped:",
+    files.map((f) => f.name)
+  );
+  addPendingFiles(files);
+};
+
+const onImageFilesSelected = async (event) => {
+  const files = Array.from(event.target.files || event.target?.files || []);
+  if (!files.length) return;
+
+  console.log(
+    "Files selected:",
+    files.map((f) => f.name)
+  );
+  addPendingFiles(files);
+
+  if (event.target) event.target.value = "";
+};
+
+const addPendingFiles = (files) => {
+  files.forEach((file) => {
+    const previewUrl = URL.createObjectURL(file);
+    pendingFiles.value.push({ file, previewUrl });
   });
+  console.log(
+    "Pending files queue:",
+    pendingFiles.value.map((p) => p.file.name)
+  );
+};
 
-  if (isEdit.value) {
-    const payload = documentModel.value;
-    await firebaseStore.dataUpdateScrapbookDocument(payload);
+const submit = async () => {
+  if (isSubmitting.value) return;
+  isSubmitting.value = true;
 
-    // Update local cache so UI reflects the change immediately
-    if (settingsStore.scrapbook && payload.id) {
-      settingsStore.scrapbook = {
-        ...settingsStore.scrapbook,
-        [payload.id]: {
-          ...(settingsStore.scrapbook[payload.id] || {}),
-          ...payload.data,
-        },
-      };
-      localStorage.setItem(
-        "scrapbookCache",
-        JSON.stringify(settingsStore.scrapbook)
-      );
+  try {
+    if (
+      documentModel.value.data.year !== null &&
+      documentModel.value.data.year !== ""
+    ) {
+      const yearNumber = Number(documentModel.value.data.year);
+      if (!Number.isNaN(yearNumber)) {
+        documentModel.value.data.year = yearNumber;
+      }
     }
-  } else {
-    documentModel.value.order = settingsStore.scrapbook
-      ? Object.keys(settingsStore.scrapbook).length + 1
-      : 0;
 
-    const payload = documentModel.value;
-    const result = await firebaseStore.dataCreateScrapbookDocument(payload);
+    // Upload any pending files first
+    if (pendingFiles.value.length) {
+      const entryId = documentModel.value.id;
+      if (!entryId) {
+        alert("Please set an Id before uploading images.");
+        isSubmitting.value = false;
+        return;
+      }
 
-    // If create succeeded and we got an id back, update cache as well
-    const newId = (result && result.id) || payload.id;
-    if (newId) {
-      settingsStore.scrapbook = {
-        ...(settingsStore.scrapbook || {}),
-        [newId]: payload.data,
-      };
-      localStorage.setItem(
-        "scrapbookCache",
-        JSON.stringify(settingsStore.scrapbook)
-      );
+      const existingCount = Array.isArray(documentModel.value.data.images)
+        ? documentModel.value.data.images.length
+        : 0;
+
+      try {
+        const files = pendingFiles.value.map((p) => p.file);
+        const urls = await firebaseStore.uploadScrapbookImages(
+          entryId,
+          files,
+          existingCount
+        );
+        documentModel.value.data.images.push(...urls);
+      } catch (e) {
+        console.error("Failed to upload images", e);
+        alert("Failed to upload one or more images. Please try again.");
+        isSubmitting.value = false;
+        return;
+      }
     }
+
+    ["images", "technology"].forEach((key) => {
+      if (Array.isArray(documentModel.value.data[key])) {
+        documentModel.value.data[key] = documentModel.value.data[key].filter(
+          (v) => v !== null && v !== undefined && v !== ""
+        );
+      }
+    });
+
+    if (isEdit.value) {
+      const payload = documentModel.value;
+      await firebaseStore.dataUpdateScrapbookDocument(payload);
+
+      if (pendingRemovals.value.images.length) {
+        await Promise.all(
+          pendingRemovals.value.images.map((url) =>
+            firebaseStore.deleteScrapbookImageByUrl(url)
+          )
+        );
+        pendingRemovals.value.images = [];
+      }
+
+      if (settingsStore.scrapbook && payload.id) {
+        settingsStore.scrapbook = {
+          ...settingsStore.scrapbook,
+          [payload.id]: {
+            ...(settingsStore.scrapbook[payload.id] || {}),
+            ...payload.data,
+          },
+        };
+        localStorage.setItem(
+          "scrapbookCache",
+          JSON.stringify(settingsStore.scrapbook)
+        );
+      }
+    } else {
+      documentModel.value.order = settingsStore.scrapbook
+        ? Object.keys(settingsStore.scrapbook).length + 1
+        : 0;
+
+      const payload = documentModel.value;
+      const result = await firebaseStore.dataCreateScrapbookDocument(payload);
+
+      const newId = (result && result.id) || payload.id;
+      if (newId) {
+        settingsStore.scrapbook = {
+          ...(settingsStore.scrapbook || {}),
+          [newId]: payload.data,
+        };
+        localStorage.setItem(
+          "scrapbookCache",
+          JSON.stringify(settingsStore.scrapbook)
+        );
+      }
+
+      if (pendingRemovals.value.images.length) {
+        try {
+          await Promise.all(
+            pendingRemovals.value.images.map((url) =>
+              firebaseStore.deleteScrapbookImageByUrl(url)
+            )
+          );
+        } catch (e) {
+          console.error("Failed to delete one or more removed images", e);
+        }
+        pendingRemovals.value.images = [];
+      }
+    }
+
+    console.log("Submit complete for entry:", documentModel.value.id);
+
+    cancel();
+  } finally {
+    isSubmitting.value = false;
   }
+};
 
-  cancel();
+const resetState = () => {
+  documentModel.value = emptyDocument();
+  isEdit.value = false;
+  pendingRemovals.value.images = [];
+  pendingRemovals.value.technology = [];
+
+  pendingFiles.value.forEach(({ previewUrl }) => {
+    URL.revokeObjectURL(previewUrl);
+  });
+  pendingFiles.value = [];
+
+  isSubmitting.value = false;
 };
 
 const showModal = async (existingEntry) => {
+  resetState();
+
   if (existingEntry) {
     isEdit.value = true;
     documentModel.value = {
@@ -249,9 +458,6 @@ const showModal = async (existingEntry) => {
         images: Array.isArray(existingEntry.images)
           ? [...existingEntry.images]
           : [],
-        summary: Array.isArray(existingEntry.summary)
-          ? [...existingEntry.summary]
-          : [],
         technology: Array.isArray(existingEntry.technology)
           ? [...existingEntry.technology]
           : [],
@@ -259,37 +465,18 @@ const showModal = async (existingEntry) => {
         deleted: existingEntry.deleted ?? false,
       },
     };
-  } else {
-    isEdit.value = false;
   }
 
   visible.value = true;
 };
 
 const cancel = () => {
-  documentModel.value = {
-    id: null,
-    data: {
-      order: 0,
-      eyebrow: null,
-      year: null,
-      title: null,
-      description: null,
-      hero: null,
-      images: [],
-      summary: [],
-      technology: [],
-      url: null,
-      deleted: false,
-    },
-  };
-  isEdit.value = false;
-
   visible.value = false;
+  resetState();
 };
 
 onBeforeUnmount(() => {
-  cancel();
+  resetState();
 });
 
 defineExpose({

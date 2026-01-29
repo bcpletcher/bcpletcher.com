@@ -107,14 +107,12 @@ const props = defineProps({
   description: { type: String, default: "" },
   reversed: { type: Boolean, default: false },
   technology: { type: Array, default: () => [] },
-  summary: { type: Array, default: () => [] },
   images: { type: Array, default: () => [] },
 });
 
 const showSlideshowModal = () => {
   slideshowModalRef.value.showModal({
     images: props.images,
-    summary: props.summary,
   });
 };
 </script>

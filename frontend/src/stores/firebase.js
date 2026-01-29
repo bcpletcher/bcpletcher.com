@@ -2,8 +2,14 @@ import { defineStore } from "pinia";
 import { initializeApp, setLogLevel } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
+import {
+  ref as storageRef,
+  getStorage,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -94,6 +100,34 @@ export const useFirebaseStore = defineStore("firebase", {
         "updateScrapbookDocumentOrder",
         documents
       );
+    },
+    async uploadScrapbookImages(entryId, files, existingCount = 0) {
+      if (!entryId) {
+        throw new Error("uploadScrapbookImages requires a valid entryId");
+      }
+      const uploadedUrls = [];
+      let index = existingCount;
+      for (const file of files) {
+        index += 1;
+        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+        const padded = String(index).padStart(3, "0");
+        const filename = `${entryId}_${padded}.${ext}`;
+        const path = `Scrapbook/${entryId}/${filename}`;
+        const ref = storageRef(this.storage, path);
+        await uploadBytes(ref, file);
+        const url = await getDownloadURL(ref);
+        uploadedUrls.push(url);
+      }
+      return uploadedUrls;
+    },
+    async deleteScrapbookImageByUrl(url) {
+      if (!url) return;
+      try {
+        const ref = storageRef(this.storage, url);
+        await deleteObject(ref);
+      } catch (e) {
+        console.error("Failed to delete scrapbook image from storage", e);
+      }
     },
   },
 });

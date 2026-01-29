@@ -8,10 +8,7 @@
       >
         {{ props.label }}
       </label>
-      <div
-        class="mt-1 flex rounded-md"
-        :class="props.disabled ? 'opacity-40' : 'shadow-sm'"
-      >
+      <div class="mt-1 flex rounded-md">
         <span
           v-if="
             props.trailingIcon !== '' && props.trailingIconAlignment === 'left'
@@ -30,6 +27,10 @@
             :type="props.type"
             :class="[
               {
+                'cursor-not-allowed  text-gray-500':
+                  props.disabled,
+              },
+              {
                 'pr-10 border-red-300! focus:border-red-500 dark:border-red-700! dark:focus:border-red-500 ':
                   props.invalid,
               },
@@ -41,7 +42,7 @@
               props.backgroundColor,
               props.borderColor,
             ]"
-            class="w-full py-1.5 px-2 border placeholder-gray-300 focus-ring-offset-primary ring-offset-primary text-sm text-black"
+            class="w-full py-1.5 px-2 border border-base-border placeholder-gray-300 focus-ring-offset-primary ring-offset-primary text-sm bg-gray-800 text-white"
             @keyup.enter="$emit('enterEvent')"
           />
           <div

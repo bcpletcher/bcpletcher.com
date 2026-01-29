@@ -4,6 +4,7 @@
     class="relative transition-[margin,width] ease-in-out duration-500 bg-base-sidebar border-base-border"
     :class="[animationClasses, viewportClasses]"
   >
+    <!--    NAVIGATION TOGGLE-->
     <div v-if="showMobile" class="absolute z-20">
       <div class="ml-20 triangle"></div>
 
@@ -11,13 +12,13 @@
         <trigger @click="navClick()" />
       </div>
     </div>
-
     <div v-else class="h-full flex flex-col justify-center">
       <div class="flex items-center justify-center" @click="navClick()">
         <trigger />
       </div>
     </div>
 
+    <!--    ALTERNATIVE VIEW DISPLAY TOGGLE-->
     <transition name="fade" class="z-10">
       <div
         v-if="path === '/scrapbook' && !settingsStore.expanded"
@@ -39,10 +40,12 @@
         </div>
       </div>
     </transition>
-    <transition v-if="isBreakpointOrBelow('md')" name="fade" class="z-10">
+
+    <!--    BACK TO TOP-->
+    <transition v-if="isBreakpointOrBelow('md')" name="fade" class="z-20">
       <div
         v-if="path !== '/' && !settingsStore.expanded"
-        class="absolute top-3 left-0 right-0 w-screen flex justify-center"
+        class="absolute top-3 left-[calc(50vw-80px)] flex justify-center"
       >
         <router-link :to="{ path: '/' }" custom>
           <template #default="{ navigate }">

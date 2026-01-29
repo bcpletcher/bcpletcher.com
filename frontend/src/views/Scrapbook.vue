@@ -4,29 +4,32 @@
     :class="[isReady ? 'opacity-100' : 'opacity-0']"
   >
     <base-layout :show-footer="false" :show-header="false">
-      <div class="max-w-[1000px] mx-auto md:py-8">
-        <div
-          v-if="!settingsStore.alternativeDisplay"
-          class="flex flex-col gap-8 md:gap-16 pr-8"
-        >
-          <template v-for="(item, key, index) in sortedScrapbook" :key="index">
-            <reflection
-              :reversed="key % 2 === 0"
-              :hero="item.hero"
-              :eyebrow="item.eyebrow"
-              :title="item.title"
-              :description="item.description"
-              :technology="item.technology"
-              :images="item.images"
-              :summary="item.summary"
-              :url="item.url"
-            />
-          </template>
+      <template v-if="settingsStore.alternativeDisplay">
+        <div class="max-w-[1000px] mx-auto md:py-8">
+          <div class="flex flex-col gap-8 md:gap-16 pr-8">
+            <scrapbook-table />
+          </div>
         </div>
-        <div v-else class="flex flex-col gap-8 md:gap-16 pr-8">
-          <scrapbook-table />
+      </template>
+
+      <template v-else>
+        <div class="max-w-[1000px] mx-auto md:py-8">
+          <div class="flex flex-col gap-8 md:gap-16 pr-8">
+            <template v-for="(item, key) in sortedScrapbook" :key="key">
+              <reflection
+                :reversed="key % 2 === 0"
+                :hero="item.hero"
+                :eyebrow="item.eyebrow"
+                :title="item.title"
+                :description="item.description"
+                :technology="item.technology"
+                :images="item.images"
+                :url="item.url"
+              />
+            </template>
+          </div>
         </div>
-      </div>
+      </template>
     </base-layout>
   </div>
 </template>

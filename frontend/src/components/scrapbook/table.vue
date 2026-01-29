@@ -1,13 +1,18 @@
 <template>
   <div>
     <div class="px-4 flex gap-4 text-font-primary/80 text-left">
-      <label v-if="props.isAdmin" class="font-bold py-3 w-16"> Order </label>
+      <label v-if="props.isAdmin" class="font-bold py-3 w-6"></label>
       <label class="font-bold py-3 w-16">Year</label>
       <label class="font-bold py-3 flex-1">Title</label>
-      <template v-if="!isBreakpointOrBelow('md')">
-        <label class="font-bold py-3 w-1/4"> Made At </label>
-        <label class="font-bold py-3 w-1/4"> Built With </label>
-      </template>
+      <label v-if="!isBreakpointOrBelow('md')" class="font-bold py-3 w-1/4">
+        Made At
+      </label>
+      <label
+        v-if="!isBreakpointOrBelow('md') && !props.isAdmin"
+        class="font-bold py-3 w-1/4"
+      >
+        Built With
+      </label>
       <label class="font-bold py-3 w-14"></label>
       <label v-if="props.isAdmin" class="font-bold py-3 w-16" />
     </div>
@@ -20,15 +25,21 @@
       <div
         v-for="(row, index) in scrapbookItems"
         :key="index"
-        class="px-4 flex gap-4 text-left transition-standard"
-        :class="{ 'hover:bg-gradient-start/10': !dragging }"
+        class="px-4 flex gap-4 text-left transition-standard items-stretch"
+        :class="[
+          { 'hover:bg-gradient-start/10': !dragging },
+          props.isAdmin
+            ? 'rounded-lg border border-base-border/40 mb-1 bg-black/10'
+            : '',
+        ]"
       >
-        <label
+        <!-- Drag handle (admin only) -->
+        <div
           v-if="props.isAdmin"
-          class="my-auto py-3 font-bold text-font-primary/80 w-16"
+          class="w-6 my-auto py-3 flex items-center justify-center cursor-move text-font-primary/60"
         >
-          {{ row.order }}
-        </label>
+          <i class="fa-solid fa-grip-vertical text-xs"></i>
+        </div>
         <label class="my-auto py-3 font-bold text-font-secondary w-16">
           {{ row.year }}
         </label>
@@ -39,6 +50,8 @@
           <label class="my-auto py-3 text-font-primary/80 w-1/4">
             {{ row.eyebrow }}
           </label>
+        </template>
+        <template v-if="!isBreakpointOrBelow('md') && !props.isAdmin">
           <label class="my-auto py-3 text-font-primary/80 w-1/4">
             {{ row.technology.join(", ") }}
           </label>
@@ -169,7 +182,6 @@ const getUpdatedScrapbookObject = () => {
 const showSlideshowModal = (row) => {
   slideshowModalRef.value.showModal({
     images: row.images,
-    summary: row.summary,
   });
 };
 onMounted(() => {});
