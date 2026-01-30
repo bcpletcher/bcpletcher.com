@@ -7,13 +7,13 @@
     <div class="my-16 h-px w-full bg-white/10" />
 
     <section id="experience" class="scroll-mt-24" :data-section="true">
-      <WorkExperience />
+      <ExperienceSection />
     </section>
 
     <div class="my-16 h-px w-full bg-white/10" />
 
     <section id="projects" class="scroll-mt-24" :data-section="true">
-      <Projects />
+      <ProjectsSection />
     </section>
 
     <div class="text-sm text-slate-500 max-w-lg mt-32 flex gap-4">
@@ -84,9 +84,9 @@
 </template>
 
 <script setup>
-import AboutSection from "@/components/home/content/AboutSection.vue";
-import WorkExperience from "@/components/home/content/WorkExperience.vue";
-import Projects from "@/components/home/content/Projects.vue";
+import AboutSection from "@/components/home/content/about.vue";
+import ExperienceSection from "@/components/home/content/experience.vue";
+import ProjectsSection from "@/components/home/content/Projects.vue";
 import { ref } from "vue";
 import router from "@/router/index.js";
 

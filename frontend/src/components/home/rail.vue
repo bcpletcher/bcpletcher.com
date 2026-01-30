@@ -21,7 +21,7 @@
           </p>
         </div>
 
-        <RailNav
+        <Navigation
           variant="desktop"
           :nav-items="navItems"
           :active-section-id="activeSectionId"
@@ -65,7 +65,7 @@
         {{ description }}
       </p>
 
-      <RailNav
+      <Navigation
         variant="mobile"
         :nav-items="navItems"
         :active-section-id="activeSectionId"
@@ -80,8 +80,8 @@ import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useScrollSpy } from "@/composables/useScrollSpy.js";
 
-import RailNav from "@/components/home/rail/RailNav.vue";
-import SocialLinks from "@/components/home/rail/SocialLinks.vue";
+import Navigation from "@/components/home/rail/navigation.vue";
+import SocialLinks from "@/components/home/rail/social-links.vue";
 
 const name = "Benjamin Pletcher";
 const title = "Senior Frontend Engineer";
@@ -101,51 +101,75 @@ const { activeSectionId, scrollTo } = useScrollSpy({
   root: null,
 });
 
-const suppressSpyUntil = ref(0);
-const suppressFor = (ms = 700) => {
-  suppressSpyUntil.value = Date.now() + ms;
+// Track programmatic scroll so we can avoid clearing hash immediately.
+const lastProgrammaticScrollAt = ref(0);
+const markProgrammaticScroll = () => {
+  lastProgrammaticScrollAt.value = Date.now();
+};
+const isProgrammaticScroll = () =>
+  Date.now() - lastProgrammaticScrollAt.value < 900;
+
+const suppressHashClearingUntil = ref(0);
+const suppressHashClearingFor = (ms = 900) => {
+  suppressHashClearingUntil.value = Date.now() + ms;
 };
 
 const normalizeHash = (hash) => {
   const raw = (hash || "").replace(/^#/, "");
   const ids = new Set(props.navItems.map((n) => n.id));
-  return ids.has(raw) ? raw : props.navItems[0]?.id;
+  return ids.has(raw) ? raw : null;
 };
 
-const syncHashToActive = (id) => {
-  if (!id) return;
-  const hash = `#${id}`;
-  if (route.hash === hash) return;
-  router.replace({ hash }).catch(() => {});
+const setHash = async (id) => {
+  return router.push({ hash: `#${id}` }).catch(() => {});
 };
 
-const onNav = (id) => {
-  suppressFor();
-  syncHashToActive(id);
+const clearHash = () => {
+  if (!route.hash) return;
+  router.replace({ hash: "" }).catch(() => {});
+};
+
+const onNav = async (id) => {
+  // Clicking nav is the only time we keep the hash in the URL.
+  suppressHashClearingFor(1200);
+  markProgrammaticScroll();
+
+  await setHash(id);
   scrollTo(id);
 };
 
-// Keep the URL synced as the user scrolls.
-watch(
-  () => activeSectionId.value,
-  (id) => {
-    if (!id) return;
-    if (Date.now() < suppressSpyUntil.value) return;
-    syncHashToActive(id);
-  }
-);
+// If user scrolls manually, remove any hash (we don't want hashes during scroll).
+const onUserScroll = () => {
+  if (Date.now() < suppressHashClearingUntil.value) return;
+  if (isProgrammaticScroll()) return;
+  clearHash();
+};
 
-// If the hash changes (back/forward), scroll to it.
+// If the URL hash changes (initial load, back/forward, pasted URL),
+// scroll to the section and then remove the hash from the URL.
 watch(
   () => route.hash,
-  (hash) => {
+  async (hash, prevHash) => {
     const id = normalizeHash(hash);
     if (!id) return;
-    if (id === activeSectionId.value) return;
 
-    suppressFor();
-    scrollTo(id);
-  }
+    // If it didn't actually change, ignore.
+    if (hash === prevHash) return;
+
+    // IMPORTANT: if the hash was set by our own nav click, do NOT auto-clear it.
+    if (isProgrammaticScroll()) return;
+
+    suppressHashClearingFor(1200);
+    markProgrammaticScroll();
+
+    // Let layout settle before scrolling.
+    await nextTick();
+    scrollTo(id, { behavior: "auto" });
+
+    // Remove the hash after we've jumped.
+    clearHash();
+  },
+  { immediate: true }
 );
 
 // Rail positioning
@@ -184,6 +208,7 @@ onMounted(async () => {
     passive: true,
     capture: true,
   });
+  window.addEventListener("scroll", onUserScroll, { passive: true });
 
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", scheduleMeasure, {
@@ -199,7 +224,7 @@ onMounted(async () => {
   // If user lands on /#experience etc., jump there.
   const initial = normalizeHash(route.hash);
   if (initial) {
-    suppressFor(900);
+    suppressHashClearingFor(900);
     scrollTo(initial, { behavior: "auto" });
   }
 });
@@ -207,6 +232,7 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener("resize", scheduleMeasure);
   window.removeEventListener("scroll", scheduleMeasure, true);
+  window.removeEventListener("scroll", onUserScroll);
 
   if (window.visualViewport) {
     window.visualViewport.removeEventListener("resize", scheduleMeasure);
