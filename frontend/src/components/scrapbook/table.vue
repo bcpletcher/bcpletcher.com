@@ -1,101 +1,60 @@
 <template>
   <div>
     <div class="px-4 flex gap-4 text-font-primary/80 text-left">
-      <label v-if="props.isAdmin" class="font-bold py-3 w-6"></label>
-      <label class="font-bold py-3 w-16">Year</label>
-      <label class="font-bold py-3 flex-1">Title</label>
-      <label v-if="!isBreakpointOrBelow('md')" class="font-bold py-3 w-1/4">
-        Made At
-      </label>
-      <label
-        v-if="!isBreakpointOrBelow('md') && !props.isAdmin"
-        class="font-bold py-3 w-1/4"
-      >
-        Built With
-      </label>
-      <label class="font-bold py-3 w-14"></label>
-      <label v-if="props.isAdmin" class="font-bold py-3 w-16" />
+      <template v-for="col in visibleColumns" :key="col.key">
+        <label
+          v-if="col.type === 'header'"
+          class="font-bold py-3"
+          :class="col.widthClass"
+        >
+          {{ col.label }}
+        </label>
+        <label
+          v-else-if="col.type === 'spacer'"
+          class="font-bold py-3"
+          :class="col.widthClass"
+        />
+      </template>
     </div>
     <VueDraggableNext
       v-model="scrapbookItems"
       :disabled="!props.isAdmin"
+      :move="onMove"
       @start="dragging = true"
       @end="onDragEnd"
     >
-      <div
+      <ScrapbookTableRow
         v-for="(row, index) in scrapbookItems"
-        :key="index"
-        class="px-4 flex gap-4 text-left transition-standard items-stretch"
-        :class="[
-          { 'hover:bg-gradient-start/10': !dragging },
-          props.isAdmin
-            ? 'rounded-lg border border-base-border/40 mb-1 bg-black/10'
-            : '',
-        ]"
+        :key="row.name || index"
+        :row="row"
+        :index="index"
+        :is-admin="props.isAdmin"
+        :is-mobile="isBreakpointOrBelow('md')"
+        :is-dragging="dragging"
+        :columns="visibleColumns"
+        @show-slideshow="showSlideshowModal"
       >
-        <!-- Drag handle (admin only) -->
-        <div
-          v-if="props.isAdmin"
-          class="w-6 my-auto py-3 flex items-center justify-center cursor-move text-font-primary/60"
-        >
-          <i class="fa-solid fa-grip-vertical text-xs"></i>
-        </div>
-        <label class="my-auto py-3 font-bold text-font-secondary w-16">
-          {{ row.year }}
-        </label>
-        <label class="my-auto py-3 font-bold text-font-primary flex-1">
-          {{ row.title }}
-        </label>
-        <template v-if="!isBreakpointOrBelow('md')">
-          <label class="my-auto py-3 text-font-primary/80 w-1/4">
-            {{ row.eyebrow }}
-          </label>
+        <template #admin-actions="slotProps">
+          <slot :row="slotProps.row" :index="slotProps.index" />
         </template>
-        <template v-if="!isBreakpointOrBelow('md') && !props.isAdmin">
-          <label class="my-auto py-3 text-font-primary/80 w-1/4">
-            {{ row.technology.join(", ") }}
-          </label>
-        </template>
-        <div class="flex gap-4 my-auto py-3 w-14">
-          <button
-            class="text-font-primary/80 hover:text-gradient-start transition-standard"
-            @click="showSlideshowModal(row)"
-          >
-            <i class="fa-regular fa-images"></i>
-          </button>
-          <a
-            v-if="row.url"
-            :href="row.url"
-            target="_blank"
-            class="text-font-primary/80 hover:text-gradient-start transition-standard"
-          >
-            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-          </a>
-        </div>
-        <template v-if="props.isAdmin">
-          <td class="my-auto py-3 w-16">
-            <slot :row="row" :index="index" />
-          </td>
-        </template>
-      </div>
+      </ScrapbookTableRow>
     </VueDraggableNext>
     <SlideshowModal ref="slideshowModalRef" />
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import SlideshowModal from "@/components/scrapbook/slideshow-modal.vue";
 import { useSettingsStore } from "@/stores/settings.js";
 import { useFirebaseStore } from "@/stores/firebase.js";
+import { useBreakpoints } from "@/composables/breakpoints.js";
+import { VueDraggableNext } from "vue-draggable-next";
+import ScrapbookTableRow from "@/components/scrapbook/table-row.vue";
 
 const settingsStore = useSettingsStore();
 const firebaseStore = useFirebaseStore();
-import { useBreakpoints } from "@/composables/breakpoints.js";
 const { isBreakpointOrBelow } = useBreakpoints();
-
-import { VueDraggableNext } from "vue-draggable-next";
-
 const slideshowModalRef = useTemplateRef("slideshowModalRef");
 const dragging = ref(false);
 const props = defineProps({
@@ -185,4 +144,64 @@ const showSlideshowModal = (row) => {
   });
 };
 onMounted(() => {});
+
+// Column configuration shared by header and rows
+const baseColumns = computed(() => {
+  const isAdmin = props.isAdmin;
+  const isMobile = isBreakpointOrBelow("md");
+
+  const cols = [];
+
+  if (isAdmin) {
+    cols.push({ key: "drag", type: "spacer", widthClass: "w-6" });
+  }
+
+  cols.push({
+    key: "year",
+    type: "header",
+    label: "Year",
+    widthClass: "w-16",
+  });
+
+  cols.push({
+    key: "title",
+    type: "header",
+    label: "Title",
+    widthClass: "flex-1",
+  });
+
+  if (!isMobile) {
+    cols.push({
+      key: "eyebrow",
+      type: "header",
+      label: "Made At",
+      widthClass: isAdmin ? "flex-1" : "w-1/4",
+    });
+
+    if (!isAdmin) {
+      cols.push({
+        key: "technology",
+        type: "header",
+        label: "Built With",
+        widthClass: "w-1/4",
+      });
+    }
+  }
+
+  // Single actions column for both public and admin
+  cols.push({
+    key: "actions",
+    type: "spacer",
+    widthClass: isAdmin ? "w-28" : "w-14",
+  });
+
+  return cols;
+});
+
+const visibleColumns = computed(() => baseColumns.value);
+
+const onMove = (evt) => {
+  const dragged = evt.draggedContext?.element;
+  return props.isAdmin && !dragged?.deleted;
+};
 </script>

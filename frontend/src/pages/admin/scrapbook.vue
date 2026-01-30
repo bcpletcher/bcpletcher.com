@@ -12,16 +12,24 @@
         <scrapbook-table v-slot="{ row }" :is-admin="true">
           <div class="flex gap-2">
             <button
-              class="text-font-primary/80 hover:text-gradient-start transition-standard"
+              class="text-gradient-start/80 hover:text-gradient-start transition-standard"
               @click="editEntry(row)"
             >
               <i class="far fa-edit"></i>
             </button>
             <button
-              class="text-font-primary/80 hover:text-gradient-start transition-standard"
+              v-if="!row.deleted"
+              class="text-red-500/80 hover:text-red-500 transition-standard"
               @click="toggleSoftDelete(row)"
             >
               <i class="far fa-trash-alt"></i>
+            </button>
+            <button
+              v-else
+              class="text-green-400/80 hover:text-green-400 transition-standard"
+              @click="toggleSoftDelete(row)"
+            >
+              <i class="far fa-rotate-left"></i>
             </button>
           </div>
         </scrapbook-table>
