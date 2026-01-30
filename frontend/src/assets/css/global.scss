@@ -69,3 +69,24 @@ html {
 .slideY-down-leave-active {
   transition: transform 0.5s cubic-bezier(0.5, 0, 1, 0.5);
 }
+
+// Reveal-on-scroll fade + pop utility classes
+.reveal-fade-pop-initial {
+  opacity: 0;
+  transform: translateY(12px) scale(0.97);
+}
+
+.reveal-fade-pop-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-fade-pop-initial,
+  .reveal-fade-pop-active {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+}

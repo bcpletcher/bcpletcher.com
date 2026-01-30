@@ -1,5 +1,6 @@
 <template>
   <div
+    v-intersect-animate="{ once: true, threshold: 0.2 }"
     class="z-10 reflection w-full relative md:grid gap-4 transition-standard"
     :class="{ reverse: props.reversed }"
   >

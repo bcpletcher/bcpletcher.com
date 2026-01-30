@@ -73,7 +73,7 @@
             </p>
           </div>
           <div class="flex gap-8 sm:gap-6 flex-col sm:flex-row mt-auto">
-            <router-link to="/scrapbook" custom>
+            <router-link to="/projects" custom>
               <template #default="{ href, navigate }">
                 <a
                   :href="href"
@@ -93,7 +93,7 @@
                     <p
                       class="leading-none mt-1 pointer-events-none text-sm pb-0.5"
                     >
-                      VIEW SCRAPBOOK
+                      VIEW PROJECTS
                     </p>
                   </div>
                 </a>
@@ -143,9 +143,9 @@ const isReady = ref(false);
 const settingsStore = useSettingsStore();
 
 const aboutCopy = ref([
-  "I'm a developer who loves building clean, accessible, and well-crafted user interfaces. I enjoy working where design and development meet, bringing ideas to life with a focus on polish, performance, and usability.",
-  "Right now, I'm working as a full stack developer, with a strong focus on front-end engineering and accessibility. I help build and maintain UI components that serve as the foundation for scalable, inclusive interfaces, while also contributing to the backend to support robust, end-to-end functionality.",
-  "Over the years, I’ve worked in a variety of environments from small studios and startups to large teams and enterprise projects helping shape products across different industries. In my free time, I’ve been building a platform, which helps designers easily create professional cover art. I've led development across the full stack, from designing the API and integrating third-party services to crafting a smooth, responsive front-end experience.",
+  "I’m a senior UX/UI designer and full-stack developer focused on building clean, accessible, and well-crafted digital experiences. I work where design and development meet—bringing ideas to life with an emphasis on clarity, performance, and usability.",
+  "Currently, I work across the full stack with a strong focus on front-end engineering and design systems, building scalable, inclusive interfaces backed by solid, maintainable architecture. I enjoy solving complex problems, refining details, and creating products that feel intuitive from the first interaction.",
+  "Outside of client work, I build and experiment on personal projects—leading development end to end, from API design and integrations to polished, responsive front-end experiences.",
 ]);
 
 const showContact = () => {
