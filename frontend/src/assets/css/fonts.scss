@@ -1,19 +1,9 @@
-@import "@fontsource/inter/index.css";
-
-//* {
-//  font-family: 'larsseit', sans-serif;
-//  -webkit-font-smoothing: antialiased;
-//  -moz-osx-font-smoothing: grayscale;
-//}
-//@font-face {
-//  font-family: 'larsseit';
-//  src: url('@/assets/fonts/larsseit-light.ttf') format('truetype');
-//  font-weight: normal;
-//  font-style: normal;
-//}
-//@font-face {
-//  font-family: 'larsseit';
-//  src: url('@/assets/fonts/larsseit-medium.ttf') format('truetype');
-//  font-weight: bold;
-//  font-style: normal;
-//}
+@import "@fontsource/inter/100.css"; // font-thin
+@import "@fontsource/inter/200.css"; // font-extralight
+@import "@fontsource/inter/300.css"; // font-light
+@import "@fontsource/inter/400.css"; // font-normal
+@import "@fontsource/inter/500.css"; // font-medium
+@import "@fontsource/inter/600.css"; // font-semibold
+@import "@fontsource/inter/700.css"; // font-bold
+@import "@fontsource/inter/800.css"; // font-extrabold
+@import "@fontsource/inter/900.css"; // font-black

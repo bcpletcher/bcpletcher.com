@@ -1,14 +1,23 @@
-//.fade-enter-active,
-//.fade-leave-active {
-//	transition: all .3s ease;
-//}
-//
-//.fade-enter,
-//.fade-leave-to {
-//	opacity: 0;
-//}
 html {
   background: theme("colors.base.background");
+  /* Keep native scrollbar theming */
+  color-scheme: dark;
+  overflow-x: hidden;
+}
+
+body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+
+  font-family: theme("fontFamily.sans");
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 ::selection {
@@ -19,19 +28,6 @@ html {
   color: theme("colors.gray.950");
   background: theme("colors.font.secondary"); /* WebKit/Blink Browsers */
 }
-
-:root {
-  --fontPrimary: #ffffff;
-  --fontSecondary: #57f8fd;
-  --fontDark: #172a38;
-  --gradientStart: #57f8fd;
-  --gradientMiddle: #4574fc;
-  --gradientEnd: #9140fa;
-  --background:#211f2c;
-  --sidebarBackground: #272636;
-  --sidebarBorder: #313040;
-}
-
 
 .slideY-up-enter {
   transform: translateY(100vh);

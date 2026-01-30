@@ -1,45 +1,32 @@
 <template>
   <div
     v-if="isMounted"
-    class="h-screen w-screen bg-base-background overflow-hidden relative defaultSlide animationController"
+    class="min-h-screen w-full bg-base-background text-slate-400"
   >
-    <!--    Radial gradient overlay-->
+    <!-- Radial gradient overlay -->
     <div
-      class="pointer-events-none fixed inset-0 z-30 transition duration-300 lg:absolute"
+      class="pointer-events-none fixed inset-0 z-30 transition duration-300"
       :style="{
         background: `radial-gradient(600px at ${mouseX}px ${mouseY}px, rgba(29, 78, 216, 0.05), transparent 50%)`,
       }"
-    ></div>
-    <router-view v-slot="{ Component }">
-      <transition
-        :name="
-          isMounted ? (route.path !== '/' ? 'slideY-up' : 'slideY-down') : ''
-        "
-        mode="out-in"
-      >
-        <component
-          :is="Component"
-          class="h-full absolute inset-0 transition-fast"
-          :style="contentPosition"
-        />
-      </transition>
-    </router-view>
+    />
 
-    <template v-if="!isBlankLayout">
-      <sidebar />
+    <!-- Default shell: window scroll, constrained width -->
+    <div
+      v-if="!isFullWidthRoute"
+      class="mx-auto w-full max-w-screen-xl px-6 py-12 md:px-12 md:py-16 lg:py-0"
+    >
+      <router-view />
+    </div>
 
-      <transition name="fade">
-        <div
-          v-show="settingsStore.expanded"
-          class="z-10 fixed inset-0 bg-black/30 pointer-events-all"
-          @click="settingsStore.expanded = !settingsStore.expanded"
-        />
-      </transition>
-    </template>
+    <!-- Full-width routes (e.g. Resume) -->
+    <div v-else class="w-full">
+      <router-view />
+    </div>
 
     <div
       aria-live="assertive"
-      class="fixed inset-0 flex items-end justify-center p-4 pointer-events-none sm:justify-end z-50"
+      class="fixed inset-0 flex items-end justify-center pointer-events-none sm:justify-end z-50 p-4"
     >
       <notifications />
     </div>
@@ -47,35 +34,17 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import Sidebar from "@/components/navigation/sidebar.vue";
+import { onMounted, onUnmounted, ref, watch, computed } from "vue";
+import { useRoute } from "vue-router";
+
 import Notifications from "@/components/shared/notifications.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
-import { useBreakpoints } from "@/composables/breakpoints.js";
-import { useRoute } from "vue-router";
-// import { useNotificationStore } from "@/stores/notification.js";
-const route = useRoute();
 
 const firebaseStore = useFirebaseStore();
-const { isBreakpointOrBelow } = useBreakpoints();
-
-const isMounted = ref(false);
-const isBlankLayout = false;
 const settingsStore = useSettingsStore();
 
-const contentPosition = computed(() => {
-  let distance = isBreakpointOrBelow("md")
-    ? 0
-    : settingsStore.expanded
-    ? 450 + 80
-    : 80;
-  let width = isBreakpointOrBelow("md") ? 0 : 80;
-  return {
-    left: `${distance}px`,
-    width: `calc(100% - ${width}px)`,
-  };
-});
+const isMounted = ref(false);
 
 const mouseX = ref(window.innerWidth / 2); // Default to center of screen
 const mouseY = ref(window.innerHeight / 2);
@@ -84,6 +53,9 @@ const updateMousePosition = (event) => {
   mouseX.value = event.clientX;
   mouseY.value = event.clientY;
 };
+
+const route = useRoute();
+const isFullWidthRoute = computed(() => Boolean(route.meta?.fullWidth));
 
 onMounted(async () => {
   await firebaseStore.auth.signOut();
@@ -119,6 +91,7 @@ onMounted(async () => {
     { deep: true, immediate: true }
   );
 });
+
 onUnmounted(() => {
   window.removeEventListener("mousemove", updateMousePosition);
 });

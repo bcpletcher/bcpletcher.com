@@ -1,20 +1,20 @@
 <template>
   <div
-    class="flex h-full w-full mt-16 md:mt-8 lg:mt-0 pl-8"
+    class="flex h-full w-full mt-16 md:mt-8 lg:mt-0"
     :class="[isReady ? 'opacity-100' : 'opacity-0']"
   >
     <base-layout :show-footer="false" :show-header="false">
       <template v-if="settingsStore.alternativeDisplay">
-        <div class="max-w-[1000px] mx-auto md:py-8">
-          <div class="flex flex-col gap-8 md:gap-16 pr-8">
+        <div class="mx-auto w-full max-w-screen-xl md:py-8">
+          <div class="flex flex-col gap-8 md:gap-16">
             <scrapbook-table />
           </div>
         </div>
       </template>
 
       <template v-else>
-        <div class="max-w-[1000px] mx-auto md:py-8">
-          <div class="flex flex-col gap-8 md:gap-16 pr-8">
+        <div class="mx-auto w-full max-w-screen-xl md:py-8">
+          <div class="flex flex-col gap-8 md:gap-16">
             <template v-for="(item, key) in sortedScrapbook" :key="key">
               <reflection
                 :reversed="key % 2 === 0"
