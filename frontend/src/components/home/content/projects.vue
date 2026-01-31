@@ -5,7 +5,7 @@
         v-for="(item, idx) in items"
         :key="item.title + '-' + idx"
         :title="item.title"
-        :description="item.description"
+        :summary="item.summary"
         :hero="item.hero"
         :href="item.url"
         :technology="item.technology"
@@ -43,11 +43,12 @@ const items = computed(() => {
 
   return Object.values(raw)
     .filter((p) => !p?.deleted)
+    .filter((p) => !!p?.featured)
     .sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
     .map((p) => ({
       hero: p?.hero || "",
       title: p?.title || "Untitled",
-      description: p?.description || "",
+      summary: p?.summary || "",
       technology: Array.isArray(p?.technology) ? p.technology : [],
       url: p?.url || null,
     }))

@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full w-full flex flex-col justify-center">
+  <div class="h-full w-full flex flex-col justify-center min-h-screen">
     <div class="flex justify-center">
       <div class="h-20 cursor-pointer mb-10">
         <img

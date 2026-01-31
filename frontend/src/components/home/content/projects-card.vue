@@ -37,8 +37,8 @@
         />
       </div>
 
-      <p v-if="description" class="mt-2 text-sm leading-normal">
-        {{ description }}
+      <p v-if="summary" class="mt-2 text-sm leading-normal">
+        {{ summary }}
       </p>
 
       <ul
@@ -71,7 +71,7 @@ import CardWrapper from "@/components/home/content/card-wrapper.vue";
 
 defineProps({
   title: { type: String, required: true },
-  description: { type: String, default: "" },
+  summary: { type: String, default: "" },
   hero: { type: String, required: true },
   href: { type: String, default: null },
   technology: { type: Array, default: () => [] },

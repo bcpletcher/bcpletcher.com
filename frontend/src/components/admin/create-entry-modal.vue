@@ -29,11 +29,61 @@
         label="Project Name"
         @update-value="documentModel.data.title = $event"
       />
-      <tw-input-group
-        :value="documentModel.data.description"
-        label="Description"
-        @update-value="documentModel.data.description = $event"
-      />
+
+      <!-- Featured toggle -->
+      <div class="py-1">
+        <label class="block text-sm text-font-primary leading-none">Featured</label>
+        <div class="mt-1 flex items-center gap-3">
+          <input
+            v-model="documentModel.data.featured"
+            type="checkbox"
+            class="h-4 w-4 rounded border border-base-border bg-gray-800"
+            :disabled="isSubmitting"
+          />
+          <span class="text-sm text-font-primary/70">
+            Mark this entry as featured
+          </span>
+        </div>
+      </div>
+
+      <!-- Summary (max 200) -->
+      <div class="py-1">
+        <div class="flex items-center justify-between">
+          <label class="block text-sm text-font-primary leading-none">Summary</label>
+          <span class="text-xs text-font-primary/60">
+            {{ summaryCount }}/200
+          </span>
+        </div>
+        <textarea
+          v-model="documentModel.data.summary"
+          class="mt-1 w-full rounded-md border border-base-border bg-gray-800 text-white text-sm px-2 py-2 focus-ring-offset-primary ring-offset-primary"
+          rows="3"
+          maxlength="200"
+          :disabled="isSubmitting"
+          placeholder="Short summary (max 200 characters)"
+        />
+        <p class="mt-1 text-xs text-font-primary/60">Max 200 characters.</p>
+      </div>
+
+      <!-- Description (max 500) -->
+      <div class="py-1">
+        <div class="flex items-center justify-between">
+          <label class="block text-sm text-font-primary leading-none">Description</label>
+          <span class="text-xs text-font-primary/60">
+            {{ descriptionCount }}/500
+          </span>
+        </div>
+        <textarea
+          v-model="documentModel.data.description"
+          class="mt-1 w-full rounded-md border border-base-border bg-gray-800 text-white text-sm px-2 py-2 focus-ring-offset-primary ring-offset-primary"
+          rows="5"
+          maxlength="500"
+          :disabled="isSubmitting"
+          placeholder="Description (max 500 characters)"
+        />
+        <p class="mt-1 text-xs text-font-primary/60">Max 500 characters.</p>
+      </div>
+
       <tw-input-group
         :value="documentModel.data.url"
         label="Site URL"
@@ -196,7 +246,7 @@
   </Modal>
 </template>
 <script setup>
-import { onBeforeUnmount, ref } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import Modal from "@/components/shared/modal.vue";
 import TwInputGroup from "@/components/shared/tw-input-group.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
@@ -209,6 +259,9 @@ const visible = ref(false);
 const isEdit = ref(false);
 const isSubmitting = ref(false);
 
+const DESCRIPTION_MAX = 500;
+const SUMMARY_MAX = 200;
+
 const emptyDocument = () => ({
   id: null,
   data: {
@@ -216,7 +269,9 @@ const emptyDocument = () => ({
     eyebrow: null,
     year: null,
     title: null,
-    description: null,
+    summary: "",
+    description: "",
+    featured: false,
     hero: null,
     images: [], // committed image URLs only
     technology: [],
@@ -226,6 +281,33 @@ const emptyDocument = () => ({
 });
 
 const documentModel = ref(emptyDocument());
+
+const summaryCount = computed(
+  () => (documentModel.value.data.summary || "").length
+);
+const descriptionCount = computed(
+  () => (documentModel.value.data.description || "").length
+);
+
+// Enforce max lengths even if data is pasted or older entries have longer content.
+watch(
+  () => documentModel.value.data.summary,
+  (val) => {
+    if (typeof val !== "string") return;
+    if (val.length > SUMMARY_MAX) {
+      documentModel.value.data.summary = val.slice(0, SUMMARY_MAX);
+    }
+  }
+);
+watch(
+  () => documentModel.value.data.description,
+  (val) => {
+    if (typeof val !== "string") return;
+    if (val.length > DESCRIPTION_MAX) {
+      documentModel.value.data.description = val.slice(0, DESCRIPTION_MAX);
+    }
+  }
+);
 
 const pendingRemovals = ref({
   images: [],
@@ -359,6 +441,17 @@ const submit = async () => {
       }
     });
 
+    // Normalize + enforce caps before saving
+    documentModel.value.data.featured = !!documentModel.value.data.featured;
+    documentModel.value.data.summary = (documentModel.value.data.summary || "")
+      .toString()
+      .slice(0, SUMMARY_MAX);
+    documentModel.value.data.description = (
+      documentModel.value.data.description || ""
+    )
+      .toString()
+      .slice(0, DESCRIPTION_MAX);
+
     if (isEdit.value) {
       const payload = documentModel.value;
       await firebaseStore.dataUpdateScrapbookDocument(payload);
@@ -386,7 +479,7 @@ const submit = async () => {
         );
       }
     } else {
-      documentModel.value.order = settingsStore.scrapbook
+      documentModel.value.data.order = settingsStore.scrapbook
         ? Object.keys(settingsStore.scrapbook).length + 1
         : 0;
 
@@ -453,7 +546,9 @@ const showModal = async (existingEntry) => {
         eyebrow: existingEntry.eyebrow ?? null,
         year: existingEntry.year ?? null,
         title: existingEntry.title ?? null,
-        description: existingEntry.description ?? null,
+        summary: existingEntry.summary ?? "",
+        description: existingEntry.description ?? "",
+        featured: existingEntry.featured ?? false,
         hero: existingEntry.hero ?? null,
         images: Array.isArray(existingEntry.images)
           ? [...existingEntry.images]

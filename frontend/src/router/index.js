@@ -33,6 +33,22 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    // Back/forward navigation should restore previous scroll.
+    if (savedPosition) return savedPosition;
+
+    // Allow hash navigation on the Home page (e.g. /#about) to scroll to the anchor.
+    // Vue Router will handle finding the element via the selector.
+    if (to.name === "Home" && to.hash) {
+      return {
+        el: to.hash,
+        behavior: "smooth",
+      };
+    }
+
+    // Default: every navigation starts at the top.
+    return { left: 0, top: 0 };
+  },
 });
 
 // router.beforeEach((to, from, next) => {});

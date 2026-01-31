@@ -1,15 +1,21 @@
 <template>
   <div class="h-full">
-    <base-layout>
-      <template #header>
-        <div class="flex gap-4 justify-end">
-          <button class="btn-primary" @click="createEntryModalRef.showModal()">
+    <PageHeader title="Manage Projects">
+      <template #actions>
+        <div class="min-h-[76px] flex flex-col">
+          <button
+            class="btn-primary mt-auto"
+            @click="createEntryModalRef.showModal()"
+          >
             Create Document
           </button>
         </div>
       </template>
-      <div class="h-full max-w-[1000px] mx-auto">
-        <scrapbook-table v-slot="{ row }" :is-admin="true">
+    </PageHeader>
+
+    <base-layout :show-header="false">
+      <div class="h-full">
+        <ScrapbookAdminTable v-slot="{ row }">
           <div class="flex gap-2">
             <button
               class="text-gradient-start/80 hover:text-gradient-start transition-standard"
@@ -32,7 +38,7 @@
               <i class="far fa-rotate-left"></i>
             </button>
           </div>
-        </scrapbook-table>
+        </ScrapbookAdminTable>
       </div>
     </base-layout>
 
@@ -46,8 +52,9 @@ import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 
 import BaseLayout from "@/components/shared/base-layout.vue";
+import PageHeader from "@/components/shared/page-header.vue";
 import CreateEntryModal from "@/components/admin/create-entry-modal.vue";
-import ScrapbookTable from "@/components/scrapbook/table.vue";
+import ScrapbookAdminTable from "@/components/scrapbook/admin-table.vue";
 
 const createEntryModalRef = useTemplateRef("createEntryModalRef");
 

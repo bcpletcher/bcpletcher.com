@@ -1,8 +1,11 @@
 <template>
   <div
-    v-intersect-animate="{ once: true, threshold: 0.2 }"
-    class="z-10 reflection w-full relative md:grid gap-4 transition-standard"
-    :class="{ reverse: props.reversed }"
+    v-intersect-animate="{ once: true, threshold: 0.45 }"
+    class="group z-10 reflection w-full relative md:grid gap-4 transition-standard max-w-[1000px]"
+    :class="[
+      { reverse: props.reversed },
+      props.reversed ? 'mr-auto' : 'ml-auto',
+    ]"
   >
     <div
       class="z-[-1] image flex flex-col justify-center absolute inset-0 md:relative"
@@ -34,7 +37,7 @@
           {{ props.eyebrow }}
         </p>
         <a
-          class="leading-none text-2xl md:text-xl font-semibold tracking-wide mb-4 text-font-primary/75 transition-standard"
+          class="leading-none text-2xl md:text-xl font-semibold tracking-wide mb-4 text-slate-300 transition-standard"
           :href="props.url"
           target="_blank"
           :class="[
@@ -57,13 +60,19 @@
             'justify-end': !props.reversed && !isBreakpointOrBelow('sm'),
           }"
         >
-          <div
-            v-for="(item, index) in props.technology"
-            :key="index"
-            class="flex flex-col justify-center rounded-full border-2 border-gradient-start/50 tracking-wide md:bg-base-background text-white text-xs px-4 py-2 zmd:border-0 zmd:text-font-tertiary zmd:bg-gradient-start"
+          <ul
+            v-if="props.technology?.length"
+            class="flex flex-wrap"
+            aria-label="Technologies used"
           >
-            <label class="leading-none">{{ item }}</label>
-          </div>
+            <li v-for="tag in props.technology" :key="tag" class="mr-1.5 mt-2">
+              <div
+                class="flex items-center rounded-full bg-font-secondary/10 px-3 py-1 text-xs font-medium leading-5 text-font-secondary"
+              >
+                {{ tag }}
+              </div>
+            </li>
+          </ul>
         </div>
         <div
           class="flex gap-4 mt-5 text-lg"
@@ -72,33 +81,33 @@
           }"
         >
           <button
-            class="text-font-primary/75 hover:text-gradient-start transition-standard"
-            @click="showSlideshowModal()"
+            class="text-font-primary/75 hover:text-font-secondary transition-standard"
+            type="button"
+            aria-label="Open image slideshow"
+            @click="emit('open-slideshow', props.images)"
           >
-            <i class="fa-regular fa-images"></i>
+            <i class="fa-regular fa-images" aria-hidden="true" />
           </button>
           <a
             v-if="props.url"
             :href="props.url"
             target="_blank"
-            class="text-font-primary/75 hover:text-gradient-start transition-standard"
+            class="text-slate-200 hover:text-font-secondary transition-standard"
           >
-            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            <i class="fa-light fa-arrow-up-right"></i>
           </a>
         </div>
       </div>
     </div>
-    <SlideshowModal ref="slideshowModalRef" />
   </div>
 </template>
 
 <script setup>
-import { defineProps, useTemplateRef } from "vue";
+import { defineProps, defineEmits } from "vue";
 import { useBreakpoints } from "@/composables/breakpoints.js";
-import SlideshowModal from "@/components/scrapbook/slideshow-modal.vue";
-const { isBreakpointOrBelow } = useBreakpoints();
 
-const slideshowModalRef = useTemplateRef("slideshowModalRef");
+const emit = defineEmits(["open-slideshow"]);
+const { isBreakpointOrBelow } = useBreakpoints();
 
 const props = defineProps({
   hero: { type: String, default: "" },
@@ -110,12 +119,6 @@ const props = defineProps({
   technology: { type: Array, default: () => [] },
   images: { type: Array, default: () => [] },
 });
-
-const showSlideshowModal = () => {
-  slideshowModalRef.value.showModal({
-    images: props.images,
-  });
-};
 </script>
 
 <style scoped lang="scss">
