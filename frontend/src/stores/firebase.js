@@ -77,7 +77,7 @@ export const useFirebaseStore = defineStore("firebase", {
       return dataGetCollection(
         this.functions,
         "getScrapbookCollection",
-        "contentScrapbook"
+        "bcpletcherProjects"
       );
     },
     dataCreateScrapbookDocument(document) {

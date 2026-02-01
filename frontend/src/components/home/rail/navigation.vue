@@ -1,5 +1,5 @@
 <template>
-  <nav aria-label="Page" :class="wrapperClass">
+  <nav aria-label="Page" class="hidden mt-16 lg:block" :class="wrapperClass">
     <component :is="isDesktop ? 'ul' : 'div'" :class="listClass">
       <component
         :is="isDesktop ? 'li' : 'span'"

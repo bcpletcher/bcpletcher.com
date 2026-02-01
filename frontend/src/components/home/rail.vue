@@ -28,27 +28,7 @@
           @nav="onNav"
         />
 
-        <div class="mt-auto flex flex-col-reverse gap-10">
-          <SocialLinks />
-
-          <a
-            class="group/link my-auto inline-flex items-baseline leading-tight text-slate-400 hover:text-font-secondary focus-visible:text-font-secondary font-semibold text-sm tracking-[0.25em] uppercase"
-            href="/resume"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Resume (opens in a new tab)"
-          >
-            <span>
-              Resume
-              <span class="inline-block">
-                <i
-                  class="fa-solid fa-arrow-up-right ml-1 translate-y-px inline-block h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none group-hover/link:-translate-y-1 group-hover/link:translate-x-1 group-focus-visible/link:-translate-y-1 group-focus-visible/link:translate-x-1"
-                  aria-hidden="true"
-                />
-              </span>
-            </span>
-          </a>
-        </div>
+        <SocialLinks />
       </div>
     </div>
 
@@ -58,19 +38,15 @@
     </div>
 
     <!-- Mobile rail content (normal flow) -->
-    <div class="lg:hidden py-16">
-      <h1 class="text-4xl font-semibold tracking-tight">{{ name }}</h1>
-      <h2 class="mt-4 text-lg text-font-primary/80">{{ title }}</h2>
-      <p class="mt-6 text-sm leading-relaxed text-font-primary/65">
+    <div class="mb-16 md:mb-24 lg:mb-0 lg:hidden">
+      <h1 class="text-3xl font-bold tracking-tight text-slate-200 sm:text-5xl">
+        {{ name }}
+      </h1>
+      <h2 class="max-w-sm mt-3 text-slate-100 text-xl">{{ title }}</h2>
+      <p class="max-w-sm mt-4 leading-normal font-normal">
         {{ description }}
       </p>
-
-      <Navigation
-        variant="mobile"
-        :nav-items="navItems"
-        :active-section-id="activeSectionId"
-        @nav="onNav"
-      />
+      <SocialLinks />
     </div>
   </aside>
 </template>

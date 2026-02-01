@@ -14,7 +14,7 @@
     <!-- Default shell: window scroll, constrained width -->
     <div
       v-if="!isFullWidthRoute"
-      class="mx-auto w-full max-w-screen-xl px-6 py-12 md:px-12 md:py-16 lg:py-0"
+      class="mx-auto w-full max-w-screen-xl px-6 md:px-12 lg:py-0"
     >
       <router-view />
     </div>

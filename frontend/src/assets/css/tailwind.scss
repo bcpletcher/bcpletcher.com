@@ -13,7 +13,7 @@
     @apply transition-all ease-in-out duration-700;
   }
   .btn-primary {
-    @apply rounded px-4 py-1 border border-gradient-start text-font-secondary font-bold text-sm hover:bg-gradient-start hover:text-font-tertiary transition-standard
+    @apply rounded px-4 py-1 border border-gradient-start text-font-secondary font-bold text-sm hover:bg-gradient-start hover:text-slate-800 transition-standard
   }
   .btn-secondary {
     @apply rounded px-4 py-1 border border-font-primary text-font-primary font-bold text-sm hover:bg-font-primary/10 transition-standard

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen w-full">
+  <div class="min-h-screen w-full py-12 md:py-16 lg:py-0">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <Rail :nav-items="navItems" />
       <MainContent />

@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full w-full flex flex-col justify-center min-h-screen">
+  <div class="w-full flex flex-col justify-center min-h-screen">
     <div class="flex justify-center">
       <div class="h-20 cursor-pointer mb-10">
         <img
@@ -27,9 +27,7 @@
         @enter-event="signIn()"
       />
       <div class="flex justify-end pt-2">
-        <button class="bg-gradient-start rounded py-1 px-3" @click="signIn">
-          Sign In
-        </button>
+        <button class="btn-primary" @click="signIn">Sign In</button>
       </div>
     </div>
   </div>

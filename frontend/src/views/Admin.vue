@@ -3,7 +3,6 @@
     class="flex h-full w-full"
     :class="[
       isReady ? 'opacity-100' : 'opacity-0',
-      { 'pt-16': isBreakpointOrBelow('md') },
     ]"
   >
     <login v-if="!effectiveSignedIn" />

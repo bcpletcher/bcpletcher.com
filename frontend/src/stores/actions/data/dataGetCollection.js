@@ -1,12 +1,48 @@
 import { httpsCallable } from "firebase/functions";
 
+const safeJsonParse = (raw) => {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+};
+
 export async function dataGetCollection(functions, functionName, cookieName) {
   const cacheMinutes = parseInt(import.meta.env.VITE_CACHE_MINUTES, 10) || 0; // Disables cache by default
   const cacheDuration = cacheMinutes * 60 * 1000; // Cache duration in milliseconds (e.g., 5 minutes)
   const currentTime = Date.now();
 
-  // Retrieve cached data from localStorage
-  const cachedData = JSON.parse(localStorage.getItem(cookieName));
+  const isProjectsKey = cookieName === "bcpletcherProjects";
+
+  // Retrieve cached data from localStorage (with one-time migration from legacy keys)
+  let cachedData = safeJsonParse(localStorage.getItem(cookieName));
+
+  if (isProjectsKey && !cachedData) {
+    const legacyTimestamped = safeJsonParse(
+      localStorage.getItem("contentScrapbook")
+    );
+    if (legacyTimestamped && typeof legacyTimestamped === "object") {
+      cachedData = legacyTimestamped;
+      localStorage.setItem(cookieName, JSON.stringify(legacyTimestamped));
+      localStorage.removeItem("contentScrapbook");
+    }
+  }
+
+  if (isProjectsKey && !cachedData) {
+    const legacyRaw = safeJsonParse(localStorage.getItem("scrapbookCache"));
+    if (legacyRaw && typeof legacyRaw === "object") {
+      const migrated = Object.assign(
+        {},
+        { data: legacyRaw },
+        { timestamp: currentTime }
+      );
+      cachedData = migrated;
+      localStorage.setItem(cookieName, JSON.stringify(migrated));
+      localStorage.removeItem("scrapbookCache");
+    }
+  }
 
   // Check if cached data exists and is still valid
   if (cachedData && currentTime - cachedData.timestamp < cacheDuration) {
@@ -21,14 +57,19 @@ export async function dataGetCollection(functions, functionName, cookieName) {
 
     let data = functionResult.data;
 
-    // Backwards-compat normalization for scrapbook entries
-    if (cookieName === "contentScrapbook" && data && typeof data === "object") {
+    // Backwards-compat normalization for scrapbook/projects entries
+    if (
+      (cookieName === "contentScrapbook" || isProjectsKey) &&
+      data &&
+      typeof data === "object"
+    ) {
       Object.keys(data).forEach((key) => {
         const item = data[key];
         if (!item || typeof item !== "object") return;
 
         // Default new fields
-        if (item.summary === undefined || item.summary === null) item.summary = "";
+        if (item.summary === undefined || item.summary === null)
+          item.summary = "";
         if (item.featured === undefined || item.featured === null)
           item.featured = false;
 

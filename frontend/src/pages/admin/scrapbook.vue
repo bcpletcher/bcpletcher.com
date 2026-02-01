@@ -2,9 +2,9 @@
   <div class="h-full">
     <PageHeader title="Manage Projects">
       <template #actions>
-        <div class="min-h-[76px] flex flex-col">
+        <div class="flex flex-col">
           <button
-            class="btn-primary mt-auto"
+            class="btn-primary"
             @click="createEntryModalRef.showModal()"
           >
             Create Document
