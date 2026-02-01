@@ -1,7 +1,7 @@
 <template>
   <div
     v-intersect-animate="{ once: true, threshold: 0.45 }"
-    class="group z-10 reflection w-full relative md:grid gap-4 transition-standard max-w-[1000px]"
+    class="group z-10 reflection w-full relative md:grid gap-4 transition-standard"
     :class="[
       { reverse: props.reversed },
       props.reversed ? 'mr-auto' : 'ml-auto',
