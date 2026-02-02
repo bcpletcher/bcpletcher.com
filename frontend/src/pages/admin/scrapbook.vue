@@ -3,10 +3,7 @@
     <PageHeader title="Manage Projects">
       <template #actions>
         <div class="flex flex-col">
-          <button
-            class="btn-primary"
-            @click="createEntryModalRef.showModal()"
-          >
+          <button class="btn-primary" @click="createEntryModalRef.showModal()">
             Create Document
           </button>
         </div>
@@ -92,16 +89,10 @@ const toggleSoftDelete = async (row) => {
     data: updated,
   });
 
-  // Update in-memory cache and localStorage
+  // Update in-memory cache
   settingsStore.scrapbook = {
     ...(settingsStore.scrapbook || {}),
     [id]: updated,
   };
-  if (settingsStore.scrapbook) {
-    localStorage.setItem(
-      "scrapbookCache",
-      JSON.stringify(settingsStore.scrapbook)
-    );
-  }
 };
 </script>

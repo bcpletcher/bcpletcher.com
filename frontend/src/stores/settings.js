@@ -1,12 +1,14 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
 
-const ADMIN_SESSION_KEY = "adminSessionExpiresAt";
 const CACHE_MINUTES = Number(import.meta.env.VITE_CACHE_MINUTES || 60);
 
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
     user: {},
+
+    // Admin session caching is disabled for now.
+    // This value is in-memory only and will reset on page refresh.
+    adminSessionExpiresAt: null,
 
     expanded: false,
     sidebarFocus: "About",
@@ -20,13 +22,13 @@ export const useSettingsStore = defineStore("settings", {
       const expiresAt = new Date(
         Date.now() + CACHE_MINUTES * 60 * 1000
       ).toISOString();
-      localStorage.setItem(ADMIN_SESSION_KEY, expiresAt);
+      this.adminSessionExpiresAt = expiresAt;
     },
     clearAdminSession() {
-      localStorage.removeItem(ADMIN_SESSION_KEY);
+      this.adminSessionExpiresAt = null;
     },
     isAdminSessionValid() {
-      const raw = localStorage.getItem(ADMIN_SESSION_KEY);
+      const raw = this.adminSessionExpiresAt;
       if (!raw) return false;
       const expires = new Date(raw).getTime();
       return Number.isFinite(expires) && expires > Date.now();
