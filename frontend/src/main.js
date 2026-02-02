@@ -10,6 +10,7 @@ import "./assets/css/tailwind.scss";
 import "./assets/css/animate.scss";
 
 import intersectAnimate from "./directives/intersect-animate";
+import gsapReveal from "./directives/gsap-reveal";
 
 const app = createApp(App);
 
@@ -17,5 +18,6 @@ app.use(createPinia());
 app.use(router);
 
 app.directive("intersect-animate", intersectAnimate);
+app.directive("gsap-reveal", gsapReveal);
 
 app.mount("#app");
