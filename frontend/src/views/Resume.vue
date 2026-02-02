@@ -1,12 +1,7 @@
 <template>
   <div class="w-full min-h-screen">
-    <div v-if="!resumeUrl" class="p-6 text-slate-300">
-      <p>Loading resume…</p>
-      <p v-if="error" class="mt-2 text-sm text-red-300">{{ error }}</p>
-    </div>
-
     <object
-      v-else
+      v-if="resumeUrl"
       class="w-full h-screen"
       type="application/pdf"
       :data="resumeUrl"

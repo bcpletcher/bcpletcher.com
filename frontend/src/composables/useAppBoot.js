@@ -1,9 +1,12 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
+import { useRoute } from "vue-router";
 
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
-
-import { computeLoaderMinMs, LOADER_DEFAULTS } from "@/constants/loaderTiming.js";
+import {
+  computeLoaderMinMs,
+  LOADER_DEFAULTS,
+} from "@/constants/loaderTiming.js";
 import {
   unlockBodyScroll,
   useScrollLock,
@@ -30,6 +33,8 @@ export function useAppBoot() {
   const isBootLoading = ref(true);
   const bootError = ref("");
   const showLoader = ref(true);
+
+  const route = useRoute();
 
   const CACHE_ENABLED = (() => {
     // Support both names (you currently have VITE_CACHE_ENABLED in .env).
@@ -169,6 +174,21 @@ export function useAppBoot() {
   };
 
   onMounted(() => {
+    // If the user lands directly on /resume, skip the boot loader + scrapbook APIs.
+    // Resume doesn't depend on scrapbook data and should render immediately.
+    if (route.path === "/resume") {
+      showLoader.value = false;
+      isBootLoading.value = false;
+      unlockBodyScroll();
+
+      // Still keep auth state in sync.
+      firebaseStore.auth.onAuthStateChanged((user) => {
+        settingsStore.user = user || {};
+      });
+
+      return;
+    }
+
     // Lock scroll while loader is shown.
     useScrollLock(() => showLoader.value);
 

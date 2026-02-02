@@ -73,9 +73,9 @@ const clearCache = async () => {
   close();
   await clearAppCache();
 
-  // Reset in-memory state so UI reflects the cleared cache.
   settingsStore.scrapbook = null;
   settingsStore.featuredScrapbook = null;
+  settingsStore.showEmulationBanner = true;
 
   emit("cleared-cache");
 };

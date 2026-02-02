@@ -24,44 +24,19 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed } from "vue";
+import { useSettingsStore } from "@/stores/settings.js";
 
-const props = defineProps({
-  isUsingEmulator: { type: Boolean, default: false },
-});
+const isUsingEmulator =
+  String(import.meta.env.VITE_USE_EMULATOR).toLowerCase() === "true";
 
-const EMULATOR_BANNER_KEY = "bcpletcher:hideEmulatorBanner";
+const settingsStore = useSettingsStore();
 
-const dismissed = ref(false);
-
-const visible = computed(() => props.isUsingEmulator && !dismissed.value);
+const visible = computed(
+  () => isUsingEmulator && Boolean(settingsStore.showEmulationBanner)
+);
 
 const dismiss = () => {
-  dismissed.value = true;
-  try {
-    sessionStorage.setItem(EMULATOR_BANNER_KEY, "1");
-  } catch {
-    // ignore
-  }
+  settingsStore.showEmulationBanner = false;
 };
-
-const reset = () => {
-  dismissed.value = false;
-  try {
-    sessionStorage.removeItem(EMULATOR_BANNER_KEY);
-  } catch {
-    // ignore
-  }
-};
-
-// Allows parent/admin actions to reset the banner.
-defineExpose({ reset });
-
-onMounted(() => {
-  try {
-    dismissed.value = sessionStorage.getItem(EMULATOR_BANNER_KEY) === "1";
-  } catch {
-    dismissed.value = false;
-  }
-});
 </script>
