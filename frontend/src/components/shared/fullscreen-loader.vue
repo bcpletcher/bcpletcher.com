@@ -6,10 +6,13 @@
     aria-live="polite"
     aria-busy="true"
   >
-    <div class="flex flex-col items-center gap-5">
+    <div class="w-full flex flex-col justify-center gap-6">
+      <!-- Top spacer: keeps the logo vertically centered even when message appears. -->
+      <div class="h-[2.75rem] w-full" aria-hidden="true" />
+
       <svg
         ref="svgEl"
-        class="h-20 w-20 sm:h-24 sm:w-24"
+        class="h-20 w-20 sm:h-24 sm:w-24 mx-auto"
         viewBox="0 0 1875 1875"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
@@ -59,6 +62,24 @@
           stroke-linejoin="round"
         />
       </svg>
+
+      <!-- Bottom reserved message space (prevents layout shift). -->
+      <div
+        class="h-[2.75rem] w-[min(28rem,90vw)] text-center mx-auto"
+        aria-live="polite"
+      >
+        <p
+          ref="errorTextEl"
+          class="leading-normal text-slate-300"
+          :style="{
+            opacity: 0,
+            display: shouldShowErrorText ? undefined : 'none',
+          }"
+        >
+          Something new is on the way.<br />
+          Please check back soon for updates.
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -90,10 +111,16 @@ const svgEl = ref(null);
 const strokePath = ref(null);
 const fillPath = ref(null);
 const maskCircle = ref(null);
+const errorTextEl = ref(null);
+
+// Only show the error message after the logo fill completes.
+const shouldShowErrorText = ref(false);
+let didRunErrorTextAnim = false;
 
 let tl;
 let didTimelineComplete = false;
 let didFadeOut = false;
+let didFillComplete = false;
 
 const VIEWBOX_SIZE = 1875;
 
@@ -112,7 +139,6 @@ const prefersReducedMotion = () =>
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
 // Runs the final fade sequence (logo zoom/fade + overlay fade).
-// This is intentionally separate so we can trigger it after a delay.
 const runFadeOut = () => {
   if (didFadeOut) return;
   if (!overlayEl.value || !svgEl.value) return;
@@ -152,6 +178,50 @@ const maybeFadeOut = () => {
   runFadeOut();
 };
 
+const maybeShowErrorText = () => {
+  // Only after the logo fill completes.
+  if (!didFillComplete) return;
+  if (!props.hasError) return;
+  if (didRunErrorTextAnim) return;
+
+  didRunErrorTextAnim = true;
+  shouldShowErrorText.value = true;
+
+  // Guard: do not touch the SVG timeline.
+  if (!errorTextEl.value) return;
+
+  const startOpacity =
+    typeof LOADER_DEFAULTS.errorTextRevealStartOpacity === "number"
+      ? LOADER_DEFAULTS.errorTextRevealStartOpacity
+      : 0.35;
+
+  // Kill only tweens on the message element to prevent any "pop" replay.
+  gsap.killTweensOf(errorTextEl.value);
+  gsap.set(errorTextEl.value, {
+    opacity: startOpacity,
+    y: LOADER_DEFAULTS.errorTextRevealYOffsetPx,
+  });
+
+  gsap
+    .timeline({ overwrite: true })
+    .to(errorTextEl.value, {
+      y: 0,
+      opacity: 1,
+      duration: LOADER_DEFAULTS.errorTextRevealDuration,
+      ease: LOADER_DEFAULTS.errorTextRevealEase,
+    })
+    .to(errorTextEl.value, {
+      y: -Number(LOADER_DEFAULTS.errorTextSettleOvershootPx || 0),
+      duration: LOADER_DEFAULTS.errorTextSettleDuration || 0.15,
+      ease: LOADER_DEFAULTS.errorTextSettleEase || "power1.inOut",
+    })
+    .to(errorTextEl.value, {
+      y: 0,
+      duration: LOADER_DEFAULTS.errorTextSettleDuration || 0.15,
+      ease: LOADER_DEFAULTS.errorTextSettleEase || "power1.inOut",
+    });
+};
+
 onMounted(() => {
   if (
     !overlayEl.value ||
@@ -165,8 +235,14 @@ onMounted(() => {
   if (prefersReducedMotion()) {
     maskCircle.value.setAttribute("r", String(MASK_END_R));
     strokePath.value.style.opacity = "0";
-    // Treat the base animation as complete so isReady can dismiss the overlay.
+
+    // Disable message + treat base animation as complete.
+    shouldShowErrorText.value = false;
+    didRunErrorTextAnim = false;
+
+    didFillComplete = true;
     didTimelineComplete = true;
+    maybeShowErrorText();
     maybeFadeOut();
     return;
   }
@@ -179,13 +255,15 @@ onMounted(() => {
     transformOrigin: "50% 50%",
   });
 
+  // Reset message state
+  shouldShowErrorText.value = false;
+  didRunErrorTextAnim = false;
+  if (errorTextEl.value) {
+    gsap.set(errorTextEl.value, { opacity: 0, y: 0 });
+  }
+
   // Prep stroke
   const pathLength = strokePath.value.getTotalLength();
-
-  // Outline draw styles:
-  // - Classic (outlineHeadLength=1): dasharray=full path, dashoffset animates from full->0.
-  // - Marker window (outlineHeadLength<1): dasharray=[head][gap], dashoffset animates and
-  //   the "head" moving around feels calmer than a full reveal.
   const headFrac = getOutlineHeadLength();
   if (headFrac >= 1) {
     strokePath.value.style.strokeDasharray = `${pathLength}`;
@@ -193,7 +271,6 @@ onMounted(() => {
   } else {
     const headLen = Math.max(1, pathLength * headFrac);
     strokePath.value.style.strokeDasharray = `${headLen} ${pathLength}`;
-    // Start with the head off the path, then sweep through.
     strokePath.value.style.strokeDashoffset = `${pathLength + headLen}`;
   }
 
@@ -209,24 +286,14 @@ onMounted(() => {
 
   didTimelineComplete = false;
   didFadeOut = false;
+  didFillComplete = false;
 
-  // Timeline (relative):
-  // t=0s .............................................. start
-  // t=preOutlineDelay ................................. outline starts
-  // t=outlineDuration ................................. outline finished
-  // t=... + outlineToFillDelay ......................... fill starts
-  // t=... + fillDuration ............................... fill completed
-  // t=... + fillToFadeDelay ............................ outline fade begins
-  // t=... + outlineFadeDuration ......................... outline fully faded
-  // t=... + postFillHold ............................... zoom out begins
-  // t=... + zoomOutDuration ............................. logo fully gone
-  // t=... + overlayFadeDuration ......................... overlay fully gone
   // 0) Optional pause before the outline starts drawing
   if (LOADER_DEFAULTS.preOutlineDelay > 0) {
     tl.to({}, { duration: LOADER_DEFAULTS.preOutlineDelay });
   }
 
-  // 1) Draw the outline stroke (kept at opacityStart)
+  // 1) Draw the outline stroke
   tl.to(strokePath.value, {
     strokeDashoffset: 0,
     duration: LOADER_DEFAULTS.outlineDuration,
@@ -238,7 +305,7 @@ onMounted(() => {
     tl.to({}, { duration: LOADER_DEFAULTS.outlineToFillDelay });
   }
 
-  // 3) Fill reveal: expand radial mask while ramping both fill + outline opacity to opacityEnd
+  // 3) Fill reveal + ramp opacity
   tl.to(
     maskCircle.value,
     {
@@ -266,7 +333,36 @@ onMounted(() => {
       },
       "<"
     )
+    // Tiny settle at the end of fill
+    .to(
+      maskCircle.value,
+      {
+        attr: { r: MASK_END_R + Number(LOADER_DEFAULTS.fillSettleOvershoot) },
+        duration: LOADER_DEFAULTS.fillSettleOutDuration,
+        ease: LOADER_DEFAULTS.fadeEase,
+      },
+      ">"
+    )
+    .to(
+      maskCircle.value,
+      {
+        attr: { r: MASK_END_R },
+        duration: LOADER_DEFAULTS.fillSettleInDuration,
+        ease: LOADER_DEFAULTS.outlineEase,
+      },
+      ">"
+    )
     .addLabel("fillDone");
+
+  // Mark fill completion (used for error-message reveal)
+  tl.call(
+    () => {
+      didFillComplete = true;
+      maybeShowErrorText();
+    },
+    null,
+    "fillDone"
+  );
 
   // 4) Optional pause between fill completing and outline fade starting
   if (LOADER_DEFAULTS.fillToFadeDelay > 0) {
@@ -286,7 +382,7 @@ onMounted(() => {
       : "fillDone"
   );
 
-  // 6) Hold on the finished filled logo for postFillHold seconds
+  // 6) Hold on the finished filled logo
   if (LOADER_DEFAULTS.postFillHold > 0) {
     tl.to({}, { duration: LOADER_DEFAULTS.postFillHold });
   }
@@ -294,19 +390,19 @@ onMounted(() => {
   // When the base animation completes, mark it and attempt to fade out.
   tl.eventCallback("onComplete", () => {
     didTimelineComplete = true;
+    maybeShowErrorText();
     maybeFadeOut();
   });
 
-  // In case the API already finished before we mounted / before the timeline block.
+  // In case readiness already flipped.
+  maybeShowErrorText();
   maybeFadeOut();
 });
 
 watch(
   () => [props.isReady, props.hasError],
   () => {
-    // Only fade out once BOTH conditions are met:
-    // 1) Base animation finished
-    // 2) App reports ready (and no error)
+    maybeShowErrorText();
     maybeFadeOut();
   }
 );

@@ -3,10 +3,29 @@ export const LOADER_DEFAULTS = Object.freeze({
   opacityStart: 0.35,
   opacityEnd: 1,
   outlineHeadLength: 1,
-  outlineEase: "none",
-  fillEase: "none",
+
+  // Animation feel
+  outlineEase: "power1.inOut",
+  fillEase: "power2.out",
   fadeEase: "power1.out",
   zoomEase: "power2.in",
+
+  // Subtle "settle" at the end of the fill (adds a little life)
+  fillSettleOvershoot: 8,
+  fillSettleOutDuration: 0.12,
+  fillSettleInDuration: 0.12,
+
+  // Error message reveal (shown at fillDone when hasError=true)
+  errorTextRevealStartOpacity: 0.55,
+  errorTextRevealYOffsetPx: 8,
+  errorTextRevealDuration: 0.35,
+  errorTextRevealEase: "power2.out",
+
+  // Error message settle (prevents harsh snap at the end)
+  errorTextSettleOvershootPx: 1,
+  errorTextSettleDuration: 0.18,
+  errorTextSettleEase: "power1.inOut",
+
   repeat: 0,
 
   // Timings (seconds) – these should match the GSAP timeline sequencing
