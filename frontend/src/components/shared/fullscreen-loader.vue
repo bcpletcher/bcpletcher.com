@@ -64,11 +64,13 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import gsap from "gsap";
 import { LOADER_DEFAULTS } from "@/scripts/loaderTiming.js";
 
-defineProps({
+const emit = defineEmits(["done"]);
+
+const props = defineProps({
   isReady: { type: Boolean, default: false },
   hasError: { type: Boolean, default: false },
 });
@@ -90,7 +92,8 @@ const fillPath = ref(null);
 const maskCircle = ref(null);
 
 let tl;
-let fadeTimeoutId;
+let didTimelineComplete = false;
+let didFadeOut = false;
 
 const VIEWBOX_SIZE = 1875;
 
@@ -111,7 +114,10 @@ const prefersReducedMotion = () =>
 // Runs the final fade sequence (logo zoom/fade + overlay fade).
 // This is intentionally separate so we can trigger it after a delay.
 const runFadeOut = () => {
+  if (didFadeOut) return;
   if (!overlayEl.value || !svgEl.value) return;
+
+  didFadeOut = true;
 
   // Stop any existing timeline so we don't double-animate.
   tl?.kill();
@@ -131,7 +137,19 @@ const runFadeOut = () => {
     duration: LOADER_DEFAULTS.overlayFadeDuration,
     ease: "none",
     delay: LOADER_DEFAULTS.zoomOutDuration,
+    onComplete: () => {
+      emit("done");
+    },
   });
+};
+
+const maybeFadeOut = () => {
+  if (didFadeOut) return;
+  if (!didTimelineComplete) return;
+  if (!props.isReady) return;
+  if (props.hasError) return;
+
+  runFadeOut();
 };
 
 onMounted(() => {
@@ -147,6 +165,9 @@ onMounted(() => {
   if (prefersReducedMotion()) {
     maskCircle.value.setAttribute("r", String(MASK_END_R));
     strokePath.value.style.opacity = "0";
+    // Treat the base animation as complete so isReady can dismiss the overlay.
+    didTimelineComplete = true;
+    maybeFadeOut();
     return;
   }
 
@@ -185,6 +206,9 @@ onMounted(() => {
   maskCircle.value.setAttribute("r", String(MASK_START_R));
 
   tl = gsap.timeline({ repeat: LOADER_DEFAULTS.repeat });
+
+  didTimelineComplete = false;
+  didFadeOut = false;
 
   // Timeline (relative):
   // t=0s .............................................. start
@@ -267,17 +291,27 @@ onMounted(() => {
     tl.to({}, { duration: LOADER_DEFAULTS.postFillHold });
   }
 
-  // Trigger the fade sequence 3 seconds after mount.
-  fadeTimeoutId = window.setTimeout(() => {
-    runFadeOut();
-  }, 3000);
+  // When the base animation completes, mark it and attempt to fade out.
+  tl.eventCallback("onComplete", () => {
+    didTimelineComplete = true;
+    maybeFadeOut();
+  });
+
+  // In case the API already finished before we mounted / before the timeline block.
+  maybeFadeOut();
 });
 
-onBeforeUnmount(() => {
-  if (fadeTimeoutId) {
-    clearTimeout(fadeTimeoutId);
-    fadeTimeoutId = null;
+watch(
+  () => [props.isReady, props.hasError],
+  () => {
+    // Only fade out once BOTH conditions are met:
+    // 1) Base animation finished
+    // 2) App reports ready (and no error)
+    maybeFadeOut();
   }
+);
+
+onBeforeUnmount(() => {
   tl?.kill();
   tl = null;
 });

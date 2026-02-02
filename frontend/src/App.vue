@@ -34,9 +34,10 @@
 
       <!-- One stable overlay: stays mounted for the whole boot sequence and for bootError -->
       <fullscreen-loader
-        v-if="isBootLoading || bootError"
+        v-if="showLoader"
         :is-ready="!isBootLoading && !bootError"
         :has-error="Boolean(bootError)"
+        @done="onLoaderDone"
       />
     </div>
   </div>
@@ -54,16 +55,17 @@ import { useSettingsStore } from "@/stores/settings.js";
 import { computeLoaderMinMs, LOADER_DEFAULTS } from "@/scripts/loaderTiming.js";
 import { lockBodyScroll, unlockBodyScroll } from "@/scripts/scrollLock.js";
 import {
-  loadScrapbookFromCache,
-  saveFeaturedScrapbookToCache,
   saveScrapbookToCache,
+  saveFeaturedScrapbookToCache,
 } from "@/scripts/appCaching.js";
+import { withTimeout } from "@/scripts/asyncTimeout.js";
 
 const firebaseStore = useFirebaseStore();
 const settingsStore = useSettingsStore();
 
 const isBootLoading = ref(true);
 const bootError = ref("");
+const showLoader = ref(true);
 
 // NOTE: Boot error simulation has been disabled.
 // If you need it later, we can re-introduce it behind a build-time flag.
@@ -82,6 +84,7 @@ const route = useRoute();
 const isFullWidthRoute = computed(() => Boolean(route.meta?.fullWidth));
 
 onMounted(async () => {
+  // Boot flow: fetch required data, then let the loader complete its minimum animation.
   const bootStart = Date.now();
 
   // Prevent scrollbar/layout jitter while the loader is animating.
@@ -113,7 +116,14 @@ onMounted(async () => {
         await firebaseStore.dataGetFeaturedScrapbookCollection();
       if (featuredFresh && typeof featuredFresh === "object") {
         settingsStore.featuredScrapbook = featuredFresh;
-        await saveFeaturedScrapbookToCache(featuredFresh);
+        // Don't block boot on IndexedDB writes.
+        withTimeout(
+          saveFeaturedScrapbookToCache(featuredFresh),
+          1000,
+          "Featured scrapbook cache write timed out"
+        ).catch((e) => {
+          console.warn("Failed to persist featured scrapbook cache", e);
+        });
       }
     } catch (e) {
       // Non-fatal: we'll still attempt the full fetch.
@@ -122,9 +132,24 @@ onMounted(async () => {
 
     // 2b) Full fetch
     const scrapbookFresh = await firebaseStore.dataGetScrapbookCollection();
+    console.log("[boot] scrapbook API resolved", {
+      keys: scrapbookFresh ? Object.keys(scrapbookFresh).length : 0,
+    });
     settingsStore.scrapbook = scrapbookFresh;
-    const { featured } = await saveScrapbookToCache(scrapbookFresh);
-    settingsStore.featuredScrapbook = featured;
+    // Don't block the boot sequence on IndexedDB writes.
+    // Some environments (private browsing / blocked storage / Safari quirks) can hang.
+    withTimeout(
+      saveScrapbookToCache(scrapbookFresh),
+      1000,
+      "Scrapbook cache write timed out"
+    )
+      .then(({ featured }) => {
+        settingsStore.featuredScrapbook = featured;
+      })
+      .catch((e) => {
+        // Cache failures shouldn't block the site.
+        console.warn("Failed to persist scrapbook cache", e);
+      });
   } catch (err) {
     console.error("App boot failed:", err);
     if (!bootError.value) {
@@ -137,18 +162,16 @@ onMounted(async () => {
       if (bootError.value) return;
       if (!isBootLoading.value) return;
       isBootLoading.value = false;
-      unlockBodyScroll();
+      console.log("[boot] APIs finished");
+      // Body scroll will be unlocked once the loader fully fades out.
     };
 
     const requiredMin = MIN_LOADER_MS;
     const elapsed = Date.now() - bootStart;
     const remaining = Math.max(0, requiredMin - elapsed);
 
-    if (remaining > 0) {
-      setTimeout(finishBoot, remaining);
-    } else {
-      finishBoot();
-    }
+    if (remaining > 0) setTimeout(finishBoot, remaining);
+    else finishBoot();
   }
 
   // Keep global auth state in sync so admin login persists across refresh
@@ -162,6 +185,13 @@ onUnmounted(() => {
   window.removeEventListener("mousemove", updateMousePosition);
   unlockBodyScroll();
 });
+
+const onLoaderDone = () => {
+  // If a boot error happened, we intentionally keep the overlay visible.
+  if (bootError.value) return;
+  showLoader.value = false;
+  unlockBodyScroll();
+};
 </script>
 
 <style lang="scss" scoped>

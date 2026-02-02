@@ -7,7 +7,7 @@ import { openDB } from "idb";
 // - Exposes a single API surface so we can expand caching over time.
 
 const DB_NAME = "bcpletcher-cache";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const STORES = {
   data: "data",
@@ -41,12 +41,13 @@ function buildFeaturedIndex(allScrapbook) {
 async function getDb() {
   return openDB(DB_NAME, DB_VERSION, {
     upgrade(db) {
-      if (!db.objectStoreNames.contains(STORES.data)) {
-        db.createObjectStore(STORES.data);
-      }
-      if (!db.objectStoreNames.contains(STORES.meta)) {
-        db.createObjectStore(STORES.meta);
-      }
+      // Ensure expected stores exist (handles fresh installs and older versions).
+      // This also covers edge cases where a previous version was created without all stores.
+      Object.values(STORES).forEach((storeName) => {
+        if (!db.objectStoreNames.contains(storeName)) {
+          db.createObjectStore(storeName);
+        }
+      });
     },
   });
 }
