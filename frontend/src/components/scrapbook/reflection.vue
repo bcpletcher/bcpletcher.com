@@ -1,6 +1,6 @@
 <template>
   <div
-    v-intersect-animate="{ once: true, threshold: 0.45 }"
+    v-gsap-reveal="{ once: true, start: 'top 90%' }"
     class="group z-10 reflection w-full relative md:grid gap-4 transition-standard"
     :class="[
       { reverse: props.reversed },
