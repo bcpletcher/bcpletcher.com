@@ -66,7 +66,7 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import gsap from "gsap";
-import { LOADER_DEFAULTS } from "@/scripts/loaderTiming.js";
+import { LOADER_DEFAULTS } from "@/constants/loaderTiming.js";
 
 const emit = defineEmits(["done"]);
 

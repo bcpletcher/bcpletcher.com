@@ -7,7 +7,6 @@ import router from "./router";
 import "./assets/css/fonts.scss";
 import "./assets/css/global.scss";
 import "./assets/css/tailwind.scss";
-import "./assets/css/animate.scss";
 
 import intersectAnimate from "./directives/intersect-animate";
 import gsapReveal from "./directives/gsap-reveal";

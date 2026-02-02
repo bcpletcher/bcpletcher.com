@@ -1,7 +1,8 @@
-// Scroll lock helpers.
+import { onBeforeUnmount, watchEffect } from "vue";
+
+// Scroll lock implementation.
 //
 // Used to prevent scrollbar/layout jitter while the fullscreen loader is visible.
-//
 // Notes:
 // - We lock BOTH html + body because different browsers attach scrolling
 //   to different roots.
@@ -25,7 +26,6 @@ export function lockBodyScroll() {
   const prevHtmlOverflowY = htmlStyle.overflowY;
   const prevHtmlPaddingRight = htmlStyle.paddingRight;
 
-  // Preserve layout width by compensating for scrollbar removal.
   const scrollbarWidth =
     window.innerWidth - document.documentElement.clientWidth;
 
@@ -54,4 +54,25 @@ export function lockBodyScroll() {
 
 export function unlockBodyScroll() {
   restore?.();
+}
+
+/**
+ * Vue-friendly scroll lock.
+ *
+ * Usage:
+ * - useScrollLock(() => isLocked.value)
+ * - useScrollLock(() => someBoolean)
+ */
+export function useScrollLock(isLockedGetter) {
+  // Reactively lock/unlock.
+  watchEffect(() => {
+    const isLocked = typeof isLockedGetter === "function" && isLockedGetter();
+    if (isLocked) lockBodyScroll();
+    else unlockBodyScroll();
+  });
+
+  // Safety: always unlock when the owner unmounts.
+  onBeforeUnmount(() => {
+    unlockBodyScroll();
+  });
 }

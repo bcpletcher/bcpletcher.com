@@ -39,7 +39,7 @@
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import SlideshowModal from "@/components/scrapbook/slideshow-modal.vue";
 import { useSettingsStore } from "@/stores/settings.js";
-import { useBreakpoints } from "@/composables/breakpoints.js";
+import { useBreakpoints } from "@/composables/useBreakpoints.js";
 import ScrapbookTableRow from "@/components/scrapbook/table-row.vue";
 
 const settingsStore = useSettingsStore();

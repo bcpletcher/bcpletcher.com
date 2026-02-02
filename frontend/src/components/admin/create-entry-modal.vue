@@ -256,7 +256,7 @@ import TwInputGroup from "@/components/shared/tw-input-group.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { VueDraggableNext } from "vue-draggable-next";
-import { saveScrapbookToCache } from "@/scripts/appCaching.js";
+import { saveScrapbookToCache } from "@/utils/cache.js";
 
 const settingsStore = useSettingsStore();
 const firebaseStore = useFirebaseStore();

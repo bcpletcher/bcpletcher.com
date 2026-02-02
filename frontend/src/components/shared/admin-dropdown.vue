@@ -42,7 +42,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { signOut } from "firebase/auth";
 
-import { clearAppCache } from "@/scripts/appCaching.js";
+import { clearAppCache } from "@/utils/cache.js";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 
@@ -67,6 +67,8 @@ const logout = async () => {
   settingsStore.user = {};
 };
 
+const emit = defineEmits(["cleared-cache"]);
+
 const clearCache = async () => {
   close();
   await clearAppCache();
@@ -74,6 +76,8 @@ const clearCache = async () => {
   // Reset in-memory state so UI reflects the cleared cache.
   settingsStore.scrapbook = null;
   settingsStore.featuredScrapbook = null;
+
+  emit("cleared-cache");
 };
 
 const onKeyDown = (e) => {

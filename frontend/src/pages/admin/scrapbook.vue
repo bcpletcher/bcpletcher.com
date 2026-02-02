@@ -47,7 +47,7 @@
 import { useTemplateRef } from "vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
-import { saveScrapbookToCache } from "@/scripts/appCaching.js";
+import { saveScrapbookToCache } from "@/utils/cache.js";
 
 import BaseLayout from "@/components/shared/base-layout.vue";
 import PageHeader from "@/components/shared/page-header.vue";

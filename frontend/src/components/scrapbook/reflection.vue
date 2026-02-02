@@ -104,7 +104,7 @@
 
 <script setup>
 import { defineProps, defineEmits } from "vue";
-import { useBreakpoints } from "@/composables/breakpoints.js";
+import { useBreakpoints } from "@/composables/useBreakpoints.js";
 
 const emit = defineEmits(["open-slideshow"]);
 const { isBreakpointOrBelow } = useBreakpoints();

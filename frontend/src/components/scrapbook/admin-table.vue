@@ -110,10 +110,10 @@ import { computed, ref, useTemplateRef, watch } from "vue";
 import SlideshowModal from "@/components/scrapbook/slideshow-modal.vue";
 import { useSettingsStore } from "@/stores/settings.js";
 import { useFirebaseStore } from "@/stores/firebase.js";
-import { useBreakpoints } from "@/composables/breakpoints.js";
+import { useBreakpoints } from "@/composables/useBreakpoints.js";
 import { VueDraggableNext } from "vue-draggable-next";
 import ScrapbookTableRow from "@/components/scrapbook/table-row.vue";
-import { saveScrapbookToCache } from "@/scripts/appCaching.js";
+import { saveScrapbookToCache } from "@/utils/cache.js";
 
 const settingsStore = useSettingsStore();
 const firebaseStore = useFirebaseStore();

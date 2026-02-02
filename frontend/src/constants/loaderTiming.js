@@ -1,14 +1,4 @@
-// Loader timing single source of truth.
-//
-// This file exists so BOTH:
-// - `fullscreen-loader.vue` (animation timeline defaults)
-// - `App.vue` (minimum loader display time)
-//
-// can share the same numbers and stay perfectly in sync.
-
 export const LOADER_DEFAULTS = Object.freeze({
-  // Defaults mirrored from the original `fullscreen-loader.vue` props.
-  // (These are used as fallbacks so the loader stays stable if we later remove props.)
   strokeWidth: 16,
   opacityStart: 0.35,
   opacityEnd: 1,
@@ -20,7 +10,6 @@ export const LOADER_DEFAULTS = Object.freeze({
   repeat: 0,
 
   // Timings (seconds) – these should match the GSAP timeline sequencing
-  // Optional pause BEFORE the outline starts drawing.
   preOutlineDelay: 0.25,
   outlineDuration: 0.75,
   outlineToFillDelay: 0.0,
