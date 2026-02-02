@@ -10,7 +10,7 @@ export const LOADER_DEFAULTS = Object.freeze({
   // Timings (seconds) – these should match the GSAP timeline sequencing
   // Optional pause BEFORE the outline starts drawing.
   preOutlineDelay: 0.25,
-  outlineDuration: 1.0,
+  outlineDuration: 0.75,
   outlineToFillDelay: 0.0,
   fillDuration: 1.0,
   fillToFadeDelay: 0.0,

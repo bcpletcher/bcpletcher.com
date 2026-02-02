@@ -1,16 +1,14 @@
 html {
   background: theme("colors.base.background");
-  /* Keep native scrollbar theming */
   color-scheme: dark;
   overflow-x: hidden;
+  scrollbar-gutter: stable;
 }
 
 body {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
-
-  font-family: theme("fontFamily.sans");
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

@@ -76,6 +76,12 @@ const props = defineProps({
   opacityStart: { type: Number, default: 0.35 },
   opacityEnd: { type: Number, default: 1 },
 
+  // Outline draw feel
+  // When 1, uses the classic full-length dasharray draw.
+  // Lower values use a moving "marker" window that reduces the frantic look.
+  // Suggested range: 0.15 - 0.45
+  outlineHeadLength: { type: Number, default: 1 },
+
   // Animation timings (seconds)
   preOutlineDelay: { type: Number, default: LOADER_DEFAULTS.preOutlineDelay },
   outlineDuration: { type: Number, default: LOADER_DEFAULTS.outlineDuration },
@@ -110,6 +116,11 @@ const props = defineProps({
 });
 
 const strokeWidth = computed(() => props.strokeWidth);
+const outlineHeadLength = computed(() => {
+  const v = Number(props.outlineHeadLength);
+  if (!Number.isFinite(v) || v <= 0) return 1;
+  return Math.min(1, v);
+});
 
 const overlayEl = ref(null);
 const svgEl = ref(null);
@@ -161,8 +172,22 @@ onMounted(() => {
 
   // Prep stroke
   const pathLength = strokePath.value.getTotalLength();
-  strokePath.value.style.strokeDasharray = `${pathLength}`;
-  strokePath.value.style.strokeDashoffset = `${pathLength}`;
+
+  // Outline draw styles:
+  // - Classic (outlineHeadLength=1): dasharray=full path, dashoffset animates from full->0.
+  // - Marker window (outlineHeadLength<1): dasharray=[head][gap], dashoffset animates and
+  //   the "head" moving around feels calmer than a full reveal.
+  const headFrac = outlineHeadLength.value;
+  if (headFrac >= 1) {
+    strokePath.value.style.strokeDasharray = `${pathLength}`;
+    strokePath.value.style.strokeDashoffset = `${pathLength}`;
+  } else {
+    const headLen = Math.max(1, pathLength * headFrac);
+    strokePath.value.style.strokeDasharray = `${headLen} ${pathLength}`;
+    // Start with the head off the path, then sweep through.
+    strokePath.value.style.strokeDashoffset = `${pathLength + headLen}`;
+  }
+
   strokePath.value.style.opacity = String(props.opacityStart);
 
   // Prep fill
@@ -184,7 +209,6 @@ onMounted(() => {
   // t=... + postFillHold ............................... zoom out begins
   // t=... + zoomOutDuration ............................. logo fully gone
   // t=... + overlayFadeDuration ......................... overlay fully gone
-
   // 0) Optional pause before the outline starts drawing
   if (props.preOutlineDelay > 0) {
     tl.to({}, { duration: props.preOutlineDelay });
