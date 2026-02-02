@@ -1,9 +1,5 @@
 <template>
-  <CardWrapper
-    :href="href"
-    :aria-label="ariaLabel"
-    :is-last="isLast"
-  >
+  <CardWrapper :href="href" :aria-label="ariaLabel" :is-last="isLast">
     <!-- Image column -->
     <div class="z-10 mb-2 sm:col-span-2">
       <img

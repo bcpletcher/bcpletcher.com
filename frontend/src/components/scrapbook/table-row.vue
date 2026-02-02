@@ -67,7 +67,10 @@
           </button>
 
           <!-- Reserve space for external link icon even if url is missing -->
-          <span v-if="showExternalLinkAction" class="inline-flex w-4 justify-center">
+          <span
+            v-if="showExternalLinkAction"
+            class="inline-flex w-4 justify-center"
+          >
             <a
               v-if="row.url"
               :href="row.url"

@@ -8,15 +8,35 @@ admin.initializeApp({
 const firestore = admin.firestore();
 const database = require("./functions/database");
 
-exports.getContentCollection = functions.https.onCall((data, context) => {
-  return database.getCollection(data, context, firestore, "content");
-});
-exports.getResourcesCollection = functions.https.onCall((data, context) => {
-  return database.getCollection(data, context, firestore, "resources");
-});
-
 exports.getScrapbookCollection = functions.https.onCall((data, context) => {
   return database.getCollection(data, context, firestore, "scrapbook");
+});
+
+// Lightweight featured-only query for Home page.
+// Returns only active featured items with minimal fields.
+exports.getFeaturedScrapbookCollection = functions.https.onCall((data, context) => {
+  return database.getCollectionQuery(
+    {
+      where: [
+        { field: "featured", op: "==", value: true },
+        { field: "deleted", op: "==", value: false },
+      ],
+      select: [
+        "eyebrow",
+        "title",
+        "hero",
+        "summary",
+        "technology",
+        "url",
+        "order",
+        "featured",
+        "deleted",
+      ],
+    },
+    context,
+    firestore,
+    "scrapbook"
+  );
 });
 exports.createScrapbookDocument = functions.https.onCall((data, context) => {
   return database.createDocument(data, context, firestore, "scrapbook");

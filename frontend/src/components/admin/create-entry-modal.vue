@@ -32,7 +32,9 @@
 
       <!-- Featured toggle -->
       <div class="py-1">
-        <label class="block text-sm text-font-primary leading-none">Featured</label>
+        <label class="block text-sm text-font-primary leading-none"
+          >Featured</label
+        >
         <div class="mt-1 flex items-center gap-3">
           <input
             v-model="documentModel.data.featured"
@@ -49,7 +51,9 @@
       <!-- Summary (max 200) -->
       <div class="py-1">
         <div class="flex items-center justify-between">
-          <label class="block text-sm text-font-primary leading-none">Summary</label>
+          <label class="block text-sm text-font-primary leading-none"
+            >Summary</label
+          >
           <span class="text-xs text-font-primary/60">
             {{ summaryCount }}/200
           </span>
@@ -68,7 +72,9 @@
       <!-- Description (max 500) -->
       <div class="py-1">
         <div class="flex items-center justify-between">
-          <label class="block text-sm text-font-primary leading-none">Description</label>
+          <label class="block text-sm text-font-primary leading-none"
+            >Description</label
+          >
           <span class="text-xs text-font-primary/60">
             {{ descriptionCount }}/500
           </span>
@@ -230,15 +236,13 @@
     </div>
     <template #footer>
       <div class="flex justify-end gap-4">
-        <button
-          class="btn-secondary"
-          :disabled="isSubmitting"
-          @click="cancel"
-        >
+        <button class="btn-secondary" :disabled="isSubmitting" @click="cancel">
           Cancel
         </button>
         <button class="btn-primary" :disabled="isSubmitting" @click="submit">
-          <span v-if="isSubmitting">{{ isEdit ? "Updating..." : "Submitting..." }}</span>
+          <span v-if="isSubmitting">
+            {{ isEdit ? "Updating..." : "Submitting..." }}
+          </span>
           <span v-else>{{ isEdit ? "Update" : "Submit" }}</span>
         </button>
       </div>
@@ -252,6 +256,7 @@ import TwInputGroup from "@/components/shared/tw-input-group.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { VueDraggableNext } from "vue-draggable-next";
+import { saveScrapbookToCache } from "@/scripts/appCaching.js";
 
 const settingsStore = useSettingsStore();
 const firebaseStore = useFirebaseStore();
@@ -473,10 +478,15 @@ const submit = async () => {
             ...payload.data,
           },
         };
-        localStorage.setItem(
-          "scrapbookCache",
-          JSON.stringify(settingsStore.scrapbook)
-        );
+
+        try {
+          const { featured } = await saveScrapbookToCache(
+            settingsStore.scrapbook
+          );
+          settingsStore.featuredScrapbook = featured;
+        } catch (e) {
+          console.warn("Failed to update scrapbook cache", e);
+        }
       }
     } else {
       documentModel.value.data.order = settingsStore.scrapbook
@@ -492,10 +502,15 @@ const submit = async () => {
           ...(settingsStore.scrapbook || {}),
           [newId]: payload.data,
         };
-        localStorage.setItem(
-          "scrapbookCache",
-          JSON.stringify(settingsStore.scrapbook)
-        );
+
+        try {
+          const { featured } = await saveScrapbookToCache(
+            settingsStore.scrapbook
+          );
+          settingsStore.featuredScrapbook = featured;
+        } catch (e) {
+          console.warn("Failed to update scrapbook cache", e);
+        }
       }
 
       if (pendingRemovals.value.images.length) {

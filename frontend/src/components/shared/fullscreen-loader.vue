@@ -64,63 +64,24 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onBeforeUnmount, ref } from "vue";
+import { onMounted, onBeforeUnmount, ref } from "vue";
 import gsap from "gsap";
 import { LOADER_DEFAULTS } from "@/scripts/loaderTiming.js";
 
-const props = defineProps({
-  // Stroke styling
-  strokeWidth: { type: [Number, String], default: 16 },
-
-  // Shared opacity behavior (outline + fill)
-  opacityStart: { type: Number, default: 0.35 },
-  opacityEnd: { type: Number, default: 1 },
-
-  // Outline draw feel
-  // When 1, uses the classic full-length dasharray draw.
-  // Lower values use a moving "marker" window that reduces the frantic look.
-  // Suggested range: 0.15 - 0.45
-  outlineHeadLength: { type: Number, default: 1 },
-
-  // Animation timings (seconds)
-  preOutlineDelay: { type: Number, default: LOADER_DEFAULTS.preOutlineDelay },
-  outlineDuration: { type: Number, default: LOADER_DEFAULTS.outlineDuration },
-  outlineToFillDelay: {
-    type: Number,
-    default: LOADER_DEFAULTS.outlineToFillDelay,
-  },
-  fillDuration: { type: Number, default: LOADER_DEFAULTS.fillDuration },
-  outlineFadeDuration: {
-    type: Number,
-    default: LOADER_DEFAULTS.outlineFadeDuration,
-  },
-  fillToFadeDelay: { type: Number, default: LOADER_DEFAULTS.fillToFadeDelay },
-
-  // After finishing: hold then zoom away
-  postFillHold: { type: Number, default: LOADER_DEFAULTS.postFillHold },
-  zoomOutDuration: { type: Number, default: LOADER_DEFAULTS.zoomOutDuration },
-
-  // After zoom: fade the overlay away
-  overlayFadeDuration: {
-    type: Number,
-    default: LOADER_DEFAULTS.overlayFadeDuration,
-  },
-
-  // Easings
-  outlineEase: { type: String, default: "none" },
-  fillEase: { type: String, default: "none" },
-  fadeEase: { type: String, default: "power1.out" },
-  zoomEase: { type: String, default: "power2.in" },
-
-  repeat: { type: Number, default: 0 },
+defineProps({
+  isReady: { type: Boolean, default: false },
+  hasError: { type: Boolean, default: false },
 });
 
-const strokeWidth = computed(() => props.strokeWidth);
-const outlineHeadLength = computed(() => {
-  const v = Number(props.outlineHeadLength);
+// Keep simple local bindings for template usage.
+const strokeWidth = LOADER_DEFAULTS.strokeWidth;
+
+// Helper used by the outline drawing setup.
+const getOutlineHeadLength = () => {
+  const v = Number(LOADER_DEFAULTS.outlineHeadLength);
   if (!Number.isFinite(v) || v <= 0) return 1;
   return Math.min(1, v);
-});
+};
 
 const overlayEl = ref(null);
 const svgEl = ref(null);
@@ -177,7 +138,7 @@ onMounted(() => {
   // - Classic (outlineHeadLength=1): dasharray=full path, dashoffset animates from full->0.
   // - Marker window (outlineHeadLength<1): dasharray=[head][gap], dashoffset animates and
   //   the "head" moving around feels calmer than a full reveal.
-  const headFrac = outlineHeadLength.value;
+  const headFrac = getOutlineHeadLength();
   if (headFrac >= 1) {
     strokePath.value.style.strokeDasharray = `${pathLength}`;
     strokePath.value.style.strokeDashoffset = `${pathLength}`;
@@ -188,15 +149,15 @@ onMounted(() => {
     strokePath.value.style.strokeDashoffset = `${pathLength + headLen}`;
   }
 
-  strokePath.value.style.opacity = String(props.opacityStart);
+  strokePath.value.style.opacity = String(LOADER_DEFAULTS.opacityStart);
 
   // Prep fill
-  fillPath.value.style.opacity = String(props.opacityStart);
+  fillPath.value.style.opacity = String(LOADER_DEFAULTS.opacityStart);
 
   // Prep mask
   maskCircle.value.setAttribute("r", String(MASK_START_R));
 
-  tl = gsap.timeline({ repeat: props.repeat });
+  tl = gsap.timeline({ repeat: LOADER_DEFAULTS.repeat });
 
   // Timeline (relative):
   // t=0s .............................................. start
@@ -210,20 +171,20 @@ onMounted(() => {
   // t=... + zoomOutDuration ............................. logo fully gone
   // t=... + overlayFadeDuration ......................... overlay fully gone
   // 0) Optional pause before the outline starts drawing
-  if (props.preOutlineDelay > 0) {
-    tl.to({}, { duration: props.preOutlineDelay });
+  if (LOADER_DEFAULTS.preOutlineDelay > 0) {
+    tl.to({}, { duration: LOADER_DEFAULTS.preOutlineDelay });
   }
 
   // 1) Draw the outline stroke (kept at opacityStart)
   tl.to(strokePath.value, {
     strokeDashoffset: 0,
-    duration: props.outlineDuration,
-    ease: props.outlineEase,
+    duration: LOADER_DEFAULTS.outlineDuration,
+    ease: LOADER_DEFAULTS.outlineEase,
   });
 
   // 2) Optional pause between outline finishing and fill starting
-  if (props.outlineToFillDelay > 0) {
-    tl.to({}, { duration: props.outlineToFillDelay });
+  if (LOADER_DEFAULTS.outlineToFillDelay > 0) {
+    tl.to({}, { duration: LOADER_DEFAULTS.outlineToFillDelay });
   }
 
   // 3) Fill reveal: expand radial mask while ramping both fill + outline opacity to opacityEnd
@@ -231,16 +192,16 @@ onMounted(() => {
     maskCircle.value,
     {
       attr: { r: MASK_END_R },
-      duration: props.fillDuration,
-      ease: props.fillEase,
+      duration: LOADER_DEFAULTS.fillDuration,
+      ease: LOADER_DEFAULTS.fillEase,
     },
     ">"
   )
     .to(
       strokePath.value,
       {
-        opacity: props.opacityEnd,
-        duration: props.fillDuration,
+        opacity: LOADER_DEFAULTS.opacityEnd,
+        duration: LOADER_DEFAULTS.fillDuration,
         ease: "none",
       },
       "<"
@@ -248,8 +209,8 @@ onMounted(() => {
     .to(
       fillPath.value,
       {
-        opacity: props.opacityEnd,
-        duration: props.fillDuration,
+        opacity: LOADER_DEFAULTS.opacityEnd,
+        duration: LOADER_DEFAULTS.fillDuration,
         ease: "none",
       },
       "<"
@@ -257,8 +218,8 @@ onMounted(() => {
     .addLabel("fillDone");
 
   // 4) Optional pause between fill completing and outline fade starting
-  if (props.fillToFadeDelay > 0) {
-    tl.to({}, { duration: props.fillToFadeDelay }, "fillDone");
+  if (LOADER_DEFAULTS.fillToFadeDelay > 0) {
+    tl.to({}, { duration: LOADER_DEFAULTS.fillToFadeDelay }, "fillDone");
   }
 
   // 5) Fade the outline out (fill remains visible)
@@ -266,29 +227,31 @@ onMounted(() => {
     strokePath.value,
     {
       opacity: 0,
-      duration: props.outlineFadeDuration,
-      ease: props.fadeEase,
+      duration: LOADER_DEFAULTS.outlineFadeDuration,
+      ease: LOADER_DEFAULTS.fadeEase,
     },
-    props.fillToFadeDelay > 0 ? "fillDone+=fillToFadeDelay" : "fillDone"
+    LOADER_DEFAULTS.fillToFadeDelay > 0
+      ? "fillDone+=fillToFadeDelay"
+      : "fillDone"
   );
 
   // 6) Hold on the finished filled logo for postFillHold seconds
-  if (props.postFillHold > 0) {
-    tl.to({}, { duration: props.postFillHold });
+  if (LOADER_DEFAULTS.postFillHold > 0) {
+    tl.to({}, { duration: LOADER_DEFAULTS.postFillHold });
   }
 
   // 7) Zoom the logo out to nothing
   tl.to(svgEl.value, {
     scale: 0,
     opacity: 0,
-    duration: props.zoomOutDuration,
-    ease: props.zoomEase,
+    duration: LOADER_DEFAULTS.zoomOutDuration,
+    ease: LOADER_DEFAULTS.zoomEase,
   });
 
   // 8) Fade the whole overlay away
   tl.to(overlayEl.value, {
     opacity: 0,
-    duration: props.overlayFadeDuration,
+    duration: LOADER_DEFAULTS.overlayFadeDuration,
     ease: "none",
   });
 });

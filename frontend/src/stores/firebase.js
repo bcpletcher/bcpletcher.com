@@ -1,6 +1,10 @@
 import { defineStore } from "pinia";
 import { initializeApp, setLogLevel } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import {
@@ -21,16 +25,17 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-if (!firebaseConfig.apiKey) {
-  console.error(
-    "[FirebaseConfig] Missing VITE_FIREBASE_API_KEY; Firebase Auth will fail."
-  );
-}
-
 const firebaseApp = initializeApp(firebaseConfig);
 
 // Initialize Firebase services
 const auth = getAuth(firebaseApp);
+
+setPersistence(auth, browserLocalPersistence).catch(() => {
+  // Persist auth session across reloads until explicit sign-out or token invalidation.
+  // (If the browser disallows it, Firebase will fall back internally.)
+  // no-op: some environments can block persistence
+});
+
 const firestore = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
 const functions = getFunctions(firebaseApp);
@@ -66,18 +71,18 @@ export const useFirebaseStore = defineStore("firebase", {
     adminSignIn(email, password) {
       return adminSignIn(this.auth, email, password);
     },
-    dataGetResourcesCollection() {
-      return dataGetCollection(
-        this.functions,
-        "getResourcesCollection",
-        "resourcesCache"
-      );
-    },
     dataGetScrapbookCollection() {
       return dataGetCollection(
         this.functions,
         "getScrapbookCollection",
         "bcpletcherProjects"
+      );
+    },
+    dataGetFeaturedScrapbookCollection() {
+      return dataGetCollection(
+        this.functions,
+        "getFeaturedScrapbookCollection",
+        "bcpletcherProjectsFeatured"
       );
     },
     dataCreateScrapbookDocument(document) {

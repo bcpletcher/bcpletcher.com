@@ -16,6 +16,41 @@ exports.getCollection = (data, context, firestore, collectionName) => {
       });
 };
 
+// Fetch a collection with optional filters and field selection.
+// Intended for lightweight reads (e.g. featured projects for the Home page).
+//
+// data:
+// {
+//   where: Array<{ field: string, op: FirebaseFirestore.WhereFilterOp, value: any }>,
+//   select: string[]
+// }
+exports.getCollectionQuery = async (data, context, firestore, collectionName) => {
+  try {
+    let ref = firestore.collection(collectionName);
+
+    const where = data && Array.isArray(data.where) ? data.where : [];
+    where.forEach((w) => {
+      if (!w || !w.field || w.value === undefined) return;
+      ref = ref.where(w.field, w.op || "==", w.value);
+    });
+
+    const select = data && Array.isArray(data.select) ? data.select : [];
+    if (select.length) {
+      ref = ref.select(...select);
+    }
+
+    const snapshot = await ref.get();
+    const obj = {};
+    snapshot.docs.forEach((doc) => {
+      obj[doc.id] = doc.data();
+    });
+    return obj;
+  } catch (error) {
+    console.warn(error);
+    return { error: error.message };
+  }
+};
+
 exports.createDocument = async (data, context, firestore, collectionName) => {
   try {
     const docRef = data.document.id ?

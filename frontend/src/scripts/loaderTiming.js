@@ -7,6 +7,18 @@
 // can share the same numbers and stay perfectly in sync.
 
 export const LOADER_DEFAULTS = Object.freeze({
+  // Defaults mirrored from the original `fullscreen-loader.vue` props.
+  // (These are used as fallbacks so the loader stays stable if we later remove props.)
+  strokeWidth: 16,
+  opacityStart: 0.35,
+  opacityEnd: 1,
+  outlineHeadLength: 1,
+  outlineEase: "none",
+  fillEase: "none",
+  fadeEase: "power1.out",
+  zoomEase: "power2.in",
+  repeat: 0,
+
   // Timings (seconds) – these should match the GSAP timeline sequencing
   // Optional pause BEFORE the outline starts drawing.
   preOutlineDelay: 0.25,

@@ -47,6 +47,7 @@
 import { useTemplateRef } from "vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
+import { saveScrapbookToCache } from "@/scripts/appCaching.js";
 
 import BaseLayout from "@/components/shared/base-layout.vue";
 import PageHeader from "@/components/shared/page-header.vue";
@@ -94,5 +95,12 @@ const toggleSoftDelete = async (row) => {
     ...(settingsStore.scrapbook || {}),
     [id]: updated,
   };
+
+  try {
+    const { featured } = await saveScrapbookToCache(settingsStore.scrapbook);
+    settingsStore.featuredScrapbook = featured;
+  } catch (e) {
+    console.warn("Failed to update scrapbook cache", e);
+  }
 };
 </script>

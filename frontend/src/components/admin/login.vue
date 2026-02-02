@@ -3,7 +3,6 @@
     <div class="flex justify-center">
       <div class="h-20 cursor-pointer mb-10">
         <img
-          v-if="settingsStore.resources"
           class="w-full h-full"
           src="./../../assets/images/logo.svg"
           alt="BP Logo"

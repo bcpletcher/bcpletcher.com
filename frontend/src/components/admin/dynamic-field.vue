@@ -63,6 +63,7 @@ const emit = defineEmits(["update"]);
 
 const props = defineProps({
   value: {
+    type: [String, Number, Boolean, Array, Object, null],
     required: true,
   },
   fieldKey: {

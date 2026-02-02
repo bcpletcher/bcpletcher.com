@@ -38,7 +38,7 @@ import ProjectsCard from "@/components/home/content/projects-card.vue";
 const settingsStore = useSettingsStore();
 
 const items = computed(() => {
-  const raw = settingsStore.scrapbook;
+  const raw = settingsStore.featuredScrapbook || settingsStore.scrapbook;
   if (!raw) return [];
 
   return Object.values(raw)

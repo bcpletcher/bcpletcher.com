@@ -113,6 +113,7 @@ import { useFirebaseStore } from "@/stores/firebase.js";
 import { useBreakpoints } from "@/composables/breakpoints.js";
 import { VueDraggableNext } from "vue-draggable-next";
 import ScrapbookTableRow from "@/components/scrapbook/table-row.vue";
+import { saveScrapbookToCache } from "@/scripts/appCaching.js";
 
 const settingsStore = useSettingsStore();
 const firebaseStore = useFirebaseStore();
@@ -189,14 +190,14 @@ const onDragEndFeatured = async () => {
     ...normalItems.value.filter((i) => !i.featured),
     ...deletedItems.value,
   ];
-
   settingsStore.scrapbook = getUpdatedScrapbookObject(merged);
 
-  if (settingsStore.scrapbook) {
-    localStorage.setItem(
-      "scrapbookCache",
-      JSON.stringify(settingsStore.scrapbook)
-    );
+  // Keep IndexedDB cache in sync with admin changes.
+  try {
+    const { featured } = await saveScrapbookToCache(settingsStore.scrapbook);
+    settingsStore.featuredScrapbook = featured;
+  } catch (e) {
+    console.warn("Failed to update scrapbook cache", e);
   }
 
   await firebaseStore.dataUpdateScrapbookDocumentOrder(settingsStore.scrapbook);
