@@ -8,7 +8,7 @@
       <notifications />
 
       <fullscreen-loader
-        v-if="showLoader"
+        v-if="didDecideBoot && showLoader"
         :is-ready="!isBootLoading && !bootError"
         :has-error="Boolean(bootError)"
         @done="onLoaderDone"
@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { useRoute } from "vue-router";
 
 import FullscreenLoader from "@/components/shared/fullscreen-loader.vue";
@@ -39,14 +39,28 @@ import EmulatorBanner from "@/components/admin/emulator-banner.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { useAppBoot } from "@/composables/useAppBoot.js";
+import { loadFontAwesomeKit } from "@/utils/fontAwesomeKit.js";
 
 useFirebaseStore();
 useSettingsStore();
 
-const { showLoader, isBootLoading, bootError, onLoaderDone } = useAppBoot();
+const { showLoader, isBootLoading, bootError, onLoaderDone, didDecideBoot } =
+  useAppBoot();
 
 const route = useRoute();
 const isFullWidthRoute = computed(() => Boolean(route.meta?.fullWidth));
+
+// Load Font Awesome everywhere except /resume for faster resume direct loads.
+watch(
+  () => route.path,
+  (path) => {
+    if (path === "/resume") return;
+    loadFontAwesomeKit().catch(() => {
+      // Non-fatal: icons may be missing if the kit fails.
+    });
+  },
+  { immediate: true }
+);
 </script>
 
 <style lang="scss" scoped>

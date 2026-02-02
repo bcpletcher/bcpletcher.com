@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <script src="https://kit.fontawesome.com/b5b13ceb62.js" crossorigin="anonymous"></script>
 
 <!--    <link rel="icon" href="<%= BASE_URL %>favicon.ico">-->
 
@@ -18,6 +17,14 @@
 
     <meta name="msapplication-TileColor" content="#603cba">
     <meta name="theme-color" content="#ffffff">
+
+    <!-- Preload resume PDF for faster /resume direct loads -->
+    <link
+      rel="preload"
+      as="fetch"
+      crossorigin="anonymous"
+      href="https://firebasestorage.googleapis.com/v0/b/pletcher-portfolio-app.firebasestorage.app/o/Files%2Fbcpletcher-resume.pdf?alt=media"
+    />
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-144556565-1"></script>

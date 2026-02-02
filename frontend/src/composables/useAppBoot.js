@@ -32,7 +32,13 @@ export function useAppBoot() {
 
   const isBootLoading = ref(true);
   const bootError = ref("");
-  const showLoader = ref(true);
+  // Avoid a 1-frame flash of the loader when cached data is fresh.
+  // We only turn this on after we've determined a network boot is required.
+  const showLoader = ref(false);
+
+  // Tracks whether we've decided to actually boot. Until then, the UI shouldn't
+  // show the loader overlay.
+  const didDecideBoot = ref(false);
 
   const route = useRoute();
 
@@ -66,6 +72,9 @@ export function useAppBoot() {
     // Prevent scrollbar/layout jitter while the loader is animating.
     // (We keep off until loader fades out OR we early-exit via fresh cache.)
     try {
+      // 0) Decide whether we need loader + network boot.
+      // We do this before showing the loader to avoid a brief flash.
+
       // 1) Cache-first: avoid unnecessary network calls within TTL.
       // Controlled via VITE_CACHE_ENABLED (default true).
       if (CACHE_ENABLED) {
@@ -91,12 +100,17 @@ export function useAppBoot() {
 
         if (cacheIsFresh) {
           // Skip loader + skip network calls entirely.
+          didDecideBoot.value = true;
           showLoader.value = false;
           isBootLoading.value = false;
           unlockBodyScroll();
           return;
         }
       }
+
+      // Cache not fresh (or disabled) – we will do an actual boot, so show loader now.
+      didDecideBoot.value = true;
+      showLoader.value = true;
 
       // 2a) Featured-first (non-fatal)
       try {
@@ -212,5 +226,6 @@ export function useAppBoot() {
     isReady,
     hasError,
     onLoaderDone,
+    didDecideBoot,
   };
 }
