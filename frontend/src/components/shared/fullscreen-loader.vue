@@ -90,6 +90,7 @@ const fillPath = ref(null);
 const maskCircle = ref(null);
 
 let tl;
+let fadeTimeoutId;
 
 const VIEWBOX_SIZE = 1875;
 
@@ -106,6 +107,32 @@ const MASK_END_R = Math.ceil(Math.sqrt(dx * dx + dy * dy)) + 10;
 const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+// Runs the final fade sequence (logo zoom/fade + overlay fade).
+// This is intentionally separate so we can trigger it after a delay.
+const runFadeOut = () => {
+  if (!overlayEl.value || !svgEl.value) return;
+
+  // Stop any existing timeline so we don't double-animate.
+  tl?.kill();
+  tl = null;
+
+  // Logo zoom out
+  gsap.to(svgEl.value, {
+    scale: 0,
+    opacity: 0,
+    duration: LOADER_DEFAULTS.zoomOutDuration,
+    ease: LOADER_DEFAULTS.zoomEase,
+  });
+
+  // Overlay fade
+  gsap.to(overlayEl.value, {
+    opacity: 0,
+    duration: LOADER_DEFAULTS.overlayFadeDuration,
+    ease: "none",
+    delay: LOADER_DEFAULTS.zoomOutDuration,
+  });
+};
 
 onMounted(() => {
   if (
@@ -240,23 +267,17 @@ onMounted(() => {
     tl.to({}, { duration: LOADER_DEFAULTS.postFillHold });
   }
 
-  // 7) Zoom the logo out to nothing
-  tl.to(svgEl.value, {
-    scale: 0,
-    opacity: 0,
-    duration: LOADER_DEFAULTS.zoomOutDuration,
-    ease: LOADER_DEFAULTS.zoomEase,
-  });
-
-  // 8) Fade the whole overlay away
-  tl.to(overlayEl.value, {
-    opacity: 0,
-    duration: LOADER_DEFAULTS.overlayFadeDuration,
-    ease: "none",
-  });
+  // Trigger the fade sequence 3 seconds after mount.
+  fadeTimeoutId = window.setTimeout(() => {
+    runFadeOut();
+  }, 3000);
 });
 
 onBeforeUnmount(() => {
+  if (fadeTimeoutId) {
+    clearTimeout(fadeTimeoutId);
+    fadeTimeoutId = null;
+  }
   tl?.kill();
   tl = null;
 });

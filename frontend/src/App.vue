@@ -94,14 +94,14 @@ onMounted(async () => {
 
     // 1) Fast path: hydrate from IndexedDB cache (repeat visits).
     // This lets Home render featured content quickly while fresh data loads.
-    try {
-      const cached = await loadScrapbookFromCache();
-      if (cached?.all) settingsStore.scrapbook = cached.all;
-      if (cached?.featured) settingsStore.featuredScrapbook = cached.featured;
-    } catch (e) {
-      // Ignore cache failures (private mode / blocked storage / etc.)
-      console.warn("Scrapbook cache unavailable:", e);
-    }
+    // try {
+    //   const cached = await loadScrapbookFromCache();
+    //   if (cached?.all) settingsStore.scrapbook = cached.all;
+    //   if (cached?.featured) settingsStore.featuredScrapbook = cached.featured;
+    // } catch (e) {
+    //   // Ignore cache failures (private mode / blocked storage / etc.)
+    //   console.warn("Scrapbook cache unavailable:", e);
+    // }
 
     // 2) Network path (featured-first):
     //    a) Fetch the small featured-only payload for a fast Home paint.
