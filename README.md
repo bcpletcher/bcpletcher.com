@@ -1,25 +1,26 @@
 # bcpletcher.com
 
-<p align="center">
+<p>
   <img src="frontend/src/assets/images/logo.svg" alt="bcpletcher.com logo" width="96" height="96" />
 </p>
 
 ### Status
 [![Deploy to Firebase Hosting (prod)](https://github.com/bcpletcher/bcpletcher.com/actions/workflows/firebase-hosting-prod.yml/badge.svg)](https://github.com/bcpletcher/bcpletcher.com/actions/workflows/firebase-hosting-prod.yml)
+[![CI](https://github.com/bcpletcher/bcpletcher.com/actions/workflows/ci.yml/badge.svg)](https://github.com/bcpletcher/bcpletcher.com/actions/workflows/ci.yml)
 [![Live Site](https://img.shields.io/badge/live-www.bcpletcher.com-0ea5e9?logo=firebase&logoColor=white)](https://www.bcpletcher.com)
 [![Last Commit](https://img.shields.io/github/last-commit/bcpletcher/bcpletcher.com)](https://github.com/bcpletcher/bcpletcher.com/commits/main)
 
 ### Tech stack
 ![Vue](https://img.shields.io/badge/Vue-3-42b883?logo=vue.js&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
-![Pinia](https://img.shields.io/badge/Pinia-2-f7d336?logo=pinia&logoColor=111827)
-![Vue Router](https://img.shields.io/badge/Vue_Router-4-42b883?logo=vue.js&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)
+![Pinia](https://img.shields.io/badge/Pinia-3-f7d336?logo=pinia&logoColor=111827)
+![Vue Router](https://img.shields.io/badge/Vue_Router-5-42b883?logo=vue.js&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black)
 ![Cloud Functions](https://img.shields.io/badge/Firebase_Functions-Node_20-FFCA28?logo=firebase&logoColor=black)
 ![GSAP](https://img.shields.io/badge/GSAP-88CE02?logo=greensock&logoColor=0b0b0b)
-![ESLint](https://img.shields.io/badge/ESLint-8-4B32C3?logo=eslint&logoColor=white)
-![Prettier](https://img.shields.io/badge/Prettier-2-F7B93E?logo=prettier&logoColor=111827)
+![ESLint](https://img.shields.io/badge/ESLint-9-4B32C3?logo=eslint&logoColor=white)
+![Prettier](https://img.shields.io/badge/Prettier-3-F7B93E?logo=prettier&logoColor=111827)
 
 Personal portfolio site powered by Vue 3 + Vite and backed by Firebase (Firestore/Storage + Cloud Functions).
 
@@ -29,11 +30,19 @@ Personal portfolio site powered by Vue 3 + Vite and backed by Firebase (Firestor
 - `firebase.json`: Firebase Hosting + Functions configuration
 
 ## Prerequisites
-- **Node.js 20** (matches Functions runtime)
+- **Node.js** (see `.nvmrc`)
 - **npm**
-- **Firebase CLI** (`firebase-tools`)
+- **Firebase CLI** (`firebase-tools`) for deploy/emulators
 
 ## Quick start
+### 0) Use the right Node version
+This repo is standardized on `nvm` via `.nvmrc`.
+
+```bash
+nvm install
+nvm use
+```
+
 ### 1) Install dependencies
 ```bash
 cd frontend
@@ -60,8 +69,17 @@ The frontend reads configuration from Vite env files:
 - `frontend/.env.development`: used by `npm run serve`
 - `frontend/.env.production`: used by `npm run build`
 
-> These files are currently committed. If you rotate keys or want to keep them private,
-> move values to `.env.*.local` and add those files to `.gitignore`.
+### Recommended setup
+Copy the example file and create **local-only** env files (not committed):
+
+```bash
+cp frontend/.env.example frontend/.env.development.local
+cp frontend/.env.example frontend/.env.production.local
+```
+
+Then fill in the Firebase values.
+
+> `frontend/.env.example` is tracked. Any `.env*.local` file is ignored by git.
 
 ### Required Firebase/Vite values
 | Variable | Description |

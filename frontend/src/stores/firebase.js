@@ -48,8 +48,13 @@ if (useEmulator) {
   // Connect to emulators
   console.log("useEmulator", useEmulator);
 
-  connectFunctionsEmulator(functions, "localhost", 5001);
-  // connectFirestoreEmulator(firestore, "localhost", 8080);
+  // Firebase Functions emulator (firebase.json uses 5002)
+  connectFunctionsEmulator(functions, "localhost", 5002);
+
+  // Firestore emulator
+  // (Requires explicit connection; otherwise Firestore will read from production)
+  const { connectFirestoreEmulator } = await import("firebase/firestore");
+  connectFirestoreEmulator(firestore, "localhost", 8080);
 }
 
 // Import the actions

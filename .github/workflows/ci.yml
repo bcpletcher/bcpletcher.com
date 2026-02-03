@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend (lint, build, audit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: ./frontend
+        run: npm run lint -- --max-warnings=0
+
+      - name: Build
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Audit (production)
+        working-directory: ./frontend
+        run: npm audit --omit=dev
+
+  functions:
+    name: Firebase Functions (lint, audit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          # Firebase Functions runtime is Node 20; use it in CI too.
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: firebase/functions/package-lock.json
+
+      - name: Install
+        working-directory: ./firebase/functions
+        run: npm ci
+
+      - name: Lint
+        working-directory: ./firebase/functions
+        run: npm run lint -- --max-warnings=0
+
+      - name: Audit (production)
+        working-directory: ./firebase/functions
+        run: npm audit --omit=dev

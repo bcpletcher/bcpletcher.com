@@ -1,20 +1,22 @@
-const functions = require("firebase-functions");
+const { onCall } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 
-admin.initializeApp({
-  databaseURL: "https://pletcher-portfolio-app.firebaseio.com",
-});
+admin.initializeApp();
 
 const firestore = admin.firestore();
 const database = require("./functions/database");
 
-exports.getScrapbookCollection = functions.https.onCall((data, context) => {
+exports.getScrapbookCollection = onCall((request) => {
+  const { data, auth } = request;
+  const context = { auth };
   return database.getCollection(data, context, firestore, "scrapbook");
 });
 
 // Lightweight featured-only query for Home page.
 // Returns only active featured items with minimal fields.
-exports.getFeaturedScrapbookCollection = functions.https.onCall((data, context) => {
+exports.getFeaturedScrapbookCollection = onCall((request) => {
+  const { auth } = request;
+  const context = { auth };
   return database.getCollectionQuery(
     {
       where: [
@@ -38,12 +40,18 @@ exports.getFeaturedScrapbookCollection = functions.https.onCall((data, context) 
     "scrapbook"
   );
 });
-exports.createScrapbookDocument = functions.https.onCall((data, context) => {
+exports.createScrapbookDocument = onCall((request) => {
+  const { data, auth } = request;
+  const context = { auth };
   return database.createDocument(data, context, firestore, "scrapbook");
 });
-exports.updateScrapbookDocumentOrder = functions.https.onCall((data, context) => {
+exports.updateScrapbookDocumentOrder = onCall((request) => {
+  const { data, auth } = request;
+  const context = { auth };
   return database.updateScrapbookDocumentOrder(data, context, firestore, "scrapbook");
 });
-exports.updateScrapbookDocument = functions.https.onCall((data, context) => {
+exports.updateScrapbookDocument = onCall((request) => {
+  const { data, auth } = request;
+  const context = { auth };
   return database.updateDocument(data, context, firestore, "scrapbook");
 });

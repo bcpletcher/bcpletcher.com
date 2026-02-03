@@ -3,26 +3,32 @@
   "description": "Cloud Functions for Firebase",
   "scripts": {
     "lint": "eslint .",
-    "serve": "firebase emulators:start --only functions,firestore",
-    "shell": "firebase functions:shell",
+    "serve": "JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home PATH=$JAVA_HOME/bin:$PATH node ./node_modules/firebase-tools/lib/bin/firebase.js emulators:start --only functions,firestore --config ../../firebase.json",
+    "shell": "JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home PATH=$JAVA_HOME/bin:$PATH node ./node_modules/firebase-tools/lib/bin/firebase.js functions:shell --config ../../firebase.json",
     "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "deploy": "JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home PATH=$JAVA_HOME/bin:$PATH node ./node_modules/firebase-tools/lib/bin/firebase.js deploy --only functions --config ../../firebase.json",
+    "logs": "JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home PATH=$JAVA_HOME/bin:$PATH node ./node_modules/firebase-tools/lib/bin/firebase.js functions:log --config ../../firebase.json"
   },
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "index.js",
   "dependencies": {
-    "@google-cloud/storage": "^7.12.1",
-    "firebase-admin": "^12.1.0",
-    "firebase-functions": "^5.0.0",
+    "@google-cloud/storage": "^7.18.0",
+    "firebase-admin": "^13.6.0",
+    "firebase-functions": "^7.0.5",
     "username-generator": "^1.1.0"
   },
   "devDependencies": {
-    "eslint": "^8.15.0",
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.2",
     "eslint-config-google": "^0.14.0",
-    "firebase-functions-test": "^3.1.0"
+    "firebase-functions-test": "^3.4.1",
+    "firebase-tools": "^14.11.1",
+    "globals": "^16.4.0"
+  },
+  "overrides": {
+    "fast-xml-parser": "^5.3.4"
   },
   "private": true
 }

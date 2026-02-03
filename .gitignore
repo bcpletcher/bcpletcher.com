@@ -2,6 +2,12 @@
 # OS / Editor
 # =====================
 .DS_Store
+**/.DS_Store
+.idea/
+.fleet/
+.nova/
+.history/
+
 .vscode/*
 !.vscode/extensions.json
 *.suo
@@ -39,9 +45,15 @@ node_modules/
 # Build outputs
 # =====================
 dist/
+frontend/dist/
 dist-ssr/
 coverage/
 *.local
+
+# Vite/Tooling caches
+.vite/
+.turbo/
+.cache/
 
 # =====================
 # Cypress
@@ -53,6 +65,8 @@ coverage/
 # Env / local overrides
 # =====================
 .env*
+!.env.example
+**/.env.example
 
 # =====================
 # Firebase (local artifacts / secrets)
