@@ -85,3 +85,8 @@ functions/.runtimeconfig.json
 
 # Firebase Hosting cache (generated)
 .firebasehosting.*
+
+# =====================
+# Firebase emulator data (local exports/imports)
+# =====================
+firebase/emulator-data/

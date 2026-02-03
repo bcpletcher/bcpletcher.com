@@ -48,7 +48,7 @@ if (useEmulator) {
   // Connect to emulators
   console.log("useEmulator", useEmulator);
 
-  // Firebase Functions emulator (firebase.json uses 5002)
+  // Firebase Functions emulator
   connectFunctionsEmulator(functions, "localhost", 5002);
 
   // Firestore emulator

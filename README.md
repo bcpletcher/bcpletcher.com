@@ -117,6 +117,84 @@ npm run logs    # view function logs
 npm run lint    # eslint
 ```
 
+## Functions emulator workflow (seeded with production data)
+When you run Firestore + Functions emulators, Firestore starts **empty** unless you import data.
+This repo supports seeding the Firestore emulator from a production Firestore export.
+
+### Export production Firestore (one-time / whenever you want fresh seed data)
+This is done with `gcloud` (not the Firebase CLI):
+
+```bash
+gcloud config set project pletcher-portfolio-app
+EXPORT_PATH="gs://pletcher-portfolio-app.firebasestorage.app/firestore-exports/$(date +%Y%m%d-%H%M%S)"
+gcloud firestore export "$EXPORT_PATH"
+```
+
+### Download the latest export + start emulators (one command)
+From `firebase/functions/`:
+
+```bash
+npm run serve:import
+```
+
+This will:
+- stop any stuck emulator processes (free ports)
+- download the latest Firestore export into `firebase/emulator-data/firestore/` if none exists locally
+- start Firestore + Functions emulators and import that data
+
+> Local emulator data is stored under `firebase/emulator-data/` and ignored by git.
+
+## Functions scripts (`firebase/functions/package.json`)
+Below is what each script does.
+
+- `npm run java`
+  - Prefixes commands with `JAVA_HOME` and updates `PATH` so the Firestore emulator uses **Java 21**.
+  - Required on this machine because the default `java` is Java 8.
+
+- `npm run lint`
+  - Runs ESLint for Cloud Functions source.
+
+- `npm run kill:emulators`
+  - Kills any processes listening on the standard Firebase emulator ports (hub/ui/logging/functions/firestore/etc.).
+  - Removes stale emulator hub locator files.
+  - Fixes the common “port taken” / “multiple instances” emulator startup issues.
+
+- `npm run serve`
+  - Runs `kill:emulators` first.
+  - Starts Firebase emulators: **functions + firestore** using `firebase.json`.
+
+- `npm run import:path`
+  - Prints the absolute path to the newest Firestore export folder under `firebase/emulator-data/firestore/`.
+  - Used internally by `serve:import`.
+
+- `npm run seed:download`
+  - Downloads the newest export folder from:
+    - `gs://pletcher-portfolio-app.firebasestorage.app/firestore-exports/`
+  - Stores it locally under:
+    - `firebase/emulator-data/firestore/<timestamp>/...`
+
+- `npm run serve:import`
+  - Runs `kill:emulators` first.
+  - If no local seed exists, runs `seed:download` automatically.
+  - Starts **functions + firestore** emulators and imports Firestore data from the latest downloaded export.
+  - Also exports emulator state back to that same folder on exit (`--export-on-exit`).
+
+- `npm run shell`
+  - Starts the Functions shell REPL (handy for calling functions locally).
+
+- `npm start`
+  - Alias for `npm run shell`.
+
+- `npm run deploy`
+  - Deploys Cloud Functions only.
+
+- `npm run logs`
+  - Streams Cloud Functions logs.
+
+- `npm run export:emulator`
+  - Exports **current emulator data** to a local directory.
+  - Note: this does **not** export production Firestore; production exports must use `gcloud firestore export`.
+
 ## Deployment
 Firebase Hosting is configured to serve `frontend/dist`.
 
