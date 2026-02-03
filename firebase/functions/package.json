@@ -2,18 +2,23 @@
   "name": "functions",
   "description": "Cloud Functions for Firebase",
   "scripts": {
-    "java": "JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home PATH=$JAVA_HOME/bin:$PATH",
     "lint": "eslint .",
-    "serve": "npm run kill:emulators && npm run java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json",
-    "shell": "npm run java -- npx firebase-tools functions:shell --config ../../firebase.json",
-    "start": "npm run shell",
-    "deploy": "npm run java -- npx firebase-tools deploy --only functions --config ../../firebase.json",
-    "logs": "npm run java -- npx firebase-tools functions:log --config ../../firebase.json",
-    "export:emulator": "npm run java -- npx firebase-tools emulators:export ../.emulator-data/firestore --config ../../firebase.json --project pletcher-portfolio-app",
-    "import:path": "node ./scripts/find-latest-firestore-export.mjs",
-    "seed:download": "EXPORT_PREFIX=${EXPORT_PREFIX:-gs://pletcher-portfolio-app.firebasestorage.app/firestore-exports} && LATEST=$(gsutil ls -d \"$EXPORT_PREFIX/*\" | tail -n 1) && echo \"Downloading: $LATEST\" && rm -rf ../emulator-data/firestore && mkdir -p ../emulator-data/firestore && gsutil -m cp -r \"$LATEST\" ../emulator-data/firestore/",
-    "kill:emulators": "node ./scripts/kill-emulators.mjs",
-    "serve:import": "npm run kill:emulators && (test -d ../emulator-data/firestore && test \"$(ls -A ../emulator-data/firestore 2>/dev/null)\" || npm run seed:download) && IMPORT_DIR=$(npm run -s import:path) && echo \"Importing Firestore from: $IMPORT_DIR\" && npm run java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app --import \"$IMPORT_DIR\" --export-on-exit \"$IMPORT_DIR\""
+
+    "env:java": "JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home PATH=$JAVA_HOME/bin:$PATH",
+
+    "emulators:kill": "node ./scripts/kill-emulators.mjs",
+
+    "seed:refresh": "EXPORT_PREFIX=${EXPORT_PREFIX:-gs://pletcher-portfolio-app.firebasestorage.app/firestore-exports} && LATEST=$(gsutil ls -d \"$EXPORT_PREFIX/*\" | tail -n 1) && echo \"Downloading seed: $LATEST\" && rm -rf ../.databases/imports/firestore && mkdir -p ../.databases/imports/firestore && gsutil -m cp -r \"$LATEST\" ../.databases/imports/firestore/",
+    "seed:path": "node ./scripts/find-latest-firestore-export.mjs",
+
+    "serve": "npm run emulators:kill && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json",
+    "serve:seeded": "npm run emulators:kill && (test -d ../.databases/imports/firestore || npm run seed:refresh) && SEED_DIR=$(npm run -s seed:path) && echo \"Importing Firestore from: $SEED_DIR\" && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app --import \"$SEED_DIR\" --export-on-exit ../.databases/exports/firestore",
+    "serve:aio": "npm run emulators:kill && npm run seed:refresh && SEED_DIR=$(npm run -s seed:path) && echo \"Importing Firestore from: $SEED_DIR\" && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app --import \"$SEED_DIR\" --export-on-exit ../.databases/exports/firestore",
+
+    "functions:shell": "npm run env:java -- npx firebase-tools functions:shell --config ../../firebase.json",
+
+    "deploy:functions": "npm run env:java -- npx firebase-tools deploy --only functions --config ../../firebase.json",
+    "logs:functions": "npm run env:java -- npx firebase-tools functions:log --config ../../firebase.json"
   },
   "engines": {
     "node": "20"

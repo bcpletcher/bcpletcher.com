@@ -121,7 +121,7 @@ npm run lint    # eslint
 When you run Firestore + Functions emulators, Firestore starts **empty** unless you import data.
 This repo supports seeding the Firestore emulator from a production Firestore export.
 
-### Export production Firestore (one-time / whenever you want fresh seed data)
+### Export production Firestore (whenever you want fresh seed data)
 This is done with `gcloud` (not the Firebase CLI):
 
 ```bash
@@ -130,70 +130,65 @@ EXPORT_PATH="gs://pletcher-portfolio-app.firebasestorage.app/firestore-exports/$
 gcloud firestore export "$EXPORT_PATH"
 ```
 
-### Download the latest export + start emulators (one command)
+### One command you run every time (kill ports + refresh seed + start emulators)
 From `firebase/functions/`:
 
 ```bash
-npm run serve:import
+npm run serve:aio
 ```
 
-This will:
-- stop any stuck emulator processes (free ports)
-- download the latest Firestore export into `firebase/emulator-data/firestore/` if none exists locally
-- start Firestore + Functions emulators and import that data
+That command:
+- kills any stuck emulator processes (fixes “port taken” issues)
+- downloads the latest Firestore export into `firebase/.databases/imports/firestore/` (keeps only one local copy)
+- starts Firestore + Functions emulators and imports that data
 
-> Local emulator data is stored under `firebase/emulator-data/` and ignored by git.
+> Local emulator DB data is stored under `firebase/.databases/` and ignored by git.
 
 ## Functions scripts (`firebase/functions/package.json`)
 Below is what each script does.
 
-- `npm run java`
-  - Prefixes commands with `JAVA_HOME` and updates `PATH` so the Firestore emulator uses **Java 21**.
-  - Required on this machine because the default `java` is Java 8.
-
-- `npm run lint`
-  - Runs ESLint for Cloud Functions source.
-
-- `npm run kill:emulators`
-  - Kills any processes listening on the standard Firebase emulator ports (hub/ui/logging/functions/firestore/etc.).
-  - Removes stale emulator hub locator files.
-  - Fixes the common “port taken” / “multiple instances” emulator startup issues.
-
+### Day-to-day
 - `npm run serve`
-  - Runs `kill:emulators` first.
-  - Starts Firebase emulators: **functions + firestore** using `firebase.json`.
+  - Kills emulator ports, then starts Firestore + Functions emulators.
+  - Does **not** import seed data.
 
-- `npm run import:path`
-  - Prints the absolute path to the newest Firestore export folder under `firebase/emulator-data/firestore/`.
-  - Used internally by `serve:import`.
+- `npm run serve:seeded`
+  - Kills emulator ports.
+  - Starts emulators seeded from `firebase/.databases/imports/firestore/`.
+  - If no seed exists locally, it will download one.
 
-- `npm run seed:download`
-  - Downloads the newest export folder from:
+- `npm run serve:aio`
+  - The “always works” command.
+  - Kills emulator ports, refreshes the seed download (deletes older local copies), then starts seeded emulators.
+
+### Emulator / environment utilities
+- `npm run emulators:kill`
+  - Kills any processes listening on the standard emulator ports and removes stale hub locator files.
+  - Fixes common “port taken” / “multiple instances” issues.
+
+- `npm run env:java`
+  - Sets `JAVA_HOME` and `PATH` so the Firestore emulator runs with **Java 21**.
+
+### Seed utilities
+- `npm run seed:refresh`
+  - Deletes local seed data (`firebase/.databases/imports/firestore`) and downloads the newest production export folder from:
     - `gs://pletcher-portfolio-app.firebasestorage.app/firestore-exports/`
-  - Stores it locally under:
-    - `firebase/emulator-data/firestore/<timestamp>/...`
 
-- `npm run serve:import`
-  - Runs `kill:emulators` first.
-  - If no local seed exists, runs `seed:download` automatically.
-  - Starts **functions + firestore** emulators and imports Firestore data from the latest downloaded export.
-  - Also exports emulator state back to that same folder on exit (`--export-on-exit`).
+- `npm run seed:path`
+  - Prints the absolute path to the local import folder: `firebase/.databases/imports/firestore/`.
 
-- `npm run shell`
-  - Starts the Functions shell REPL (handy for calling functions locally).
+### Functions shell / deploy / logs
+- `npm run functions:shell`
+  - Starts the Functions shell REPL.
 
-- `npm start`
-  - Alias for `npm run shell`.
-
-- `npm run deploy`
+- `npm run deploy:functions`
   - Deploys Cloud Functions only.
 
-- `npm run logs`
+- `npm run logs:functions`
   - Streams Cloud Functions logs.
 
-- `npm run export:emulator`
-  - Exports **current emulator data** to a local directory.
-  - Note: this does **not** export production Firestore; production exports must use `gcloud firestore export`.
+- `npm run lint`
+  - Runs ESLint for Cloud Functions code.
 
 ## Deployment
 Firebase Hosting is configured to serve `frontend/dist`.
