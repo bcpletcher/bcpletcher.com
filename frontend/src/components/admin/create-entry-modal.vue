@@ -39,7 +39,7 @@
           <input
             v-model="documentModel.data.featured"
             type="checkbox"
-            class="h-4 w-4 rounded border border-base-border bg-gray-800"
+            class="h-4 w-4 rounded border border-border bg-gray-800"
             :disabled="isSubmitting"
           />
           <span class="text-sm text-font-primary/70">
@@ -60,7 +60,7 @@
         </div>
         <textarea
           v-model="documentModel.data.summary"
-          class="mt-1 w-full rounded-md border border-base-border bg-gray-800 text-white text-sm px-2 py-2 focus-ring-offset-primary ring-offset-primary"
+          class="mt-1 w-full rounded-md border border-border bg-gray-800 text-white text-sm px-2 py-2 focus-ring-offset-primary ring-offset-primary"
           rows="3"
           maxlength="200"
           :disabled="isSubmitting"
@@ -81,7 +81,7 @@
         </div>
         <textarea
           v-model="documentModel.data.description"
-          class="mt-1 w-full rounded-md border border-base-border bg-gray-800 text-white text-sm px-2 py-2 focus-ring-offset-primary ring-offset-primary"
+          class="mt-1 w-full rounded-md border border-border bg-gray-800 text-white text-sm px-2 py-2 focus-ring-offset-primary ring-offset-primary"
           rows="5"
           maxlength="500"
           :disabled="isSubmitting"

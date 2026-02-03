@@ -4,19 +4,19 @@
       v-if="showHeader"
       :class="[
         {
-          'border border-base-border rounded-lg p-4': headerBackground,
+          'border border-border rounded-lg p-4': headerBackground,
         },
       ]"
     >
       <slot name="header"></slot>
     </div>
     <div
-      class="flex-1 scrollbar-thin scrollbar-thumb-gradient-start/60 scrollbar-track-base-background"
+      class="flex-1 scrollbar-thin scrollbar-thumb-gradient-start/60 scrollbar-track-base"
       :class="[
         scrollableY ? 'overflow-y-auto ' : 'overflow-y-hidden',
         scrollableX ? 'overflow-x-auto' : 'overflow-x-hidden',
         {
-          'border border-base-border rounded-lg p-4': contentBackground,
+          'border border-border rounded-lg p-4': contentBackground,
         },
       ]"
     >
@@ -26,7 +26,7 @@
       v-if="showFooter"
       :class="[
         {
-          'border border-base-border rounded-lg p-4': footerBackground,
+          'border border-border rounded-lg p-4': footerBackground,
         },
       ]"
     >
@@ -81,4 +81,4 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style scoped></style>

@@ -11,7 +11,7 @@
 
     <!-- Handle objects -->
     <template v-else-if="getType(value) === 'object'">
-      <p v-if="value.type" class="text-font-secondary">
+      <p v-if="value.type" class="text-accent">
         Custom handling required for type: {{ value.type }}
       </p>
       <div v-else class="flex flex-col gap-2 pl-4 border-l-2 border-gray-300">
@@ -49,7 +49,7 @@
 
     <!-- Handle unknown types -->
     <template v-else>
-      <p class="text-font-secondary">Unknown type for key: {{ fieldKey }}</p>
+      <p class="text-accent">Unknown type for key: {{ fieldKey }}</p>
     </template>
   </div>
 </template>

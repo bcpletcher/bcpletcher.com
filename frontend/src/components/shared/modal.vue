@@ -6,7 +6,7 @@
       @click.self="closeModal"
     >
       <div
-        class="bg-base-sidebar p-6 rounded-lg shadow-lg w-[90vw] max-w-[600px] flex flex-col"
+        class="bg-surface-2 p-6 rounded-lg shadow-lg w-[90vw] max-w-[600px] flex flex-col"
       >
         <div
           v-if="showHeader"

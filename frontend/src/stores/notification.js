@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
-import { v4 as uuidv4 } from "uuid";
+
+let nextNotificationId = 1;
 
 export const useNotificationStore = defineStore("notification", {
   state: () => ({
@@ -7,8 +8,7 @@ export const useNotificationStore = defineStore("notification", {
   }),
   actions: {
     addNotification({ variant, title, message, duration = 5 }) {
-      // Generate a unique ID for the notification
-      const uuid = uuidv4();
+      const id = nextNotificationId++;
       let style = {
         icon: "exclamation-circle",
         colorText: "text-primary",
@@ -35,7 +35,7 @@ export const useNotificationStore = defineStore("notification", {
       this.notifications = [
         ...this.notifications,
         {
-          uuid,
+          id,
           variant,
           title,
           message,
@@ -45,8 +45,7 @@ export const useNotificationStore = defineStore("notification", {
       ];
     },
     removeNotification(id) {
-      // Remove the notification by id
-      this.notifications = this.notifications.filter((n) => n.uuid !== id);
+      this.notifications = this.notifications.filter((n) => n.id !== id);
     },
   },
 });

@@ -37,7 +37,7 @@
       @transitionend="onDialogTransitionEnd"
     >
       <div
-        class="relative w-[92vw] max-w-[1024px] overflow-hidden rounded-2xl border border-base-border bg-base-background shadow-2xl backdrop-blur"
+        class="relative w-[92vw] max-w-[1024px] overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl backdrop-blur"
         :class="
           visible
             ? 'opacity-100 translate-y-0 scale-100 blur-0'
@@ -119,7 +119,7 @@
                   class="absolute inset-0 flex items-center justify-center"
                 >
                   <div
-                    class="flex items-center gap-3 rounded-full border border-white/10 bg-base-sidebar/60 px-4 py-2 backdrop-blur"
+                    class="flex items-center gap-3 rounded-full border border-white/10 bg-surface-2/60 px-4 py-2 backdrop-blur"
                   >
                     <i
                       class="fa-light fa-spinner-third animate-spin text-font-secondary"
@@ -301,7 +301,7 @@ defineExpose({
 });
 </script>
 
-<style lang="scss">
+<style>
 /* Pagination bullets */
 .custom-pagination {
   display: flex;
@@ -310,12 +310,12 @@ defineExpose({
 }
 
 .swiper-pagination-bullet {
-  background-color: theme("colors.font.primary");
+  background-color: #e2e8f0;
   opacity: 0.35;
 }
 
 .swiper-pagination-bullet-active {
-  background-color: theme("colors.font.secondary");
+  background-color: #62cff4;
   opacity: 1;
 }
 

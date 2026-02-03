@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen w-full bg-base-background text-slate-400">
+  <div class="min-h-screen w-full bg-surface text-slate-400">
     <!-- App content mounts immediately behind the loader so there's no repaint/jump when loader disappears -->
     <div class="min-h-screen w-full">
       <admin-dropdown />
@@ -62,16 +62,3 @@ watch(
   { immediate: true }
 );
 </script>
-
-<style lang="scss" scoped>
-/*------------- ANIMATION -------------*/
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s;
-}
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

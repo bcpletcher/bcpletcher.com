@@ -41,7 +41,7 @@
               props.backgroundColor,
               props.borderColor,
             ]"
-            class="w-full py-1.5 px-2 border border-base-border placeholder-gray-300 focus-ring-offset-primary ring-offset-primary text-sm bg-gray-800 text-white"
+            class="w-full py-1.5 px-2 border border-border placeholder-gray-300 focus-ring-offset-primary ring-offset-primary text-sm bg-gray-800 text-white"
             @keyup.enter="$emit('enterEvent')"
           />
           <div

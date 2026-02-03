@@ -49,10 +49,10 @@
 
     <div class="text-sm text-slate-500 max-w-lg mt-32 flex gap-4">
       <div
+        ref="logoEl"
         class="my-auto cursor-pointer"
-        :class="{ animationLogo: isHovered }"
-        @mouseenter="isHovered = true"
-        @mouseleave="isHovered = false"
+        @mouseenter="onLogoEnter"
+        @mouseleave="onLogoLeave"
         @click="goToAdmin()"
       >
         <img
@@ -118,51 +118,56 @@
 import AboutSection from "@/components/home/content/about.vue";
 import ExperienceSection from "@/components/home/content/experience.vue";
 import ProjectsSection from "@/components/home/content/projects.vue";
-import { ref } from "vue";
+import { onBeforeUnmount, ref } from "vue";
 import router from "@/router/index.js";
+import { gsap } from "gsap";
 
-const isHovered = ref(false);
+const logoEl = ref(null);
+let hoverTween = null;
+
 const goToAdmin = () => {
   router.push("/admin");
 };
+
+const onLogoEnter = () => {
+  if (!logoEl.value) return;
+
+  hoverTween?.kill();
+
+  // A little squeeze + jump. Quick, clean, and professional.
+  hoverTween = gsap
+    .timeline({ defaults: { ease: "power3.out" } })
+    .to(logoEl.value, { scaleX: 1.08, scaleY: 0.92, duration: 0.12 })
+    .to(
+      logoEl.value,
+      { y: -6, scaleX: 0.96, scaleY: 1.04, duration: 0.16 },
+      "<"
+    )
+    .to(logoEl.value, {
+      y: 0,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 0.22,
+      ease: "bounce.out",
+    });
+};
+
+const onLogoLeave = () => {
+  if (!logoEl.value) return;
+
+  hoverTween?.kill();
+  hoverTween = gsap.to(logoEl.value, {
+    y: 0,
+    scaleX: 1,
+    scaleY: 1,
+    duration: 0.2,
+    ease: "power2.out",
+  });
+};
+
+onBeforeUnmount(() => {
+  hoverTween?.kill();
+});
 </script>
 
-<style lang="scss">
-.fade-enter-active {
-  transition-delay: 0.5s !important;
-  transition: opacity 0.5s;
-}
-.fade-leave-active {
-  transition: opacity 0.15s;
-}
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.animationLogo img {
-  animation-duration: 0.75s;
-  -webkit-animation-name: rubberBand;
-  animation-name: rubberBand;
-}
-.animationTabAbout {
-  animation-duration: 0.75s;
-  animation-delay: 0.45s;
-}
-.animationTabExperience {
-  animation-duration: 0.75s;
-  animation-delay: 0.65s;
-}
-.animationTabContact {
-  animation-duration: 0.75s;
-  animation-delay: 0.85s;
-}
-.animationContent {
-  animation-duration: 1s;
-  animation-delay: 1.05s;
-}
-.animationSocial {
-  animation-duration: 0.75s;
-  animation-delay: 1.25s;
-}
-</style>
+<style></style>

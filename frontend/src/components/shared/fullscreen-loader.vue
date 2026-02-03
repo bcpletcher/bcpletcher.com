@@ -1,7 +1,7 @@
 <template>
   <div
     ref="overlayEl"
-    class="fixed inset-0 z-[60] flex items-center justify-center bg-base-background text-slate-200"
+    class="fixed inset-0 z-[60] flex items-center justify-center bg-surface text-slate-200"
     role="status"
     aria-live="polite"
     aria-busy="true"

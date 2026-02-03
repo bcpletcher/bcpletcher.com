@@ -4,7 +4,7 @@
       <div class="min-w-0">
         <router-link
           to="/"
-          class="group/link inline-flex items-center gap-2 text-sm font-medium text-font-secondary hover:text-font-secondary focus-visible:text-font-secondary transition-standard"
+          class="group/link inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent focus-visible:text-accent transition-standard"
           aria-label="Back to home"
         >
           <i

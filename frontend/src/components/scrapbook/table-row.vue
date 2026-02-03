@@ -19,7 +19,7 @@
       <!-- Year -->
       <label
         v-else-if="col.key === 'year'"
-        class="my-auto py-3 font-bold text-font-secondary"
+        class="my-auto py-3 font-bold text-accent"
         :class="col.widthClass"
       >
         {{ row.year }}
@@ -126,7 +126,7 @@ const rowClasses = computed(() => {
     if (props.showFeaturedOutline && isFeatured && !props.row.deleted) {
       classes.push("border-yellow-400/60 ring-1 ring-yellow-400/30");
     } else {
-      classes.push("border-base-border/40");
+      classes.push("border-border/40");
     }
 
     if (props.row.deleted) {
