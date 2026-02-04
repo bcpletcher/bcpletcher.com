@@ -12,8 +12,8 @@
     "seed:path": "node ./scripts/find-latest-firestore-export.mjs",
 
     "serve": "npm run emulators:kill && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json",
-    "serve:seeded": "npm run emulators:kill && (test -d ../.databases/imports/firestore || npm run seed:refresh) && SEED_DIR=$(npm run -s seed:path) && echo \"Importing Firestore from: $SEED_DIR\" && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app --import \"$SEED_DIR\" --export-on-exit ../.databases/exports/firestore",
-    "serve:aio": "npm run emulators:kill && npm run seed:refresh && SEED_DIR=$(npm run -s seed:path) && echo \"Importing Firestore from: $SEED_DIR\" && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app --import \"$SEED_DIR\" --export-on-exit ../.databases/exports/firestore",
+    "serve:seeded": "npm run emulators:kill && (test -d ../.databases/imports/firestore || npm run seed:refresh) && SEED_DIR=$(npm run -s seed:path) && echo \"Importing Firestore from: $SEED_DIR\" && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app --import \"$SEED_DIR\"",
+    "serve:aio": "npm run emulators:kill && npm run seed:refresh && SEED_DIR=$(npm run -s seed:path) && echo \"Importing Firestore from: $SEED_DIR\" && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app --import \"$SEED_DIR\"",
 
     "functions:shell": "npm run env:java -- npx firebase-tools functions:shell --config ../../firebase.json",
 

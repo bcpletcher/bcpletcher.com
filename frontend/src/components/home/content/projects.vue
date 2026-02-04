@@ -38,15 +38,20 @@ import ProjectsCard from "@/components/home/content/projects-card.vue";
 const settingsStore = useSettingsStore();
 
 const items = computed(() => {
-  const raw = settingsStore.featuredScrapbook || settingsStore.scrapbook;
+  const featured = settingsStore.featuredScrapbook;
+  const all = settingsStore.scrapbook;
+
+  const raw = featured || all;
   if (!raw) return [];
+
+  const requireFeaturedFlag = !featured; // only enforce when using the full dataset
 
   return Object.values(raw)
     .filter((p) => !p?.deleted)
-    .filter((p) => !!p?.featured)
+    .filter((p) => (requireFeaturedFlag ? !!p?.featured : true))
     .sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
     .map((p) => ({
-      hero: p?.hero || "",
+      hero: p?.hero || p?.images?.[0] || "",
       title: p?.title || "Untitled",
       summary: p?.summary || "",
       technology: Array.isArray(p?.technology) ? p.technology : [],
