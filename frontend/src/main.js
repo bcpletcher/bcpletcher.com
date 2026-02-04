@@ -10,6 +10,21 @@ import "./assets/css/tailwind.css";
 
 import gsapReveal from "./directives/gsap-reveal";
 
+// Always start at the top on hard refresh.
+// Some browsers try to restore scroll on reload; this opts out when available.
+if (typeof window !== "undefined") {
+  try {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  } catch {
+    // no-op
+  }
+
+  // Ensure we land at the top at startup (works even if restoration isn't supported).
+  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+}
+
 const app = createApp(App);
 
 app.use(createPinia());

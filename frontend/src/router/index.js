@@ -32,9 +32,10 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior(to, from, savedPosition) {
-    // Back/forward navigation should restore previous scroll.
-    if (savedPosition) return savedPosition;
+  scrollBehavior(to) {
+    // NOTE: We intentionally ignore savedPosition so the app doesn't remember scroll
+    // location (including on refresh/back/forward). Every navigation starts at the top,
+    // except hash navigation on Home.
 
     // Allow hash navigation on the Home page (e.g. /#about) to scroll to the anchor.
     // Vue Router will handle finding the element via the selector.
@@ -45,7 +46,6 @@ const router = createRouter({
       };
     }
 
-    // Default: every navigation starts at the top.
     return { left: 0, top: 0 };
   },
 });
