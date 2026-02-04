@@ -19,12 +19,12 @@
               >
                 <h3 class="min-w-0 font-medium leading-snug wrap-break-word">
                   {{ title }}
-                  <span
-                    v-if="year"
-                    class="ml-2 align-baseline text-xs font-semibold tracking-widest text-slate-400"
-                  >
-                    {{ year }}
-                  </span>
+<!--                  <span-->
+<!--                    v-if="year"-->
+<!--                    class="ml-2 align-baseline text-xs font-semibold tracking-widest text-slate-400"-->
+<!--                  >-->
+<!--                    {{ year }}-->
+<!--                  </span>-->
                 </h3>
                 <i
                   class="fa-light fa-arrow-up-right mt-0.5 inline-block h-4 w-4 shrink-0 text-current transition-transform motion-reduce:transition-none group-hover/title:-translate-y-1 group-hover/title:translate-x-1 group-focus-visible/title:-translate-y-1 group-focus-visible/title:translate-x-1"
@@ -69,8 +69,8 @@
           </div>
 
           <!-- Meta row (bottom) -->
-          <div v-if="featured" class="mt-3 flex items-center gap-2 text-xs text-slate-300">
-            <i class="fa-solid fa-star text-yellow-300" aria-hidden="true" />
+          <div v-if="featured" class="mt-3 flex items-center gap-2 text-xs text-slate-400">
+            <i class="fa-solid fa-star text-yellow-300/60" aria-hidden="true" />
             <span>Featured</span>
           </div>
         </div>

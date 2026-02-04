@@ -19,7 +19,7 @@
     </template>
 
     <template #main>
-      <div class="flex flex-col">
+      <div class="flex flex-col gap-6">
         <div class="py-6 lg:pb-16 lg:pt-0">
           <p
             :style="{
