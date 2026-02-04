@@ -82,7 +82,7 @@
               >
                 <SwiperSlide v-for="(src, i) in images" :key="src + i">
                   <div class="h-full w-full">
-                    <div class="h-full w-full overflow-hidden border border-slate-800 bg-black/10 shadow-2xl">
+                    <div class="h-full w-full overflow-hidden">
                       <img
                         class="h-full w-full select-none object-contain"
                         :src="src"

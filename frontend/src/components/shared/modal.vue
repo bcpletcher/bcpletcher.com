@@ -2,11 +2,11 @@
   <Teleport to="body">
     <div
       v-if="props.visible"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999]"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-9999"
       @click.self="closeModal"
     >
       <div
-        class="bg-surface-2 p-6 rounded-lg shadow-lg w-[90vw] max-w-[600px] flex flex-col"
+        class="bg-slate-950 p-6 rounded-lg shadow-lg w-[90vw] max-w-150 flex flex-col"
       >
         <div
           v-if="showHeader"

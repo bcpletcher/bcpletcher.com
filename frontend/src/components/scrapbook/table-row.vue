@@ -19,7 +19,7 @@
       <!-- Year -->
       <label
         v-else-if="col.key === 'year'"
-        class="my-auto py-3 font-bold text-accent"
+        class="my-auto py-3 font-bold text-sky-300"
         :class="col.widthClass"
       >
         {{ row.year }}

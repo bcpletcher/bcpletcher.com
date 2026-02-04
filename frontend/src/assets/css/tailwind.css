@@ -1,15 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  --color-accent: #62cff4;
-  /*
-    IMPORTANT:
-    Don't name a COLOR token `base`.
-    Tailwind uses `text-base` for font-size, and `base` as a color token will cause
-    `text-base` (and responsive variants like `sm:text-base`) to become a color utility.
-  */
-  /* App surfaces (do NOT name a color token `base` to avoid `text-base` collisions) */
-  --color-surface: #0f172a;
   --color-surface-2: #0b1121;
   --color-border: #313040;
 }
@@ -19,3 +10,4 @@
     @apply transition-all ease-in-out duration-300;
   }
 }
+

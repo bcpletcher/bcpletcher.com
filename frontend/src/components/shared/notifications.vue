@@ -7,7 +7,7 @@
       <div
         v-for="notification in notificationStore.notifications"
         :key="notification.id"
-        class="transition-standard w-96 bg-surface-2 shadow-lg rounded-lg pointer-events-auto overflow-hidden"
+        class="transition-standard w-96 bg-slate-950 shadow-lg rounded-lg pointer-events-auto overflow-hidden"
       >
         <div class="p-4">
           <div class="flex items-start">

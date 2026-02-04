@@ -29,7 +29,7 @@
     <div class="z-20 content flex flex-col justify-center p-8 md:p-0">
       <div class="flex flex-col">
         <p
-          class="leading-none md:text-sm my-2 text-accent tracking-wide"
+          class="leading-none md:text-sm my-2 text-sky-300 tracking-wide"
           :class="{
             'text-right': !props.reversed && !isBreakpointOrBelow('sm'),
           }"
@@ -67,7 +67,7 @@
           >
             <li v-for="tag in props.technology" :key="tag" class="mr-1.5 mt-2">
               <div
-                class="flex items-center rounded-full bg-accent/10 px-3 py-1 text-xs font-medium leading-5 text-accent"
+                class="flex items-center rounded-full bg-sky-300/10 px-3 py-1 text-xs font-medium leading-5 text-sky-300"
               >
                 {{ tag }}
               </div>
@@ -81,7 +81,7 @@
           }"
         >
           <button
-            class="text-font-primary/75 hover:text-accent transition-standard"
+            class="text-font-primary/75 hover:text-sky-300 transition-standard"
             type="button"
             aria-label="Open image slideshow"
             @click="emit('open-slideshow', props.images)"
@@ -92,7 +92,7 @@
             v-if="props.url"
             :href="props.url"
             target="_blank"
-            class="text-slate-200 hover:text-accent transition-standard"
+            class="text-slate-200 hover:text-sky-300 transition-standard"
           >
             <i class="fa-light fa-arrow-up-right"></i>
           </a>

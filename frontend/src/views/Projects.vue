@@ -59,6 +59,7 @@
                 :technology="project.technology"
                 :featured="project.featured"
                 :show-year="false"
+                :show-featured="false"
                 @open-gallery="openGallery"
               />
             </ul>

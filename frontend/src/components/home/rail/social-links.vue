@@ -14,7 +14,7 @@
       </a>
     </div>
     <a
-      class="group/link my-auto inline-flex items-baseline leading-tight text-slate-400 hover:text-accent focus-visible:text-accent font-semibold text-sm tracking-[0.25em] uppercase"
+      class="group/link my-auto inline-flex items-baseline leading-tight text-slate-400 hover:text-sky-300 focus-visible:text-sky-300 font-semibold text-sm tracking-[0.25em] uppercase"
       href="/resume"
       target="_blank"
       rel="noopener noreferrer"

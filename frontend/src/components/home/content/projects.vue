@@ -17,7 +17,7 @@
     <div class="mt-12">
       <router-link
         to="/scrapbook"
-        class="group/link inline-flex items-baseline gap-2 text-sm font-semibold tracking-widest uppercase text-slate-400 hover:text-accent focus-visible:text-accent transition-standard"
+        class="group/link inline-flex items-baseline gap-2 text-sm font-semibold tracking-widest uppercase text-slate-400 hover:text-sky-300 focus-visible:text-sky-300 transition-standard"
       >
         <span>View all projects</span>
         <i

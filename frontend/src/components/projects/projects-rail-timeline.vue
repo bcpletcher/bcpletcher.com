@@ -17,7 +17,7 @@
           />
           <span
             ref="progressRef"
-            class="pointer-events-none absolute right-8.5 top-2 bottom-2 w-1 translate-x-1/2 bg-accent origin-top rounded-full"
+            class="pointer-events-none absolute right-8.5 top-2 bottom-2 w-1 translate-x-1/2 bg-sky-300 origin-top rounded-full"
             aria-hidden="true"
             style="transform: scaleY(0)"
           />
@@ -196,7 +196,7 @@ function isPassed(item) {
 }
 
 function dotClasses(item) {
-  if (isActive(item) || isPassed(item)) return "border-accent bg-accent";
+  if (isActive(item) || isPassed(item)) return "border-sky-300 bg-sky-300";
   return "border-slate-700 bg-slate-700";
 }
 

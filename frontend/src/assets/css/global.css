@@ -1,5 +1,5 @@
 html {
-  background: var(--color-surface);
+  background: #0f172a; /* tailwind slate-900 */
   color-scheme: dark;
   /*overflow-x: hidden;*/
   scrollbar-gutter: stable;
@@ -12,10 +12,10 @@ body {
 
 ::selection {
   color: #0e131a;
-  background: var(--color-accent);
+  background: #7dd3fc; /* tailwind sky-300 */
 }
 
 ::-moz-selection {
   color: #0e131a;
-  background: var(--color-accent);
+  background: #7dd3fc; /* tailwind sky-300 */
 }

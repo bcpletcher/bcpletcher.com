@@ -14,7 +14,7 @@
                 :href="href"
                 target="_blank"
                 rel="noreferrer noopener"
-                class="group/title inline-flex min-w-0 items-start gap-2 text-slate-200 transition-colors motion-reduce:transition-none hover:text-accent focus-visible:text-accent"
+                class="group/title inline-flex min-w-0 items-start gap-2 text-slate-200 transition-colors motion-reduce:transition-none hover:text-sky-300 focus-visible:text-sky-300"
                 :aria-label="`${title} (opens in a new tab)`"
               >
                 <h3 class="min-w-0 font-medium leading-snug wrap-break-word">
@@ -65,7 +65,7 @@
           >
             <div v-for="tag in technology" :key="tag" class="mr-1.5 mt-2">
               <div
-                class="flex items-center rounded-full bg-accent/10 px-3 py-1 text-xs font-medium leading-5 text-accent"
+                class="flex items-center rounded-full bg-sky-300/10 px-3 py-1 text-xs font-medium leading-5 text-sky-300"
               >
                 {{ tag }}
               </div>
@@ -84,7 +84,7 @@
           <div class="mt-4 flex items-center gap-3">
             <button
               type="button"
-              class="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-slate-300 hover:text-accent focus-visible:text-accent transition-standard"
+              class="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-slate-300 hover:text-sky-300 focus-visible:text-sky-300 transition-standard"
               @click="emitOpenGallery(0)"
             >
               <i class="fa-light fa-images" aria-hidden="true" />
