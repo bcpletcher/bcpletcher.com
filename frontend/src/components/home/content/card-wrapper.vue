@@ -2,7 +2,7 @@
   <li class="overflow-visible" :class="isLast ? '' : 'mb-12'">
     <div
       v-gsap-reveal="{ once: true, start: gsapStart }"
-      class="group relative grid overflow-visible pb-1 transition-all lg:hover:!opacity-100 lg:group-hover/list:opacity-50"
+      class="group relative grid overflow-visible pb-1 transition-all lg:hover:!opacity-100"
       :class="gridColsClass"
     >
       <!-- Card hover background -->
