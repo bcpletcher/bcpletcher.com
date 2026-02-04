@@ -80,12 +80,30 @@
             <i class="fa-solid fa-star text-yellow-300/60" aria-hidden="true" />
             <span>Featured</span>
           </div>
+
+          <div class="mt-4 flex items-center gap-3">
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-slate-300 hover:text-accent focus-visible:text-accent transition-standard"
+              @click="emitOpenGallery(0)"
+            >
+              <i class="fa-light fa-images" aria-hidden="true" />
+              <span>View Gallery</span>
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Images column (right) -->
       <div class="relative z-10 mb-2 sm:col-span-5 sm:order-2">
         <div class="relative mt-1 w-full">
+          <button
+            type="button"
+            class="absolute inset-0 z-20 rounded-lg"
+            aria-label="Open gallery"
+            @click="emitOpenGallery(0)"
+          />
+
           <div
             v-for="(src, i) in previewImages"
             :key="src + i"
@@ -110,6 +128,8 @@
 
 <script setup>
 import { computed } from "vue";
+
+const emit = defineEmits(["open-gallery"]);
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -146,4 +166,10 @@ const stackStyles = [
   { zIndex: 2, transform: "translate(12px, 12px) rotate(2deg)" },
   { zIndex: 1, transform: "translate(24px, 24px) rotate(4deg)" },
 ];
+
+function emitOpenGallery(index) {
+  const list = previewImages.value;
+  if (!list?.length) return;
+  emit("open-gallery", { title: props.title, images: list, index });
+}
 </script>

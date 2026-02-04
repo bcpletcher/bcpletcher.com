@@ -59,11 +59,20 @@
                 :technology="project.technology"
                 :featured="project.featured"
                 :show-year="false"
+                @open-gallery="openGallery"
               />
             </ul>
           </div>
         </div>
       </div>
+
+      <ProjectsGalleryModal
+        v-model="isGalleryOpen"
+        :title="galleryTitle"
+        :images="galleryImages"
+        :initial-index="galleryIndex"
+        @close="onGalleryClose"
+      />
     </template>
   </RailLayout>
 </template>
@@ -74,6 +83,7 @@ import RailLayout from "@/components/shared/rail-layout.vue";
 import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsRailTimeline from "@/components/projects/projects-rail-timeline.vue";
 import ProjectsCard from "@/components/projects/projects-card.vue";
+import ProjectsGalleryModal from "@/components/projects/projects-gallery-modal.vue";
 import { useSettingsStore } from "@/stores/settings.js";
 
 const settingsStore = useSettingsStore();
@@ -192,4 +202,21 @@ onBeforeUnmount(() => {
   window.removeEventListener("resize", measureHeaderContentHeight);
   headerRo?.disconnect?.();
 });
+
+const isGalleryOpen = ref(false);
+const galleryTitle = ref("");
+const galleryImages = ref([]);
+const galleryIndex = ref(0);
+
+function openGallery(payload) {
+  if (!payload?.images?.length) return;
+  galleryTitle.value = payload.title || "Project Gallery";
+  galleryImages.value = payload.images;
+  galleryIndex.value = Number.isFinite(payload.index) ? payload.index : 0;
+  isGalleryOpen.value = true;
+}
+
+function onGalleryClose() {
+  // keep a stable hook if we want analytics or state cleanup later
+}
 </script>
