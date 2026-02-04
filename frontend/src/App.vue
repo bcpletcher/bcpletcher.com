@@ -2,10 +2,10 @@
   <div class="min-h-screen w-full bg-slate-900 text-slate-400">
     <!-- App content mounts immediately behind the loader so there's no repaint/jump when loader disappears -->
     <div class="min-h-screen w-full">
-      <admin-dropdown />
-      <emulator-banner />
+      <AdminBanner />
       <mouse-glow-overlay />
       <notifications />
+      <AdminAdminLoginModal />
 
       <fullscreen-loader
         v-if="didDecideBoot && showLoader"
@@ -18,7 +18,7 @@
         :class="
           isFullWidthRoute
             ? 'w-full'
-            : 'mx-auto min-h-screen max-w-screen-xl px-6 py-12 font-sans md:px-12 md:py-16 lg:py-0'
+            : 'mx-auto min-h-screen max-w-7xl px-6 py-12 font-sans md:px-12 md:py-16 lg:py-0'
         "
       >
         <router-view />
@@ -33,9 +33,9 @@ import { useRoute } from "vue-router";
 
 import FullscreenLoader from "@/components/shared/fullscreen-loader.vue";
 import Notifications from "@/components/shared/notifications.vue";
-import AdminDropdown from "@/components/shared/admin-dropdown.vue";
 import MouseGlowOverlay from "@/components/shared/mouse-glow-overlay.vue";
-import EmulatorBanner from "@/components/admin/emulator-banner.vue";
+import AdminBanner from "@/components/admin/admin-banner.vue";
+import AdminAdminLoginModal from "@/components/admin/admin-login-modal.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { useAppBoot } from "@/composables/useAppBoot.js";

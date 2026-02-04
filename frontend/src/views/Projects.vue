@@ -92,9 +92,9 @@ const settingsStore = useSettingsStore();
 // Assumption: projects are currently sourced from the same dataset as Scrapbook.
 // We keep this isolated in this view so the existing scrapbook page stays unchanged.
 const projects = computed(() => {
-  if (settingsStore.scrapbook === null) return [];
+  if (settingsStore.projects === null) return [];
 
-  return Object.values(settingsStore.scrapbook)
+  return Object.values(settingsStore.projects)
     .filter((item) => !item.deleted)
     .sort((a, b) => {
       const ay = typeof a.year === "number" ? a.year : Number.NEGATIVE_INFINITY;

@@ -119,14 +119,29 @@ import AboutSection from "@/components/home/content/about.vue";
 import ExperienceSection from "@/components/home/content/experience.vue";
 import ProjectsSection from "@/components/home/content/projects.vue";
 import { onBeforeUnmount, ref } from "vue";
-import router from "@/router/index.js";
 import { gsap } from "gsap";
+import { useSettingsStore } from "@/stores/settings.js";
+import { useNotificationStore } from "@/stores/notification.js";
 
 const logoEl = ref(null);
 let hoverTween = null;
 
+const settingsStore = useSettingsStore();
+const notificationStore = useNotificationStore();
+
 const goToAdmin = () => {
-  router.push("/admin");
+  if (settingsStore.isSignedIn) {
+    notificationStore.addNotification({
+      variant: "success",
+      title: "Admin",
+      message: "You’re already signed in.",
+      duration: 4,
+    });
+    settingsStore.showAdminModal = false;
+    return;
+  }
+
+  settingsStore.showAdminModal = true;
 };
 
 const onLogoEnter = () => {

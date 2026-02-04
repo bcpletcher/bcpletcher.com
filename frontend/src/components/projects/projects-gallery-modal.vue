@@ -2,7 +2,7 @@
   <teleport to="body">
     <div
       v-if="modelValue"
-      class="fixed inset-0 z-200"
+      class="fixed left-0 top-0 z-200 w-dvw h-dvh"
       role="dialog"
       aria-modal="true"
       :aria-label="ariaLabel"
@@ -239,12 +239,7 @@ watch(
     if (!isOpen) return;
 
     lastFocusedEl = document.activeElement;
-
-    // Lock background scroll without causing a layout shift from the missing scrollbar.
-    // Reserving the gutter prevents the modal from looking clipped where the scrollbar would be.
-    document.documentElement.style.scrollbarGutter = "stable";
-    document.documentElement.classList.add("overflow-hidden");
-    document.body.classList.add("overflow-hidden");
+    lockBodyScroll();
 
     await animateOpen();
 
@@ -266,10 +261,7 @@ watch(
     if (!wasOpen || isOpen) return;
 
     await animateClose();
-
-    document.documentElement.classList.remove("overflow-hidden");
-    document.body.classList.remove("overflow-hidden");
-    document.documentElement.style.scrollbarGutter = "";
+    unlockBodyScroll();
 
     if (lastFocusedEl && lastFocusedEl.focus) {
       try {
@@ -282,9 +274,73 @@ watch(
 );
 
 onBeforeUnmount(() => {
-  document.documentElement.classList.remove("overflow-hidden");
-  document.body.classList.remove("overflow-hidden");
-  document.documentElement.style.scrollbarGutter = "";
+  unlockBodyScroll();
   openTl?.kill?.();
 });
+
+// Shared scroll lock across modals (safe if multiple modals open)
+const SCROLL_LOCK_KEY = "__bc_scroll_lock_count__";
+
+function getLockCount() {
+  return Number(document.documentElement.dataset[SCROLL_LOCK_KEY] || 0);
+}
+
+function setLockCount(val) {
+  document.documentElement.dataset[SCROLL_LOCK_KEY] = String(val);
+}
+
+function getScrollbarWidth() {
+  // window.innerWidth includes the scrollbar; clientWidth doesn't.
+  // Clamp at 0 for overlay scrollbars.
+  return Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+}
+
+function lockBodyScroll() {
+  const count = getLockCount();
+  if (count === 0) {
+    document.documentElement.dataset.__bc_prev_html_overflow__ =
+      document.documentElement.style.overflow || "";
+    document.documentElement.dataset.__bc_prev_html_padding_right__ =
+      document.documentElement.style.paddingRight || "";
+    document.body.dataset.__bc_prev_body_overflow__ =
+      document.body.style.overflow || "";
+    document.body.dataset.__bc_prev_body_padding_right__ =
+      document.body.style.paddingRight || "";
+
+    const sbw = getScrollbarWidth();
+
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    // Preserve layout width so fixed overlays don't show a gutter gap.
+    if (sbw > 0) {
+      document.documentElement.style.paddingRight = `${sbw}px`;
+      document.body.style.paddingRight = `${sbw}px`;
+    }
+  }
+  setLockCount(count + 1);
+}
+
+function unlockBodyScroll() {
+  const count = getLockCount();
+  if (count <= 1) {
+    document.documentElement.style.overflow =
+      document.documentElement.dataset.__bc_prev_html_overflow__ || "";
+    document.documentElement.style.paddingRight =
+      document.documentElement.dataset.__bc_prev_html_padding_right__ || "";
+    document.body.style.overflow =
+      document.body.dataset.__bc_prev_body_overflow__ || "";
+    document.body.style.paddingRight =
+      document.body.dataset.__bc_prev_body_padding_right__ || "";
+
+    delete document.documentElement.dataset.__bc_prev_html_overflow__;
+    delete document.documentElement.dataset.__bc_prev_html_padding_right__;
+    delete document.body.dataset.__bc_prev_body_overflow__;
+    delete document.body.dataset.__bc_prev_body_padding_right__;
+
+    setLockCount(0);
+  } else {
+    setLockCount(count - 1);
+  }
+}
 </script>

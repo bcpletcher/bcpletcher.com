@@ -3,12 +3,11 @@ import { defineStore } from "pinia";
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
     user: {},
-    alternativeDisplay: false,
 
-    scrapbook: null,
-    featuredScrapbook: null,
+    projects: null,
+    featuredProjects: null,
 
-    showEmulationBanner: true,
+    showAdminModal: false,
   }),
   getters: {
     isSignedIn: (state) => {

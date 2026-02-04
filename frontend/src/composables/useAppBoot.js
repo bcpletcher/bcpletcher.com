@@ -88,9 +88,9 @@ export function useAppBoot() {
             Boolean(cached?.all) && ageMs >= 0 && ageMs <= CACHE_TTL_MS;
 
           if (cacheIsFresh) {
-            settingsStore.scrapbook = cached.all;
+            settingsStore.projects = cached.all;
             if (cached.featured) {
-              settingsStore.featuredScrapbook = cached.featured;
+              settingsStore.featuredProjects = cached.featured;
             }
           }
         } catch (e) {
@@ -117,14 +117,14 @@ export function useAppBoot() {
         const featuredFresh =
           await firebaseStore.dataGetFeaturedScrapbookCollection();
         if (featuredFresh && typeof featuredFresh === "object") {
-          settingsStore.featuredScrapbook = featuredFresh;
+          settingsStore.featuredProjects = featuredFresh;
           if (CACHE_ENABLED) {
             withTimeout(
               saveFeaturedScrapbookToCache(featuredFresh),
               1000,
-              "Featured scrapbook cache write timed out"
+              "Featured projects cache write timed out"
             ).catch((e) => {
-              console.warn("Failed to persist featured scrapbook cache", e);
+              console.warn("Failed to persist featured projects cache", e);
             });
           }
         }
@@ -138,19 +138,19 @@ export function useAppBoot() {
         keys: scrapbookFresh ? Object.keys(scrapbookFresh).length : 0,
       });
 
-      settingsStore.scrapbook = scrapbookFresh;
+      settingsStore.projects = scrapbookFresh;
 
       if (CACHE_ENABLED) {
         withTimeout(
           saveScrapbookToCache(scrapbookFresh),
           1000,
-          "Scrapbook cache write timed out"
+          "Projects cache write timed out"
         )
           .then(({ featured }) => {
-            settingsStore.featuredScrapbook = featured;
+            settingsStore.featuredProjects = featured;
           })
           .catch((e) => {
-            console.warn("Failed to persist scrapbook cache", e);
+            console.warn("Failed to persist projects cache", e);
           });
       }
 

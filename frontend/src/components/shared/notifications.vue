@@ -1,7 +1,7 @@
 <template>
   <div
     aria-live="assertive"
-    class="fixed inset-0 flex items-end justify-center pointer-events-none sm:justify-end z-50 p-4"
+    class="fixed inset-0 flex items-end justify-center pointer-events-none sm:justify-end z-20000 p-4"
   >
     <div class="flex flex-col gap-4">
       <div
@@ -11,7 +11,7 @@
       >
         <div class="p-4">
           <div class="flex items-start">
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
               <tw-icon
                 class="h-6 w-6"
                 :class="notification.style.colorText"
@@ -27,7 +27,7 @@
                 {{ notification.message }}
               </p>
             </div>
-            <div class="ml-4 flex-shrink-0 flex">
+            <div class="ml-4 shrink-0 flex">
               <button
                 class="bg-transparent text-font-primary/50 hover:text-font-primary focus:outline-none transition-standard"
                 @click="clear(notification.id)"

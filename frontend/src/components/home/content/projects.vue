@@ -16,7 +16,7 @@
 
     <div class="mt-12">
       <router-link
-        to="/scrapbook"
+        to="/projects"
         class="group/link inline-flex items-baseline gap-2 text-sm font-semibold tracking-widest uppercase text-slate-400 hover:text-sky-300 focus-visible:text-sky-300 transition-standard"
       >
         <span>View all projects</span>
@@ -38,8 +38,8 @@ import ProjectsCard from "@/components/home/content/projects-card.vue";
 const settingsStore = useSettingsStore();
 
 const items = computed(() => {
-  const featured = settingsStore.featuredScrapbook;
-  const all = settingsStore.scrapbook;
+  const featured = settingsStore.featuredProjects;
+  const all = settingsStore.projects;
 
   const raw = featured || all;
   if (!raw) return [];
