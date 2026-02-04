@@ -1,7 +1,12 @@
 <template>
-  <header class="py-6 lg:pt-24">
-    <div class="flex items-start justify-between gap-4 h-full">
-      <div class="min-w-0">
+  <header
+    :class="[
+      'py-6 lg:pb-16',
+      removeTopPadding ? 'lg:pt-0' : 'lg:pt-24',
+    ]"
+  >
+    <div class="flex items-start justify-between gap-6 h-full">
+      <div class="min-w-0 flex flex-col gap-2">
         <router-link
           to="/"
           class="group/link inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent focus-visible:text-accent transition-standard"
@@ -16,7 +21,7 @@
 
         <h1
           v-if="title"
-          class="mt-1 text-4xl font-bold tracking-tight text-slate-200 sm:text-5xl"
+          class="text-4xl font-bold tracking-tight text-slate-200 sm:text-5xl"
         >
           {{ title }}
         </h1>
@@ -33,5 +38,6 @@
 defineProps({
   title: { type: String, default: "" },
   backLabel: { type: String, default: "Benjamin Pletcher" },
+  removeTopPadding: { type: Boolean, default: false },
 });
 </script>

@@ -7,7 +7,7 @@ const routes = [
     component: () => import("@/views/Home.vue"),
   },
   {
-    path: "/projects",
+    path: "/scrapbook",
     name: "Scrapbook",
     component: () => import("@/views/Scrapbook.vue"),
   },
@@ -22,6 +22,11 @@ const routes = [
     name: "Resume",
     component: () => import("@/views/Resume.vue"),
     meta: { fullWidth: true },
+  },
+  {
+    path: "/projects",
+    name: "Projects",
+    component: () => import("@/views/Projects.vue"),
   },
   {
     path: "/:catchAll(.*)",
