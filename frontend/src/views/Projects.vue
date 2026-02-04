@@ -7,41 +7,61 @@
         collapsed-label="Earlier"
       >
         <template #header>
-          <PageHeader
-            title="All Projects"
-            back-label="Benjamin Pletcher"
-            :remove-top-padding="true"
-          />
+          <div ref="pageHeaderMeasureRef">
+            <PageHeader
+              title="All Projects"
+              back-label="Benjamin Pletcher"
+              :remove-top-padding="true"
+            />
+          </div>
         </template>
       </ProjectsRailTimeline>
     </template>
 
     <template #main>
-      <div>
-        <div v-for="y in years" :key="y" class="mb-10">
-          <!-- Year anchor/section for timeline tracking -->
-          <div
-            :id="`year-${y}`"
-            data-project-year-section
-            :data-year="y"
-            class="scroll-mt-28"
-          />
+      <div class="flex flex-col">
+        <div class="py-6 lg:pb-16 lg:pt-0">
+          <p
+            :style="{
+              height: headerContentHeightPx
+                ? `${headerContentHeightPx}px`
+                : undefined,
+            }"
+          >
+            These projects showcase how I translate complex requirements into
+            clear, usable, and resilient interfaces. The work spans multiple
+            industries and stacks, but the throughline remains the same:
+            intentional design, thoughtful engineering, and products built to
+            last.
+          </p>
+        </div>
 
-          <ul class="grid gap-4 list-none p-0 m-0">
-            <ProjectsCard
-              v-for="(project, idx) in projectsByYear[y]"
-              :key="project.id || `${y}-${idx}`"
-              :title="project.title"
-              :year="project.year"
-              :summary="project.description"
-              :hero="project.hero"
-              :images="project.images"
-              :href="project.url"
-              :technology="project.technology"
-              :featured="project.featured"
-              :is-last="idx === projectsByYear[y].length - 1"
+        <div>
+          <div v-for="y in years" :key="y" class="mb-10">
+            <!-- Year anchor/section for timeline tracking -->
+            <div
+              :id="`year-${y}`"
+              data-project-year-section
+              :data-year="y"
+              class="scroll-mt-28"
             />
-          </ul>
+
+            <ul class="grid gap-4 list-none p-0 m-0">
+              <ProjectsCard
+                v-for="(project, idx) in projectsByYear[y]"
+                :key="project.id || `${y}-${idx}`"
+                :title="project.title"
+                :year="project.year"
+                :summary="project.description"
+                :hero="project.hero"
+                :images="project.images"
+                :href="project.url"
+                :technology="project.technology"
+                :featured="project.featured"
+                :is-last="idx === projectsByYear[y].length - 1"
+              />
+            </ul>
+          </div>
         </div>
       </div>
     </template>
@@ -49,7 +69,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import RailLayout from "@/components/shared/rail-layout.vue";
 import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsRailTimeline from "@/components/projects/projects-rail-timeline.vue";
@@ -121,5 +141,55 @@ const projectsByYear = computed(() => {
   });
 
   return grouped;
+});
+
+const pageHeaderMeasureRef = ref(null);
+const headerContentHeightPx = ref(0);
+let headerRo;
+
+function px(n) {
+  return Number.isFinite(n) ? n : 0;
+}
+
+function measureHeaderContentHeight() {
+  const wrapper = pageHeaderMeasureRef.value;
+  if (!wrapper) return;
+
+  const el = wrapper.firstElementChild;
+  if (!el) return;
+
+  const styles = window.getComputedStyle(el);
+  const paddingTop = px(parseFloat(styles.paddingTop));
+  const paddingBottom = px(parseFloat(styles.paddingBottom));
+
+  // offsetHeight includes padding; subtract it to get content-box-ish height.
+  headerContentHeightPx.value = Math.max(
+    0,
+    Math.round(el.offsetHeight - paddingTop - paddingBottom),
+  );
+}
+
+onMounted(async () => {
+  if (typeof window === "undefined") return;
+  await nextTick();
+  measureHeaderContentHeight();
+
+  if (typeof ResizeObserver !== "undefined") {
+    headerRo = new ResizeObserver(() => {
+      measureHeaderContentHeight();
+    });
+    if (pageHeaderMeasureRef.value?.firstElementChild) {
+      headerRo.observe(pageHeaderMeasureRef.value.firstElementChild);
+    }
+  }
+
+  window.addEventListener("resize", measureHeaderContentHeight, {
+    passive: true,
+  });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", measureHeaderContentHeight);
+  headerRo?.disconnect?.();
 });
 </script>

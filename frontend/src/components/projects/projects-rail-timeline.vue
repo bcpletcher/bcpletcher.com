@@ -9,36 +9,37 @@
         aria-label="Projects timeline"
       >
         <div class="relative flex flex-1 min-h-0">
-          <!-- Single centered track + progress spanning only from first dot center to last dot center -->
+          <!-- Align bar to the center of the dot column: right padding (pr-6) + half dot-lane width (1.25rem / 2).
+               Use translate-x-1/2 so the bar is centered on that point (right positions the bar's right edge). -->
           <span
-            class="pointer-events-none absolute left-2 top-2 bottom-2 w-1 bg-slate-700 rounded-full"
+            class="pointer-events-none absolute right-8.5 top-2 bottom-2 w-1 translate-x-1/2 bg-slate-700 rounded-full"
             aria-hidden="true"
           />
           <span
             ref="progressRef"
-            class="pointer-events-none absolute left-2 top-2 bottom-2 w-1 bg-accent origin-top rounded-full"
+            class="pointer-events-none absolute right-8.5 top-2 bottom-2 w-1 translate-x-1/2 bg-accent origin-top rounded-full"
             aria-hidden="true"
             style="transform: scaleY(0)"
           />
 
-          <ol class="flex flex-1 min-h-0 flex-col justify-between">
+          <ol class="flex flex-1 min-h-0 flex-col justify-between pr-6">
             <li v-for="item in items" :key="item.key" class="relative">
               <a
                 :href="item.href"
-                class="group grid grid-cols-[1.25rem_1fr] items-center text-sm text-slate-400 hover:text-slate-200 focus-visible:text-slate-200 transition-standard"
+                class="group grid grid-cols-[1fr_1.25rem] items-center text-sm text-slate-400 hover:text-slate-200 focus-visible:text-slate-200 transition-standard"
                 :class="isActive(item) ? 'text-slate-200' : ''"
                 @click.prevent="scrollToItem(item)"
               >
+                <span class="tracking-widest text-right pr-4">
+                  {{ item.label }}
+                </span>
+
                 <!-- Track column: dot is centered over the global line -->
                 <span class="relative h-full flex items-center justify-center" aria-hidden="true">
                   <span
                     class="relative z-10 inline-flex h-4 w-4 rounded-full border bg-base-background transition-standard"
                     :class="dotClasses(item)"
                   />
-                </span>
-
-                <span class="tracking-widest pl-4">
-                  {{ item.label }}
                 </span>
               </a>
             </li>
