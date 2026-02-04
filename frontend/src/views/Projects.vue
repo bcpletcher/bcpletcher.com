@@ -58,7 +58,7 @@
                 :href="project.url"
                 :technology="project.technology"
                 :featured="project.featured"
-                :is-last="idx === projectsByYear[y].length - 1"
+                :show-year="false"
               />
             </ul>
           </div>
