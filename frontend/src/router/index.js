@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from "vue-router";
-// import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const routes = [
   {
@@ -24,10 +23,10 @@ const routes = [
     component: () => import("@/views/Resume.vue"),
     meta: { fullWidth: true },
   },
-  // {
-  //   path: "/:catchAll(.*)",
-  //   component: Dashboard,
-  // },
+  {
+    path: "/:catchAll(.*)",
+    component: () => import("@/views/Home.vue"),
+  },
 ];
 
 const router = createRouter({

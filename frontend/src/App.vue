@@ -18,7 +18,7 @@
         :class="
           isFullWidthRoute
             ? 'w-full'
-            : 'mx-auto w-full max-w-screen-xl px-6 md:px-12 lg:py-0'
+            : 'mx-auto min-h-screen max-w-screen-xl px-6 py-12 font-sans md:px-12 md:py-16 lg:py-0'
         "
       >
         <router-view />
@@ -59,6 +59,6 @@ watch(
       // Non-fatal: icons may be missing if the kit fails.
     });
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>

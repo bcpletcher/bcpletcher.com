@@ -1,6 +1,6 @@
 <template>
   <!-- Add top padding on mobile to make room for the fixed header -->
-  <main class="lg:py-24 flex flex-col">
+  <main class="flex flex-col lg:py-24">
     <section
       id="about"
       class="mb-16 scroll-mt-16 md:mb-24 lg:mb-0 lg:scroll-mt-24"

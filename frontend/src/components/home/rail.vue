@@ -1,24 +1,17 @@
 <template>
-  <aside ref="railCol" class="relative">
-    <!-- Desktop fixed rail content (pinned to viewport, aligned to column) -->
-    <div
-      class="hidden lg:block fixed top-0 h-screen px-0"
-      :style="{
-        left: railRect.left + 'px',
-        width: railRect.width + 'px',
-      }"
-    >
-      <div class="flex h-screen flex-col py-24">
-        <div class="flex flex-col">
-          <h1
-            class="text-3xl font-bold tracking-tight text-slate-200 sm:text-5xl"
-          >
-            {{ name }}
-          </h1>
-          <h2 class="max-w-sm mt-4 text-slate-100 text-xl">{{ title }}</h2>
-          <p class="max-w-sm mt-6 leading-normal font-normal">
-            {{ description }}
-          </p>
+  <aside class="relative">
+    <div class="hidden lg:block">
+      <div class="flex min-h-[calc(100vh-12rem)] flex-col">
+        <div class="pt-0">
+          <div class="flex flex-col">
+            <h1 class="text-3xl font-bold tracking-tight text-slate-200 sm:text-5xl">
+              {{ name }}
+            </h1>
+            <h2 class="max-w-sm mt-4 text-slate-100 text-xl">{{ title }}</h2>
+            <p class="max-w-sm mt-6 leading-normal font-normal">
+              {{ description }}
+            </p>
+          </div>
         </div>
 
         <Navigation
@@ -28,17 +21,14 @@
           @nav="onNav"
         />
 
-        <SocialLinks />
+        <div class="mt-auto pb-0">
+          <SocialLinks />
+        </div>
       </div>
     </div>
 
-    <!-- Space reservation so main doesn't overlap fixed rail -->
-    <div class="hidden lg:block py-24">
-      <div class="h-screen" />
-    </div>
-
     <!-- Mobile rail content (normal flow) -->
-    <div class="mb-16 md:mb-24 lg:mb-0 lg:hidden">
+    <div class="pb-16 md:pb-24 lg:hidden">
       <h1 class="text-3xl font-bold tracking-tight text-slate-200 sm:text-5xl">
         {{ name }}
       </h1>
@@ -106,7 +96,6 @@ const clearHash = () => {
 };
 
 const onNav = async (id) => {
-  // Clicking nav is the only time we keep the hash in the URL.
   suppressHashClearingFor(1200);
   markProgrammaticScroll();
 
@@ -114,90 +103,34 @@ const onNav = async (id) => {
   scrollTo(id);
 };
 
-// If user scrolls manually, remove any hash (we don't want hashes during scroll).
 const onUserScroll = () => {
   if (Date.now() < suppressHashClearingUntil.value) return;
   if (isProgrammaticScroll()) return;
   clearHash();
 };
 
-// If the URL hash changes (initial load, back/forward, pasted URL),
-// scroll to the section and then remove the hash from the URL.
 watch(
   () => route.hash,
   async (hash, prevHash) => {
     const id = normalizeHash(hash);
     if (!id) return;
-
-    // If it didn't actually change, ignore.
     if (hash === prevHash) return;
-
-    // IMPORTANT: if the hash was set by our own nav click, do NOT auto-clear it.
     if (isProgrammaticScroll()) return;
 
     suppressHashClearingFor(1200);
     markProgrammaticScroll();
 
-    // Let layout settle before scrolling.
     await nextTick();
     scrollTo(id, { behavior: "auto" });
 
-    // Remove the hash after we've jumped.
     clearHash();
   },
   { immediate: true }
 );
 
-// Rail positioning
-const railCol = ref(null);
-const railRect = ref({ left: 0, width: 0 });
-
-let ro;
-let rafId = 0;
-const scheduleMeasure = () => {
-  if (rafId) return;
-  rafId = requestAnimationFrame(() => {
-    rafId = 0;
-    measure();
-  });
-};
-
-const measure = () => {
-  const el = railCol.value;
-  if (!el) return;
-  const rect = el.getBoundingClientRect();
-  railRect.value = {
-    left: rect.left,
-    width: rect.width,
-  };
-};
-
-onMounted(async () => {
-  await nextTick();
-
-  // Initial + post-layout settle
-  measure();
-  requestAnimationFrame(measure);
-
-  window.addEventListener("resize", scheduleMeasure, { passive: true });
-  window.addEventListener("scroll", scheduleMeasure, {
-    passive: true,
-    capture: true,
-  });
+onMounted(() => {
   window.addEventListener("scroll", onUserScroll, { passive: true });
 
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", scheduleMeasure, {
-      passive: true,
-    });
-  }
-
-  if (railCol.value && "ResizeObserver" in window) {
-    ro = new ResizeObserver(() => scheduleMeasure());
-    ro.observe(railCol.value);
-  }
-
-  // If user lands on /#experience etc., jump there.
   const initial = normalizeHash(route.hash);
   if (initial) {
     suppressHashClearingFor(900);
@@ -206,15 +139,6 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  window.removeEventListener("resize", scheduleMeasure);
-  window.removeEventListener("scroll", scheduleMeasure, true);
   window.removeEventListener("scroll", onUserScroll);
-
-  if (window.visualViewport) {
-    window.visualViewport.removeEventListener("resize", scheduleMeasure);
-  }
-
-  if (ro) ro.disconnect();
-  if (rafId) cancelAnimationFrame(rafId);
 });
 </script>
