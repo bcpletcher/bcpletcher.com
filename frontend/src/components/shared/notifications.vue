@@ -12,11 +12,10 @@
         <div class="p-4">
           <div class="flex items-start">
             <div class="shrink-0">
-              <tw-icon
-                class="h-6 w-6"
-                :class="notification.style.colorText"
-                :icon="notification.style.icon"
-                size="lg"
+              <i
+                class="h-6 w-6 text-lg leading-none"
+                :class="[notification.style.colorText, notification.style.iconClass]"
+                aria-hidden="true"
               />
             </div>
             <div class="ml-3 w-0 flex-1 pt-0.5">
@@ -33,7 +32,7 @@
                 @click="clear(notification.id)"
               >
                 <span class="sr-only">Close</span>
-                <tw-icon icon="times" size="lg" />
+                <i class="fa-light fa-xmark" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -58,7 +57,6 @@
 <script setup>
 import { onBeforeMount, watch, nextTick, onBeforeUnmount } from "vue";
 import { useNotificationStore } from "@/stores/notification.js";
-import TwIcon from "@/components/shared/tw-icon.vue";
 
 const notificationStore = useNotificationStore();
 

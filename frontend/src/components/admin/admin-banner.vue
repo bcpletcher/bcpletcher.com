@@ -26,7 +26,7 @@
       <!-- Keep a stable action area so height doesn't change when buttons appear/disappear -->
       <div class="flex items-center gap-2 py-2.5 min-h-11">
         <button
-          v-if="settingsStore.isSignedIn"
+          v-if="isLoggedIn"
           type="button"
           class="cursor-pointer rounded-md bg-white/10 px-2.5 py-1 text-xs font-semibold text-amber-50 hover:bg-white/15 transition-standard"
           @click="openCreate"
@@ -35,7 +35,7 @@
         </button>
 
         <button
-          v-if="settingsStore.isSignedIn"
+          v-if="isLoggedIn"
           type="button"
           class="cursor-pointer rounded-md px-2 py-1 text-xs font-semibold text-amber-100/90 hover:bg-amber-900/40 hover:text-amber-50 transition-standard"
           @click="logout"
@@ -44,11 +44,11 @@
         </button>
 
         <!-- Spacer to keep height consistent when signed out -->
-        <div v-else class="h-7 w-[1px] opacity-0" aria-hidden="true" />
+        <div v-else class="h-7 w-px opacity-0" aria-hidden="true" />
       </div>
     </div>
 
-    <CreateEntryModal ref="createEntryModalRef" />
+    <AdminUpsertProject ref="createEntryModalRef" />
   </div>
 </template>
 
@@ -56,7 +56,7 @@
 import { computed, useTemplateRef } from "vue";
 import { signOut } from "firebase/auth";
 
-import CreateEntryModal from "@/components/admin/create-entry-modal.vue";
+import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 
@@ -68,6 +68,7 @@ const isEmulatorEnabled =
 
 const visible = computed(() => settingsStore.isSignedIn || isEmulatorEnabled);
 
+const isLoggedIn = computed(() => Boolean(settingsStore.user?.uid));
 
 const createEntryModalRef = useTemplateRef("createEntryModalRef");
 
@@ -77,6 +78,7 @@ function openCreate() {
 
 const logout = async () => {
   await signOut(firebaseStore.auth);
+  // Defensive: ensure UI updates even if auth listener is elsewhere.
   settingsStore.user = {};
 };
 </script>
