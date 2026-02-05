@@ -1,5 +1,17 @@
 import { createRouter, createWebHistory } from "vue-router";
 
+// Opt out of the browser's scroll restoration so SPA navigations don't inherit
+// previous scroll positions (notably on mobile Safari).
+if (typeof window !== "undefined") {
+  try {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  } catch {
+    // no-op
+  }
+}
+
 const routes = [
   {
     path: "/",
@@ -27,49 +39,14 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior(to) {
-    // Always start at top on route changes.
-    // Use smooth scrolling only for in-page hash navigation on Home.
+    // Smooth in-page navigation only for hash links on Home.
     if (to.name === "Home" && to.hash) {
-      return {
-        el: to.hash,
-        behavior: "smooth",
-      };
+      return { el: to.hash, behavior: "smooth" };
     }
 
-    // Returning a Promise allows us to wait a tick for layout/render, which helps
-    // on mobile Safari and when pages use internal scrollers.
-    return new Promise((resolve) => {
-      requestAnimationFrame(() => {
-        resolve({ left: 0, top: 0, behavior: "auto" });
-      });
-    });
+    // Always snap to the top for actual route navigations.
+    return { left: 0, top: 0 };
   },
-});
-
-// Defensive scroll reset: some mobile browsers preserve scroll position on
-// programmatic navigations or when an internal scroll container is used.
-// This ensures Home -> Projects lands at the top reliably.
-router.afterEach(() => {
-  if (typeof window === "undefined") return;
-
-  requestAnimationFrame(() => {
-    try {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    } catch {
-      window.scrollTo(0, 0);
-    }
-
-    // If a scrollable main container exists, reset it too.
-    const scrollers = [
-      document.querySelector("main"),
-      document.querySelector("[data-scroll-container]"),
-      document.querySelector("#app"),
-    ].filter(Boolean);
-
-    for (const el of scrollers) {
-      if (el && (el.scrollTop || 0) !== 0) el.scrollTop = 0;
-    }
-  });
 });
 
 export default router;
