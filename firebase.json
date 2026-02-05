@@ -48,6 +48,18 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      {
+        "source": "/resume",
+        "destination": "/resume.pdf",
+        "type": 302
+      },
+      {
+        "source": "/resume/**",
+        "destination": "/resume.pdf",
+        "type": 302
+      }
+    ],
     "rewrites": [
       {
         "source": "**",

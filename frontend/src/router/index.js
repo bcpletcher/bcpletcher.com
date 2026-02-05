@@ -1,5 +1,17 @@
 import { createRouter, createWebHistory } from "vue-router";
 
+// Opt out of the browser's scroll restoration so SPA navigations don't inherit
+// previous scroll positions (notably on mobile Safari).
+if (typeof window !== "undefined") {
+  try {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  } catch {
+    // no-op
+  }
+}
+
 const routes = [
   {
     path: "/",
@@ -8,9 +20,7 @@ const routes = [
   },
   {
     path: "/resume",
-    name: "Resume",
-    component: () => import("@/views/Resume.vue"),
-    meta: { fullWidth: true },
+    redirect: "/resume.pdf",
   },
   {
     path: "/projects",

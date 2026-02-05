@@ -15,11 +15,7 @@
       />
 
       <div
-        :class="
-          isFullWidthRoute
-            ? 'w-full'
-            : 'mx-auto min-h-screen max-w-7xl px-6 py-12 font-sans md:px-12 md:py-16 lg:py-0'
-        "
+        class="mx-auto min-h-screen max-w-7xl px-6 py-12 font-sans md:px-12 md:py-16 lg:py-0"
       >
         <router-view />
       </div>
@@ -28,9 +24,6 @@
 </template>
 
 <script setup>
-import { computed, watch } from "vue";
-import { useRoute } from "vue-router";
-
 import FullscreenLoader from "@/components/shared/fullscreen-loader.vue";
 import Notifications from "@/components/shared/notifications.vue";
 import MouseGlowOverlay from "@/components/shared/mouse-glow-overlay.vue";
@@ -39,7 +32,6 @@ import AdminAdminLoginModal from "@/components/admin/admin-login-modal.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { useAppBoot } from "@/composables/useAppBoot.js";
-import { loadFontAwesomeKit } from "@/utils/fontAwesomeKit.js";
 
 useFirebaseStore();
 useSettingsStore();
@@ -47,18 +39,4 @@ useSettingsStore();
 const { showLoader, isBootLoading, bootError, onLoaderDone, didDecideBoot } =
   useAppBoot();
 
-const route = useRoute();
-const isFullWidthRoute = computed(() => Boolean(route.meta?.fullWidth));
-
-// Load Font Awesome everywhere except /resume for faster resume direct loads.
-watch(
-  () => route.path,
-  (path) => {
-    if (path === "/resume") return;
-    loadFontAwesomeKit().catch(() => {
-      // Non-fatal: icons may be missing if the kit fails.
-    });
-  },
-  { immediate: true },
-);
 </script>
