@@ -38,3 +38,10 @@ key.json
 
 # Client Configuration
 .env*
+
+# Local Firebase emulator / tooling artifacts
+.firebase/
+firebase/.databases/
+
+# JetBrains IDE
+.idea/
