@@ -7,32 +7,26 @@
       <!-- Hidden stripe overlay (admin visual only) -->
       <div
         v-if="showAdminControls && isHidden"
-        class="pointer-events-none absolute z-0 overflow-hidden rounded-2xl"
-        style="inset:-1rem; left:calc(-1rem - 3.5rem); right:calc(-1rem - 2.5rem);"
+        class="pointer-events-none absolute z-0 overflow-hidden rounded-2xl -top-2 -bottom-2 -left-2 -right-2 lg:-left-18 lg:-right-4 opacity-10"
+        style="
+          background-image: repeating-linear-gradient(
+            135deg,
+            rgba(250, 204, 21, 1) 0px,
+            rgba(250, 204, 21, 1) 10px,
+            rgba(15, 23, 42, 0) 10px,
+            rgba(15, 23, 42, 0) 20px
+          );
+        "
         aria-hidden="true"
-      >
-        <div
-          class="absolute inset-0 opacity-10"
-          style="
-            background-image: repeating-linear-gradient(
-              135deg,
-              rgba(250, 204, 21, 1) 0px,
-              rgba(250, 204, 21, 1) 10px,
-              rgba(15, 23, 42, 0) 10px,
-              rgba(15, 23, 42, 0) 20px
-            );
-          "
-        />
-        <div class="absolute inset-0 ring-1 ring-yellow-300/15" />
-      </div>
+      />
 
       <!-- Admin sidebar (doesn't take layout space) -->
       <div
         v-if="showAdminControls"
-        class="absolute left-0 top-0 -translate-x-full pr-3 z-30"
+        class="absolute top-0 right-0 lg:right-auto lg:top-unset lg:left-0 lg:top-0 lg:-translate-x-full lg:pr-3 z-30"
       >
         <div
-          class="flex flex-col gap-2 rounded-xl border border-white/10 bg-slate-950/70 backdrop-blur px-2 py-2 shadow-lg"
+          class="flex lg:flex-col gap-2 rounded-xl border border-white/10 bg-slate-950/70 backdrop-blur px-2 py-2 shadow-lg"
         >
           <button
             type="button"

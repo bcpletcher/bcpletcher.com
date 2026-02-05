@@ -42,10 +42,7 @@ const items = computed(() => {
   if (!all) return [];
 
   return Object.values(all)
-    .filter((p) => {
-      if (settingsStore.isSignedIn) return true;
-      return !p?.hidden;
-    })
+    .filter((p) => !p?.hidden)
     .filter((p) => !!p?.featured)
     .sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
     .map((p) => ({
