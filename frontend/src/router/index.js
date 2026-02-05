@@ -37,7 +37,9 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
-    // Ignore savedPosition so back/forward also loads at the top.
+    // Always load at top on navigation (including back/forward).
+    // Ignore savedPosition and hashes to prevent anchor jumps.
+    void to;
     void from;
     void savedPosition;
 
@@ -50,6 +52,43 @@ const router = createRouter({
       });
     });
   },
+});
+
+function forceWindowScrollTop() {
+  try {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  } catch {
+    try {
+      window.scrollTo(0, 0);
+    } catch {
+      // no-op
+    }
+  }
+
+  try {
+    document.documentElement.scrollTop = 0;
+  } catch {
+    // no-op
+  }
+  try {
+    document.body.scrollTop = 0;
+  } catch {
+    // no-op
+  }
+}
+
+// iOS Safari quirk: sometimes it preserves the previous scroll offset even when
+// scrollBehavior returns top:0 (notably Home → Projects).
+// Fix: apply a targeted reset only when entering /projects.
+router.afterEach((to, from) => {
+  if (typeof window === "undefined") return;
+  if (to.path !== "/projects") return;
+  if (from.path === "/projects") return;
+
+  requestAnimationFrame(() => {
+    forceWindowScrollTop();
+    requestAnimationFrame(forceWindowScrollTop);
+  });
 });
 
 export default router;
