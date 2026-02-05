@@ -20,9 +20,6 @@ if (typeof window !== "undefined") {
   } catch {
     // no-op
   }
-
-  // Ensure we land at the top at startup (works even if restoration isn't supported).
-  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
 }
 
 const app = createApp(App);
