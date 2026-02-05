@@ -2,10 +2,10 @@
   <div class="mt-16 lg:mt-auto flex flex-row justify-between lg:flex-col gap-14 lg:gap-10">
     <a
       class="kbd-focus group/link my-auto mr-auto inline-flex items-baseline leading-tight text-slate-400 hover:text-sky-300 focus-visible:text-sky-300 font-semibold text-sm tracking-[0.25em] uppercase"
-      href="/resume"
+      href="/resume.pdf"
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Resume (opens in a new tab)"
+      aria-label="Resume PDF (opens in a new tab)"
     >
       <span>
         Resume
