@@ -35,55 +35,17 @@ function callable(handler) {
   });
 }
 
-exports.getScrapbookCollection = callable(({ data, auth }) => {
+exports.getProjectsCollection = callable(({ data, auth }) => {
   const context = { auth };
   return database.getCollection(data, context, firestore, "scrapbook");
 });
 
-// Lightweight featured-only query for Home page.
-// Returns only active featured items with minimal fields.
-exports.getFeaturedScrapbookCollection = callable(({ auth }) => {
-  const context = { auth };
-  return database.getCollectionQuery(
-    {
-      where: [
-        { field: "featured", op: "==", value: true },
-        { field: "deleted", op: "==", value: false },
-      ],
-      select: [
-        "eyebrow",
-        "title",
-        "hero",
-        "summary",
-        "technology",
-        "url",
-        "order",
-        "featured",
-        "deleted",
-      ],
-    },
-    context,
-    firestore,
-    "scrapbook"
-  );
-});
-
-exports.createScrapbookDocument = callable(({ data, auth }) => {
+exports.createProjectDocument = callable(({ data, auth }) => {
   const context = { auth };
   return database.createDocument(data, context, firestore, "scrapbook");
 });
 
-exports.updateScrapbookDocumentOrder = callable(({ data, auth }) => {
-  const context = { auth };
-  return database.updateScrapbookDocumentOrder(
-    data,
-    context,
-    firestore,
-    "scrapbook"
-  );
-});
-
-exports.updateScrapbookDocument = callable(({ data, auth }) => {
+exports.updateProjectDocument = callable(({ data, auth }) => {
   const context = { auth };
   return database.updateDocument(data, context, firestore, "scrapbook");
 });

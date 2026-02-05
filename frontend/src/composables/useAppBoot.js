@@ -12,9 +12,8 @@ import {
   useScrollLock,
 } from "@/composables/useScrollLock.js";
 import {
-  loadScrapbookFromCache,
-  saveFeaturedScrapbookToCache,
-  saveScrapbookToCache,
+  loadProjectsFromCache,
+  saveProjectsToCache,
 } from "@/utils/cache.js";
 import { withTimeout } from "@/utils/asyncTimeout.js";
 
@@ -32,20 +31,14 @@ export function useAppBoot() {
 
   const isBootLoading = ref(true);
   const bootError = ref("");
-  // Avoid a 1-frame flash of the loader when cached data is fresh.
-  // We only turn this on after we've determined a network boot is required.
   const showLoader = ref(false);
-
-  // Tracks whether we've decided to actually boot. Until then, the UI shouldn't
-  // show the loader overlay.
   const didDecideBoot = ref(false);
 
   const route = useRoute();
 
   const CACHE_ENABLED = (() => {
     // Support both names (you currently have VITE_CACHE_ENABLED in .env).
-    const raw =
-      import.meta.env.VITE_ENABLE_CACHE ?? import.meta.env.VITE_CACHE_ENABLED;
+    const raw = import.meta.env.VITE_CACHE_ENABLED;
 
     // Default: enabled unless explicitly set to false.
     return String(raw).toLowerCase() !== "false";
@@ -80,7 +73,7 @@ export function useAppBoot() {
       if (CACHE_ENABLED) {
         let cacheIsFresh = false;
         try {
-          const cached = await loadScrapbookFromCache();
+          const cached = await loadProjectsFromCache();
           const ageMs = cached?.updatedAt
             ? Date.now() - cached.updatedAt
             : Infinity;
@@ -89,9 +82,6 @@ export function useAppBoot() {
 
           if (cacheIsFresh) {
             settingsStore.projects = cached.all;
-            if (cached.featured) {
-              settingsStore.featuredProjects = cached.featured;
-            }
           }
         } catch (e) {
           // Ignore cache failures (private mode / blocked storage / etc.)
@@ -112,27 +102,7 @@ export function useAppBoot() {
       didDecideBoot.value = true;
       showLoader.value = true;
 
-      // 2a) Featured-first (non-fatal)
-      try {
-        const featuredFresh =
-          await firebaseStore.dataGetFeaturedProjectsCollection();
-        if (featuredFresh && typeof featuredFresh === "object") {
-          settingsStore.featuredProjects = featuredFresh;
-          if (CACHE_ENABLED) {
-            withTimeout(
-              saveFeaturedScrapbookToCache(featuredFresh),
-              1000,
-              "Featured projects cache write timed out"
-            ).catch((e) => {
-              console.warn("Failed to persist featured projects cache", e);
-            });
-          }
-        }
-      } catch (e) {
-        console.warn("Failed to fetch featured projects", e);
-      }
-
-      // 2b) Full fetch (fatal if fails)
+      // 2) Full fetch (fatal if fails)
       const scrapbookFresh = await firebaseStore.dataGetProjectsCollection();
       console.log("[boot] scrapbook API resolved", {
         keys: scrapbookFresh ? Object.keys(scrapbookFresh).length : 0,
@@ -142,16 +112,12 @@ export function useAppBoot() {
 
       if (CACHE_ENABLED) {
         withTimeout(
-          saveScrapbookToCache(scrapbookFresh),
+          saveProjectsToCache(scrapbookFresh),
           1000,
           "Projects cache write timed out"
-        )
-          .then(({ featured }) => {
-            settingsStore.featuredProjects = featured;
-          })
-          .catch((e) => {
-            console.warn("Failed to persist projects cache", e);
-          });
+        ).catch((e) => {
+          console.warn("Failed to persist projects cache", e);
+        });
       }
 
       if (SIMULATE_BOOT_ERROR) {

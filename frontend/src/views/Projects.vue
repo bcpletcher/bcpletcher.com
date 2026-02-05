@@ -96,7 +96,7 @@ import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
 import { useSettingsStore } from "@/stores/settings.js";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useNotificationStore } from "@/stores/notification.js";
-import { saveScrapbookToCache } from "@/utils/cache.js";
+import { saveProjectsToCache } from "@/utils/cache.js";
 
 const settingsStore = useSettingsStore();
 const firebaseStore = useFirebaseStore();
@@ -161,10 +161,9 @@ async function toggleHidden(project) {
       [project.id]: payload.data,
     };
 
-    // Update cache + featured index
+    // Update cache
     try {
-      const { featured } = await saveScrapbookToCache(settingsStore.projects);
-      settingsStore.featuredProjects = featured;
+      await saveProjectsToCache(settingsStore.projects);
     } catch (e) {
       console.warn("Failed to update projects cache", e);
     }

@@ -62,7 +62,6 @@ import { adminSignIn } from "./actions/admin/adminSignIn";
 
 import { dataGetCollection } from "./actions/data/dataGetCollection";
 import { dataCreateDocument } from "@/stores/actions/data/dataCreateDocument.js";
-import { dataUpdateScrapbookDocumentOrder } from "@/stores/actions/data/dataUpdateScrapbookDocumentOrder.js";
 import { dataUpdateDocument } from "@/stores/actions/data/dataUpdateDocument.js";
 
 export const useFirebaseStore = defineStore("firebase", {
@@ -81,36 +80,22 @@ export const useFirebaseStore = defineStore("firebase", {
     dataGetProjectsCollection() {
       return dataGetCollection(
         this.functions,
-        "getScrapbookCollection",
-        "bcpletcherProjects"
-      );
-    },
-    dataGetFeaturedProjectsCollection() {
-      return dataGetCollection(
-        this.functions,
-        "getFeaturedScrapbookCollection",
-        "bcpletcherProjectsFeatured"
+        "getProjectsCollection",
+        "projectsCache"
       );
     },
     dataCreateProjectDocument(document) {
       return dataCreateDocument(
         this.functions,
-        "createScrapbookDocument",
+        "createProjectDocument",
         document
       );
     },
     dataUpdateProjectDocument(document) {
       return dataUpdateDocument(
         this.functions,
-        "updateScrapbookDocument",
+        "updateProjectDocument",
         document
-      );
-    },
-    dataUpdateProjectDocumentOrder(documents) {
-      return dataUpdateScrapbookDocumentOrder(
-        this.functions,
-        "updateScrapbookDocumentOrder",
-        documents
       );
     },
     async uploadProjectImages(entryId, files, existingCount = 0) {
@@ -140,20 +125,6 @@ export const useFirebaseStore = defineStore("firebase", {
       } catch (e) {
         console.error("Failed to delete project image from storage", e);
       }
-    },
-
-    // --- Backward-compatible aliases (scrapbook) ---
-    dataCreateScrapbookDocument(document) {
-      return this.dataCreateProjectDocument(document);
-    },
-    dataUpdateScrapbookDocument(document) {
-      return this.dataUpdateProjectDocument(document);
-    },
-    uploadScrapbookImages(entryId, files, existingCount = 0) {
-      return this.uploadProjectImages(entryId, files, existingCount);
-    },
-    deleteScrapbookImageByUrl(url) {
-      return this.deleteProjectImageByUrl(url);
     },
   },
 });

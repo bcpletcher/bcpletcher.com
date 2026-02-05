@@ -3,10 +3,7 @@ import { defineStore } from "pinia";
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
     user: {},
-
     projects: null,
-    featuredProjects: null,
-
     showAdminModal: false,
   }),
   getters: {

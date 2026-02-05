@@ -379,7 +379,7 @@ import { VueDraggableNext } from "vue-draggable-next";
 
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
-import { saveScrapbookToCache } from "@/utils/cache.js";
+import { saveProjectsToCache } from "@/utils/cache.js";
 
 const settingsStore = useSettingsStore();
 const firebaseStore = useFirebaseStore();
@@ -634,12 +634,9 @@ const submit = async () => {
         };
 
         try {
-          const { featured } = await saveScrapbookToCache(
-            settingsStore.projects
-          );
-          settingsStore.featuredProjects = featured;
+          await saveProjectsToCache(settingsStore.projects);
         } catch (e) {
-          console.warn("Failed to update scrapbook cache", e);
+          console.warn("Failed to update projects cache", e);
         }
       }
     } else {
@@ -658,12 +655,9 @@ const submit = async () => {
         };
 
         try {
-          const { featured } = await saveScrapbookToCache(
-            settingsStore.projects
-          );
-          settingsStore.featuredProjects = featured;
+          await saveProjectsToCache(settingsStore.projects);
         } catch (e) {
-          console.warn("Failed to update scrapbook cache", e);
+          console.warn("Failed to update projects cache", e);
         }
       }
 

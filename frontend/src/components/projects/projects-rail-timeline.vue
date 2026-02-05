@@ -82,6 +82,8 @@ const activeIndex = ref(0);
 const progressRef = ref(null);
 
 let masterTrigger = null;
+let directScrollTarget = null;
+let onDirectScroll = null;
 
 const normalizedYears = computed(() =>
   (Array.isArray(props.years) ? props.years : [])
@@ -207,6 +209,16 @@ function cleanup() {
     // no-op
   }
   masterTrigger = null;
+
+  try {
+    if (directScrollTarget && onDirectScroll) {
+      directScrollTarget.removeEventListener("scroll", onDirectScroll);
+    }
+  } catch {
+    // no-op
+  }
+  directScrollTarget = null;
+  onDirectScroll = null;
 }
 
 function getRenderedIndexForActiveYear(year) {
@@ -223,12 +235,33 @@ function getRenderedIndexForActiveYear(year) {
   return idx === -1 ? 0 : idx;
 }
 
+function getScrollTop(scrollerEl) {
+  if (!scrollerEl) return window.scrollY || window.pageYOffset || 0;
+  return scrollerEl.scrollTop || 0;
+}
+
+function getViewportHeight(scrollerEl) {
+  if (!scrollerEl) return window.innerHeight || 0;
+  return scrollerEl.clientHeight || 0;
+}
+
+function getElementTopInScroller(el, scrollerEl) {
+  const elRect = el.getBoundingClientRect();
+  if (!scrollerEl) {
+    return elRect.top + (window.scrollY || window.pageYOffset || 0);
+  }
+  const scrollerRect = scrollerEl.getBoundingClientRect();
+  return elRect.top - scrollerRect.top + (scrollerEl.scrollTop || 0);
+}
+
 onMounted(() => {
   if (typeof window === "undefined") return;
   ensureGsap();
 
   const scrollerEl = getScrollerEl();
-  const sections = Array.from(document.querySelectorAll(props.yearSectionSelector));
+  const sections = Array.from(
+    document.querySelectorAll(props.yearSectionSelector)
+  );
   if (!sections.length) return;
 
   // Build ordered year marks based on actual DOM order on the page (top -> bottom)
@@ -236,32 +269,42 @@ onMounted(() => {
     .map((el) => ({ el, year: Number(el.getAttribute("data-year")) || null }))
     .filter((x) => x.year);
 
-  // Defensive: if DOM order isn't newest->oldest, still track based on positions.
-  // We'll use marks-by-position for active calculation.
-
   const first = yearMarks[0].el;
   const last = yearMarks[yearMarks.length - 1].el;
 
+  // Precompute section tops in the scroller's coordinate space.
+  // (These change on resize/refresh, so we recompute inside updateState.)
+  const computeSectionTops = () =>
+    yearMarks.map((m) => ({
+      year: m.year,
+      top: getElementTopInScroller(m.el, scrollerEl),
+    }));
+
   const updateState = () => {
     const offset = Number(props.scrollOffsetPx) || 0;
-    const viewLine = offset + (window.innerHeight || 0) * 0.2; // a bit below sticky header
+    const tops = computeSectionTops();
 
-    // Determine active mark: last one whose top is above the viewLine.
+    const scrollTop = getScrollTop(scrollerEl);
+    const vh = getViewportHeight(scrollerEl);
+
+    // A bit below sticky header
+    const viewLine = scrollTop + offset + vh * 0.2;
+
+    // Determine active mark: last one whose top is above viewLine.
     let activeIdx = 0;
-    for (let i = 0; i < yearMarks.length; i++) {
-      const rect = yearMarks[i].el.getBoundingClientRect();
-      if (rect.top <= viewLine) activeIdx = i;
+    for (let i = 0; i < tops.length; i++) {
+      if (tops[i].top <= viewLine) activeIdx = i;
       else break;
     }
 
-    const currentYear = yearMarks[activeIdx]?.year ?? yearMarks[0]?.year ?? null;
+    const currentYear =
+      tops[activeIdx]?.year ?? tops[0]?.year ?? yearMarks[0]?.year ?? null;
+
     activeYear.value = currentYear;
 
-    // Active index should correspond to the *rendered rail items* (so 'Earlier' can be last).
     const renderedIdx = getRenderedIndexForActiveYear(currentYear);
     activeIndex.value = renderedIdx;
 
-    // Progress should fill to the position of the active item.
     const denom = Math.max(1, items.value.length - 1);
     const p = clamp01(renderedIdx / denom);
 
@@ -286,6 +329,14 @@ onMounted(() => {
     onRefresh: updateState,
   });
 
+  // Also listen to scroll directly in case the scroller isn't window and ScrollTrigger isn't
+  // receiving updates (e.g., due to dynamically created scroll containers).
+  directScrollTarget = scrollerEl || window;
+  onDirectScroll = () => updateState();
+  directScrollTarget.addEventListener("scroll", onDirectScroll, {
+    passive: true,
+  });
+
   // Initial state
   updateState();
 
@@ -296,6 +347,8 @@ onMounted(() => {
       // no-op
     }
   }, 0);
+
+  // Cleanup handled by cleanup()
 });
 
 onBeforeUnmount(() => {

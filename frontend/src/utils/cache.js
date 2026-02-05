@@ -15,29 +15,9 @@ const STORES = {
 };
 
 const KEYS = {
-  scrapbookAll: "scrapbook:all",
-  scrapbookFeatured: "scrapbook:featured",
-  scrapbookUpdatedAt: "scrapbook:updatedAt",
+  projectsAll: "projects:all",
+  projectsUpdatedAt: "projects:updatedAt",
 };
-
-function buildFeaturedIndex(allScrapbook) {
-  if (!allScrapbook || typeof allScrapbook !== "object") return {};
-
-  const entries = Object.entries(allScrapbook)
-    .filter(([, item]) => item)
-    .filter(([, item]) => !item.hidden)
-    .filter(([, item]) => !!item.featured)
-    .sort(([, a], [, b]) => {
-      const orderA = a && a.order != null ? Number(a.order) : 0;
-      const orderB = b && b.order != null ? Number(b.order) : 0;
-      return (orderA || 0) - (orderB || 0);
-    });
-
-  return entries.reduce((acc, [id, item]) => {
-    acc[id] = item;
-    return acc;
-  }, {});
-}
 
 async function getDb() {
   return openDB(DB_NAME, DB_VERSION, {
@@ -54,82 +34,47 @@ async function getDb() {
 }
 
 // -----------------------
-// Scrapbook caching
+// Projects caching
 // -----------------------
-export async function loadScrapbookFromCache() {
+export async function loadProjectsFromCache() {
   const db = await getDb();
-  const [all, featured, updatedAt] = await Promise.all([
-    db.get(STORES.data, KEYS.scrapbookAll),
-    db.get(STORES.data, KEYS.scrapbookFeatured),
-    db.get(STORES.meta, KEYS.scrapbookUpdatedAt),
+  const [all, updatedAt] = await Promise.all([
+    db.get(STORES.data, KEYS.projectsAll),
+    db.get(STORES.meta, KEYS.projectsUpdatedAt),
   ]);
 
   return {
     all: all || null,
-    featured: featured || null,
     updatedAt: typeof updatedAt === "number" ? updatedAt : null,
   };
 }
 
-export async function saveScrapbookToCache(allScrapbook) {
+export async function saveProjectsToCache(allProjects) {
   const db = await getDb();
   const tx = db.transaction([STORES.data, STORES.meta], "readwrite");
 
   // IndexedDB uses the structured clone algorithm; Vue proxies and certain objects
   // can throw DataCloneError. Normalize to plain JSON first.
-  const plainAll = JSON.parse(JSON.stringify(allScrapbook || null));
-
-  const featured = buildFeaturedIndex(plainAll);
-  const now = Date.now();
-
-  await Promise.all([
-    tx.objectStore(STORES.data).put(plainAll, KEYS.scrapbookAll),
-    tx.objectStore(STORES.data).put(featured, KEYS.scrapbookFeatured),
-    tx.objectStore(STORES.meta).put(now, KEYS.scrapbookUpdatedAt),
-    tx.done,
-  ]);
-
-  return { featured, updatedAt: now };
-}
-
-export async function saveFeaturedScrapbookToCache(featuredScrapbook) {
-  const db = await getDb();
-  const tx = db.transaction([STORES.data, STORES.meta], "readwrite");
+  const plainAll = JSON.parse(JSON.stringify(allProjects || null));
 
   const now = Date.now();
 
-  const plainFeatured = featuredScrapbook
-    ? JSON.parse(JSON.stringify(featuredScrapbook))
-    : null;
-
   await Promise.all([
-    tx
-      .objectStore(STORES.data)
-      .put(plainFeatured, KEYS.scrapbookFeatured),
-    // We still update updatedAt so we can reason about staleness even if only featured was fetched.
-    tx.objectStore(STORES.meta).put(now, KEYS.scrapbookUpdatedAt),
+    tx.objectStore(STORES.data).put(plainAll, KEYS.projectsAll),
+    tx.objectStore(STORES.meta).put(now, KEYS.projectsUpdatedAt),
     tx.done,
   ]);
 
   return { updatedAt: now };
 }
 
-export async function clearScrapbookCache() {
+export async function clearProjectsCache() {
   const db = await getDb();
   const tx = db.transaction([STORES.data, STORES.meta], "readwrite");
 
   await Promise.all([
-    tx.objectStore(STORES.data).delete(KEYS.scrapbookAll),
-    tx.objectStore(STORES.data).delete(KEYS.scrapbookFeatured),
-    tx.objectStore(STORES.meta).delete(KEYS.scrapbookUpdatedAt),
+    tx.objectStore(STORES.data).delete(KEYS.projectsAll),
+    tx.objectStore(STORES.meta).delete(KEYS.projectsUpdatedAt),
     tx.done,
   ]);
-}
-
-// -----------------------
-// App cache (all modules)
-// -----------------------
-
-export async function clearAppCache() {
-  await clearScrapbookCache();
 }
