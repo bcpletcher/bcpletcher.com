@@ -1,6 +1,10 @@
 import { defineStore } from "pinia";
 import { initializeApp, setLogLevel } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import {
@@ -21,16 +25,17 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-if (!firebaseConfig.apiKey) {
-  console.error(
-    "[FirebaseConfig] Missing VITE_FIREBASE_API_KEY; Firebase Auth will fail."
-  );
-}
-
 const firebaseApp = initializeApp(firebaseConfig);
 
 // Initialize Firebase services
 const auth = getAuth(firebaseApp);
+
+setPersistence(auth, browserLocalPersistence).catch(() => {
+  // Persist auth session across reloads until explicit sign-out or token invalidation.
+  // (If the browser disallows it, Firebase will fall back internally.)
+  // no-op: some environments can block persistence
+});
+
 const firestore = getFirestore(firebaseApp);
 const storage = getStorage(firebaseApp);
 const functions = getFunctions(firebaseApp);
@@ -43,8 +48,13 @@ if (useEmulator) {
   // Connect to emulators
   console.log("useEmulator", useEmulator);
 
-  connectFunctionsEmulator(functions, "localhost", 5001);
-  // connectFirestoreEmulator(firestore, "localhost", 8080);
+  // Firebase Functions emulator
+  connectFunctionsEmulator(functions, "localhost", 5002);
+
+  // Firestore emulator
+  // (Requires explicit connection; otherwise Firestore will read from production)
+  const { connectFirestoreEmulator } = await import("firebase/firestore");
+  connectFirestoreEmulator(firestore, "localhost", 8080);
 }
 
 // Import the actions
@@ -52,7 +62,6 @@ import { adminSignIn } from "./actions/admin/adminSignIn";
 
 import { dataGetCollection } from "./actions/data/dataGetCollection";
 import { dataCreateDocument } from "@/stores/actions/data/dataCreateDocument.js";
-import { dataUpdateScrapbookDocumentOrder } from "@/stores/actions/data/dataUpdateScrapbookDocumentOrder.js";
 import { dataUpdateDocument } from "@/stores/actions/data/dataUpdateDocument.js";
 
 export const useFirebaseStore = defineStore("firebase", {
@@ -66,44 +75,32 @@ export const useFirebaseStore = defineStore("firebase", {
     adminSignIn(email, password) {
       return adminSignIn(this.auth, email, password);
     },
-    dataGetResourcesCollection() {
+
+    // --- Projects (preferred names) ---
+    dataGetProjectsCollection() {
       return dataGetCollection(
         this.functions,
-        "getResourcesCollection",
-        "resourcesCache"
+        "getProjectsCollection",
+        "projectsCache"
       );
     },
-    dataGetScrapbookCollection() {
-      return dataGetCollection(
-        this.functions,
-        "getScrapbookCollection",
-        "contentScrapbook"
-      );
-    },
-    dataCreateScrapbookDocument(document) {
+    dataCreateProjectDocument(document) {
       return dataCreateDocument(
         this.functions,
-        "createScrapbookDocument",
+        "createProjectDocument",
         document
       );
     },
-    dataUpdateScrapbookDocument(document) {
+    dataUpdateProjectDocument(document) {
       return dataUpdateDocument(
         this.functions,
-        "updateScrapbookDocument",
+        "updateProjectDocument",
         document
       );
     },
-    dataUpdateScrapbookDocumentOrder(documents) {
-      return dataUpdateScrapbookDocumentOrder(
-        this.functions,
-        "updateScrapbookDocumentOrder",
-        documents
-      );
-    },
-    async uploadScrapbookImages(entryId, files, existingCount = 0) {
+    async uploadProjectImages(entryId, files, existingCount = 0) {
       if (!entryId) {
-        throw new Error("uploadScrapbookImages requires a valid entryId");
+        throw new Error("uploadProjectImages requires a valid entryId");
       }
       const uploadedUrls = [];
       let index = existingCount;
@@ -120,13 +117,13 @@ export const useFirebaseStore = defineStore("firebase", {
       }
       return uploadedUrls;
     },
-    async deleteScrapbookImageByUrl(url) {
+    async deleteProjectImageByUrl(url) {
       if (!url) return;
       try {
         const ref = storageRef(this.storage, url);
         await deleteObject(ref);
       } catch (e) {
-        console.error("Failed to delete scrapbook image from storage", e);
+        console.error("Failed to delete project image from storage", e);
       }
     },
   },

@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
-import { v4 as uuidv4 } from "uuid";
+
+let nextNotificationId = 1;
 
 export const useNotificationStore = defineStore("notification", {
   state: () => ({
@@ -7,35 +8,35 @@ export const useNotificationStore = defineStore("notification", {
   }),
   actions: {
     addNotification({ variant, title, message, duration = 5 }) {
-      // Generate a unique ID for the notification
-      const uuid = uuidv4();
+      const id = nextNotificationId++;
+
       let style = {
-        icon: "exclamation-circle",
-        colorText: "text-primary",
-        colorBar: "bg-blue-200",
-        colorProgress: "bg-blue-500",
+        iconClass: "fa-light fa-circle-exclamation",
+        colorText: "text-sky-300",
+        colorBar: "bg-sky-300/20",
+        colorProgress: "bg-sky-300",
       };
 
       if (variant === "success") {
         style = {
-          icon: "check-circle",
-          colorText: "text-green-400",
-          colorBar: "bg-green-200",
-          colorProgress: "bg-green-500",
+          iconClass: "fa-light fa-circle-check",
+          colorText: "text-emerald-300",
+          colorBar: "bg-emerald-300/20",
+          colorProgress: "bg-emerald-300",
         };
       } else if (variant === "danger") {
         style = {
-          icon: "times-circle",
-          colorText: "text-red-400",
-          colorBar: "bg-red-200",
-          colorProgress: "bg-red-500",
+          iconClass: "fa-light fa-circle-xmark",
+          colorText: "text-red-300",
+          colorBar: "bg-red-300/20",
+          colorProgress: "bg-red-300",
         };
       }
 
       this.notifications = [
         ...this.notifications,
         {
-          uuid,
+          id,
           variant,
           title,
           message,
@@ -45,8 +46,7 @@ export const useNotificationStore = defineStore("notification", {
       ];
     },
     removeNotification(id) {
-      // Remove the notification by id
-      this.notifications = this.notifications.filter((n) => n.uuid !== id);
+      this.notifications = this.notifications.filter((n) => n.id !== id);
     },
   },
 });

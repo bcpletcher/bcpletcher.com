@@ -1,138 +1,64 @@
 <template>
-  <div
-    v-if="isMounted"
-    class="h-screen w-screen bg-base-background overflow-hidden relative defaultSlide animationController"
-  >
-    <!--    Radial gradient overlay-->
-    <div
-      class="pointer-events-none fixed inset-0 z-30 transition duration-300 lg:absolute"
-      :style="{
-        background: `radial-gradient(600px at ${mouseX}px ${mouseY}px, rgba(29, 78, 216, 0.05), transparent 50%)`,
-      }"
-    ></div>
-    <router-view v-slot="{ Component }">
-      <transition
-        :name="
-          isMounted ? (route.path !== '/' ? 'slideY-up' : 'slideY-down') : ''
-        "
-        mode="out-in"
-      >
-        <component
-          :is="Component"
-          class="h-full absolute inset-0 transition-fast"
-          :style="contentPosition"
-        />
-      </transition>
-    </router-view>
-
-    <template v-if="!isBlankLayout">
-      <sidebar />
-
-      <transition name="fade">
-        <div
-          v-show="settingsStore.expanded"
-          class="z-10 fixed inset-0 bg-black/30 pointer-events-all"
-          @click="settingsStore.expanded = !settingsStore.expanded"
-        />
-      </transition>
-    </template>
-
-    <div
-      aria-live="assertive"
-      class="fixed inset-0 flex items-end justify-center p-4 pointer-events-none sm:justify-end z-50"
-    >
+  <div class="min-h-screen w-full bg-slate-900 text-slate-400">
+    <!-- App content mounts immediately behind the loader so there's no repaint/jump when loader disappears -->
+    <div class="min-h-screen w-full">
+      <AdminBanner />
+      <mouse-glow-overlay />
       <notifications />
+      <AdminAdminLoginModal />
+
+      <fullscreen-loader
+        v-if="didDecideBoot && showLoader"
+        :is-ready="!isBootLoading && !bootError"
+        :has-error="Boolean(bootError)"
+        @done="onLoaderDone"
+      />
+
+      <div
+        :class="
+          isFullWidthRoute
+            ? 'w-full'
+            : 'mx-auto min-h-screen max-w-7xl px-6 py-12 font-sans md:px-12 md:py-16 lg:py-0'
+        "
+      >
+        <router-view />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import Sidebar from "@/components/navigation/sidebar.vue";
+import { computed, watch } from "vue";
+import { useRoute } from "vue-router";
+
+import FullscreenLoader from "@/components/shared/fullscreen-loader.vue";
 import Notifications from "@/components/shared/notifications.vue";
+import MouseGlowOverlay from "@/components/shared/mouse-glow-overlay.vue";
+import AdminBanner from "@/components/admin/admin-banner.vue";
+import AdminAdminLoginModal from "@/components/admin/admin-login-modal.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
-import { useBreakpoints } from "@/composables/breakpoints.js";
-import { useRoute } from "vue-router";
-// import { useNotificationStore } from "@/stores/notification.js";
+import { useAppBoot } from "@/composables/useAppBoot.js";
+import { loadFontAwesomeKit } from "@/utils/fontAwesomeKit.js";
+
+useFirebaseStore();
+useSettingsStore();
+
+const { showLoader, isBootLoading, bootError, onLoaderDone, didDecideBoot } =
+  useAppBoot();
+
 const route = useRoute();
+const isFullWidthRoute = computed(() => Boolean(route.meta?.fullWidth));
 
-const firebaseStore = useFirebaseStore();
-const { isBreakpointOrBelow } = useBreakpoints();
-
-const isMounted = ref(false);
-const isBlankLayout = false;
-const settingsStore = useSettingsStore();
-
-const contentPosition = computed(() => {
-  let distance = isBreakpointOrBelow("md")
-    ? 0
-    : settingsStore.expanded
-    ? 450 + 80
-    : 80;
-  let width = isBreakpointOrBelow("md") ? 0 : 80;
-  return {
-    left: `${distance}px`,
-    width: `calc(100% - ${width}px)`,
-  };
-});
-
-const mouseX = ref(window.innerWidth / 2); // Default to center of screen
-const mouseY = ref(window.innerHeight / 2);
-
-const updateMousePosition = (event) => {
-  mouseX.value = event.clientX;
-  mouseY.value = event.clientY;
-};
-
-onMounted(async () => {
-  await firebaseStore.auth.signOut();
-
-  isMounted.value = true;
-  window.addEventListener("mousemove", updateMousePosition);
-
-  // Hydrate scrapbook from localStorage first for faster initial render
-  const cachedScrapbook = localStorage.getItem("scrapbookCache");
-  if (cachedScrapbook) {
-    try {
-      settingsStore.scrapbook = JSON.parse(cachedScrapbook);
-    } catch (e) {
-      console.warn("Failed to parse scrapbookCache from localStorage", e);
-      localStorage.removeItem("scrapbookCache");
-    }
-  }
-
-  // Always fetch fresh data from Firestore and overwrite cache
-  settingsStore.resources = await firebaseStore.dataGetResourcesCollection();
-  settingsStore.scrapbook = await firebaseStore.dataGetScrapbookCollection();
-
-  // Keep scrapbook cached in localStorage whenever it changes
-  watch(
-    () => settingsStore.scrapbook,
-    (val) => {
-      if (val) {
-        localStorage.setItem("scrapbookCache", JSON.stringify(val));
-      } else {
-        localStorage.removeItem("scrapbookCache");
-      }
-    },
-    { deep: true, immediate: true }
-  );
-});
-onUnmounted(() => {
-  window.removeEventListener("mousemove", updateMousePosition);
-});
+// Load Font Awesome everywhere except /resume for faster resume direct loads.
+watch(
+  () => route.path,
+  (path) => {
+    if (path === "/resume") return;
+    loadFontAwesomeKit().catch(() => {
+      // Non-fatal: icons may be missing if the kit fails.
+    });
+  },
+  { immediate: true },
+);
 </script>
-
-<style lang="scss" scoped>
-/*------------- ANIMATION -------------*/
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s;
-}
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

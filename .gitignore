@@ -1,24 +1,13 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
+# =====================
+# OS / Editor
+# =====================
 .DS_Store
-dist
-dist-ssr
-coverage
-*.local
+**/.DS_Store
+.idea/
+.fleet/
+.nova/
+.history/
 
-
-/cypress/videos/
-/cypress/screenshots/
-
-# Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 *.suo
@@ -26,22 +15,78 @@ coverage
 *.njsproj
 *.sln
 *.sw?
-/frontend/node_modules/
-/frontend/node_modules/*
-/firebase/functions/node_modules/
-/firebase/functions/node_modules/*
 
-# Ignore Firebase service account keys
+# =====================
+# Logs
+# =====================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Firebase emulator debug logs
+firebase-debug.log
+firebase-debug.*.log
+ui-debug.log
+firestore-debug.log
+database-debug.log
+pubsub-debug.log
+storage-debug.log
+
+# =====================
+# Dependencies
+# =====================
+node_modules/
+
+# =====================
+# Build outputs
+# =====================
+dist/
+frontend/dist/
+dist-ssr/
+coverage/
+*.local
+
+# Vite/Tooling caches
+.vite/
+.turbo/
+.cache/
+
+# =====================
+# Cypress
+# =====================
+/cypress/videos/
+/cypress/screenshots/
+
+# =====================
+# Env / local overrides
+# =====================
+.env*
+!.env.example
+**/.env.example
+
+# =====================
+# Firebase (local artifacts / secrets)
+# =====================
+# Service account keys / local secrets
 firebase/functions/key.json
 functions/key.json
 key.json
 
-# Client Configuration
-.env*
-
-# Local Firebase emulator / tooling artifacts
+# Firebase local cache/state (generated)
 .firebase/
-firebase/.databases/
 
-# JetBrains IDE
-.idea/
+# Functions runtime config (generated)
+firebase/functions/.runtimeconfig.json
+functions/.runtimeconfig.json
+
+# Firebase Hosting cache (generated)
+.firebasehosting.*
+
+# =====================
+# Firebase emulator data (local exports/imports)
+# =====================
+firebase/.databases/

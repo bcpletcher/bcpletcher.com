@@ -4,18 +4,32 @@ import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router";
 
-import "./assets/css/fonts.scss";
-import "./assets/css/global.scss";
-import "./assets/css/tailwind.scss";
-import "./assets/css/animate.scss";
+import "./assets/css/fonts.css";
+import "./assets/css/global.css";
+import "./assets/css/tailwind.css";
 
-import intersectAnimate from "./directives/intersect-animate";
+import gsapReveal from "./directives/gsap-reveal";
+
+// Always start at the top on hard refresh.
+// Some browsers try to restore scroll on reload; this opts out when available.
+if (typeof window !== "undefined") {
+  try {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  } catch {
+    // no-op
+  }
+
+  // Ensure we land at the top at startup (works even if restoration isn't supported).
+  window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+}
 
 const app = createApp(App);
 
 app.use(createPinia());
 app.use(router);
 
-app.directive("intersect-animate", intersectAnimate);
+app.directive("gsap-reveal", gsapReveal);
 
 app.mount("#app");
