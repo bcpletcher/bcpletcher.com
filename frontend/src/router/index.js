@@ -20,9 +20,7 @@ const routes = [
   },
   {
     path: "/resume",
-    name: "Resume",
-    component: () => import("@/views/Resume.vue"),
-    meta: { fullWidth: true },
+    redirect: "/resume.pdf",
   },
   {
     path: "/projects",
@@ -38,15 +36,57 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior(to) {
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition;
+
     // Smooth in-page navigation only for hash links on Home.
     if (to.name === "Home" && to.hash) {
       return { el: to.hash, behavior: "smooth" };
     }
 
-    // Always snap to the top for actual route navigations.
-    return { left: 0, top: 0 };
+    // Let the next frame render before snapping to top (helps iOS Safari).
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => resolve({ left: 0, top: 0 }));
+    });
   },
+});
+
+function forceScrollTop() {
+  if (typeof window === "undefined") return;
+
+  const reset = () => {
+    try {
+      window.scrollTo(0, 0);
+    } catch {
+      // no-op
+    }
+
+    if (typeof document !== "undefined") {
+      try {
+        document.documentElement.scrollTop = 0;
+      } catch {
+        // no-op
+      }
+      try {
+        document.body.scrollTop = 0;
+      } catch {
+        // no-op
+      }
+    }
+  };
+
+  // Multiple frames helps when the next route does layout measurement.
+  requestAnimationFrame(() => {
+    reset();
+    requestAnimationFrame(reset);
+  });
+}
+
+router.afterEach((to) => {
+  // Don't fight intentional hash scroll on Home.
+  if (to.name === "Home" && to.hash) return;
+
+  forceScrollTop();
 });
 
 export default router;
