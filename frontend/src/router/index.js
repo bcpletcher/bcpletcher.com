@@ -39,54 +39,14 @@ const router = createRouter({
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) return savedPosition;
 
-    // Smooth in-page navigation only for hash links on Home.
-    if (to.name === "Home" && to.hash) {
-      return { el: to.hash, behavior: "smooth" };
-    }
-
-    // Let the next frame render before snapping to top (helps iOS Safari).
+    // Returning a Promise allows us to wait a tick for layout/render, which helps
+    // on mobile Safari.
     return new Promise((resolve) => {
-      requestAnimationFrame(() => resolve({ left: 0, top: 0 }));
+      requestAnimationFrame(() => {
+        resolve({ left: 0, top: 0, behavior: "auto" });
+      });
     });
   },
-});
-
-function forceScrollTop() {
-  if (typeof window === "undefined") return;
-
-  const reset = () => {
-    try {
-      window.scrollTo(0, 0);
-    } catch {
-      // no-op
-    }
-
-    if (typeof document !== "undefined") {
-      try {
-        document.documentElement.scrollTop = 0;
-      } catch {
-        // no-op
-      }
-      try {
-        document.body.scrollTop = 0;
-      } catch {
-        // no-op
-      }
-    }
-  };
-
-  // Multiple frames helps when the next route does layout measurement.
-  requestAnimationFrame(() => {
-    reset();
-    requestAnimationFrame(reset);
-  });
-}
-
-router.afterEach((to) => {
-  // Don't fight intentional hash scroll on Home.
-  if (to.name === "Home" && to.hash) return;
-
-  forceScrollTop();
 });
 
 export default router;

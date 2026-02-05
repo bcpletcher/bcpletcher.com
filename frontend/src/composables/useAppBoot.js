@@ -1,5 +1,4 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
-// useRoute removed: /resume SPA fast-path is no longer needed (resume is /resume.pdf)
 
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
