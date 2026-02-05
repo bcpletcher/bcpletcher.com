@@ -52,7 +52,7 @@ import Navigation from "@/components/home/rail/navigation.vue";
 import SocialLinks from "@/components/home/rail/social-links.vue";
 
 const name = "Benjamin Pletcher";
-const title = "Senior Frontend Engineer";
+const title = "Senior Software Engineer";
 const description =
   "I build accessible, pixel-perfect digital experiences, from interface to production.";
 
