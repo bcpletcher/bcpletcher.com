@@ -1,18 +1,5 @@
 <template>
-  <div class="mt-10 lg:mt-auto flex lg:flex-col-reverse gap-14 lg:gap-10">
-    <div class="flex items-center gap-5 text-slate-400 text-2xl">
-      <a
-        v-for="link in links"
-        :key="link.label"
-        class="hover:text-slate-100 transition-standard"
-        :href="link.href"
-        :target="link.external ? '_blank' : undefined"
-        :rel="link.external ? 'noreferrer' : undefined"
-        :aria-label="link.label"
-      >
-        <i :class="link.iconClass" />
-      </a>
-    </div>
+  <div class="mt-16 lg:mt-auto flex flex-row justify-between lg:flex-col gap-14 lg:gap-10">
     <a
       class="group/link my-auto inline-flex items-baseline leading-tight text-slate-400 hover:text-sky-300 focus-visible:text-sky-300 font-semibold text-sm tracking-[0.25em] uppercase"
       href="/resume"
@@ -30,6 +17,19 @@
         </span>
       </span>
     </a>
+    <div class="flex items-center gap-5 text-slate-400 text-2xl">
+      <a
+        v-for="link in links"
+        :key="link.label"
+        class="hover:text-slate-100 transition-standard"
+        :href="link.href"
+        :target="link.external ? '_blank' : undefined"
+        :rel="link.external ? 'noreferrer' : undefined"
+        :aria-label="link.label"
+      >
+        <i :class="link.iconClass" />
+      </a>
+    </div>
   </div>
 </template>
 

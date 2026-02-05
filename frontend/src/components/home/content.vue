@@ -47,7 +47,7 @@
       <ProjectsSection />
     </section>
 
-    <div class="text-sm text-slate-500 max-w-lg mt-32 flex gap-4">
+    <div class="text-sm text-slate-500 max-w-lg lg:mt-32 flex gap-4">
       <div
         ref="logoEl"
         class="my-auto cursor-pointer"
