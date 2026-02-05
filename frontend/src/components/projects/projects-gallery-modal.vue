@@ -5,13 +5,15 @@
       class="fixed left-0 top-0 z-200 w-dvw h-dvh"
       role="dialog"
       aria-modal="true"
-      :aria-label="ariaLabel"
+      :aria-labelledby="titleId"
+      :aria-describedby="descId"
+      tabindex="-1"
       @keydown.esc.stop.prevent="close"
     >
       <!-- Backdrop -->
       <div
         ref="backdropRef"
-        class="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        class="absolute inset-0 bg-black/70 backdrop-blur-sm cursor-pointer"
         @click="close"
       />
 
@@ -28,15 +30,22 @@
             class="flex items-center justify-between gap-4 border-b border-slate-800 px-4 py-3 sm:px-6"
           >
             <div class="min-w-0">
-              <p class="truncate text-sm tracking-widest text-slate-400">
+              <p
+                :id="titleId"
+                class="truncate text-sm tracking-widest text-slate-400"
+              >
                 {{ title || "Project Gallery" }}
+              </p>
+              <p :id="descId" class="sr-only">
+                Image gallery modal. Use left/right buttons or arrow keys to navigate.
               </p>
             </div>
 
             <div class="flex items-center gap-2">
               <button
+                ref="closeButtonRef"
                 type="button"
-                class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-800 bg-white/5 text-slate-200 transition-standard hover:bg-white/10 focus-visible:bg-white/10"
+                class="kbd-focus cursor-pointer inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-800 bg-white/5 text-slate-200 transition-standard hover:bg-white/10 focus-visible:bg-white/10"
                 aria-label="Close"
                 @click="close"
               >
@@ -49,7 +58,7 @@
             <!-- Navigation buttons -->
             <button
               type="button"
-              class="absolute left-3 top-1/2 z-10 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-800 bg-black/30 text-slate-100 backdrop-blur transition-standard hover:bg-black/45 focus-visible:bg-black/45"
+              class="kbd-focus cursor-pointer absolute left-3 top-1/2 z-10 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-800 bg-black/30 text-slate-100 backdrop-blur transition-standard hover:bg-black/45 focus-visible:bg-black/45"
               aria-label="Previous image"
               @click="slidePrev"
             >
@@ -57,7 +66,7 @@
             </button>
             <button
               type="button"
-              class="absolute right-3 top-1/2 z-10 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-800 bg-black/30 text-slate-100 backdrop-blur transition-standard hover:bg-black/45 focus-visible:bg-black/45"
+              class="kbd-focus cursor-pointer absolute right-3 top-1/2 z-10 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-800 bg-black/30 text-slate-100 backdrop-blur transition-standard hover:bg-black/45 focus-visible:bg-black/45"
               aria-label="Next image"
               @click="slideNext"
             >
@@ -110,7 +119,7 @@
               <div class="flex items-center gap-3">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-white/5 px-4 py-2 text-slate-200 transition-standard hover:bg-white/10 focus-visible:bg-white/10"
+                  class="kbd-focus cursor-pointer inline-flex items-center gap-2 rounded-full border border-slate-800 bg-white/5 px-4 py-2 text-slate-200 transition-standard hover:bg-white/10 focus-visible:bg-white/10"
                   @click="toggleFullscreen"
                 >
                   <i class="fa-light fa-expand" aria-hidden="true" />
@@ -126,13 +135,14 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { nextTick, onBeforeUnmount, ref, watch } from "vue";
 import gsap from "gsap";
 
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { Keyboard } from "swiper/modules";
 
 import "swiper/css";
+import { useFocusTrap } from "@/composables/useFocusTrap.js";
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -143,12 +153,10 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue", "close"]);
 
-const ariaLabel = computed(() =>
-  props.title ? `${props.title} gallery` : "Project gallery",
-);
-
 const backdropRef = ref(null);
 const panelRef = ref(null);
+const closeButtonRef = ref(null);
+const { activate: trapFocus, cleanup: cleanupFocusTrap } = useFocusTrap();
 
 const swiperRef = ref(null);
 const activeIndex = ref(0);
@@ -273,7 +281,24 @@ watch(
   },
 );
 
+watch(
+  () => props.modelValue,
+  async (open) => {
+    if (open) {
+      await nextTick();
+      trapFocus({
+        container: panelRef.value,
+        initialFocus: closeButtonRef.value || panelRef.value,
+      });
+    } else {
+      cleanupFocusTrap();
+    }
+  },
+  { immediate: true },
+);
+
 onBeforeUnmount(() => {
+  cleanupFocusTrap();
   unlockBodyScroll();
   openTl?.kill?.();
 });
@@ -343,4 +368,7 @@ function unlockBodyScroll() {
     setLockCount(count - 1);
   }
 }
+
+const titleId = `gallery-title-${Math.random().toString(36).slice(2)}`;
+const descId = `gallery-desc-${Math.random().toString(36).slice(2)}`;
 </script>

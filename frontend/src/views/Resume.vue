@@ -11,7 +11,7 @@
       <p>
         Having trouble viewing the PDF?
         <a
-          class="underline text-sky-300 hover:text-sky-200"
+          class="kbd-focus underline text-sky-300 hover:text-sky-200"
           :href="resumeUrl"
           target="_blank"
           rel="noreferrer noopener"

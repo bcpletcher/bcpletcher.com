@@ -16,7 +16,7 @@
       <!-- Tint layer (click-to-close) -->
       <button
         type="button"
-        class="absolute inset-0 bg-black/70 cursor-pointer"
+        class="kbd-focus absolute inset-0 bg-black/70 cursor-pointer"
         :class="visible ? 'opacity-100' : 'opacity-0'"
         style="transition: opacity 260ms cubic-bezier(0.16, 1, 0.3, 1)"
         aria-label="Close project editor"
@@ -26,10 +26,13 @@
 
     <!-- Always-mounted dialog wrapper; animate with opacity/transform to avoid unmount hitches -->
     <div
+      ref="dialogRef"
       class="fixed left-0 top-0 z-10000 flex h-dvh w-dvw items-center justify-center"
       :class="visible ? 'pointer-events-auto' : 'pointer-events-none'"
       role="dialog"
       aria-modal="true"
+      :aria-labelledby="titleId"
+      :aria-describedby="descId"
       tabindex="-1"
       @keydown.esc="cancel"
       @transitionend="onDialogTransitionEnd"
@@ -50,17 +53,20 @@
         <!-- Header -->
         <div class="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-3 md:px-6">
           <div class="flex flex-col">
-            <p class="text-xs font-semibold tracking-widest uppercase text-slate-400">
+            <p
+              :id="titleId"
+              class="text-xs font-semibold tracking-widest uppercase text-slate-400"
+            >
               {{ isEdit ? 'Edit Project' : 'Create Project' }}
             </p>
-            <p class="text-xs text-slate-500">
+            <p :id="descId" class="text-xs text-slate-500">
               {{ isEdit ? 'Update fields and save changes.' : 'Fill out fields and publish a new entry.' }}
             </p>
           </div>
 
           <button
             type="button"
-            class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-standard cursor-pointer"
+            class="kbd-focus cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-standard"
             aria-label="Close"
             @click="cancel"
           >
@@ -114,7 +120,7 @@
 
                   <button
                     type="button"
-                    class="cursor-pointer relative inline-flex h-7 w-12 items-center rounded-full border transition-standard focus:outline-none focus:ring-2 focus:ring-sky-300/40 disabled:opacity-60 disabled:cursor-not-allowed"
+                    class="kbd-focus cursor-pointer relative inline-flex h-7 w-12 items-center rounded-full border transition-standard focus:outline-none focus:ring-2 focus:ring-sky-300/40 disabled:opacity-60 disabled:cursor-not-allowed"
                     :class="
                       field.model.value
                         ? 'bg-sky-300 border-sky-300/60'
@@ -297,7 +303,7 @@
                     />
                     <button
                       type="button"
-                      class="cursor-pointer inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-standard disabled:opacity-60 disabled:cursor-not-allowed"
+                      class="kbd-focus cursor-pointer inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-standard disabled:opacity-60 disabled:cursor-not-allowed"
                       :disabled="isSubmitting || !techToAdd.trim()"
                       aria-label="Add technology"
                       @click="commitTechToAdd"
@@ -327,7 +333,7 @@
 
                   <button
                     type="button"
-                    class="cursor-pointer inline-flex h-6 w-6 items-center justify-center rounded-full text-slate-300/90 hover:text-red-200 hover:bg-white/10 transition-standard"
+                    class="kbd-focus cursor-pointer inline-flex h-6 w-6 items-center justify-center rounded-full text-slate-300/90 hover:text-red-200 hover:bg-white/10 transition-standard"
                     :disabled="isSubmitting"
                     aria-label="Remove technology"
                     @click="removeTechnology(index)"
@@ -349,7 +355,7 @@
           <div class="flex justify-end gap-3">
             <button
               type="button"
-              class="btn-secondary"
+              class="kbd-focus cursor-pointer rounded px-4 py-1 border border-font-primary text-font-primary font-bold text-sm hover:bg-font-primary/10 transition-standard disabled:opacity-60 disabled:cursor-not-allowed"
               :disabled="isSubmitting"
               @click="cancel"
             >
@@ -357,7 +363,7 @@
             </button>
             <button
               type="button"
-              class="btn-primary"
+              class="kbd-focus cursor-pointer rounded px-4 py-1 border border-gradient-start text-font-secondary font-bold text-sm hover:bg-gradient-start hover:text-font-tertiary transition-standard disabled:opacity-60 disabled:cursor-not-allowed"
               :disabled="isSubmitting"
               @click="submit"
             >
@@ -380,6 +386,7 @@ import { VueDraggableNext } from "vue-draggable-next";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { saveProjectsToCache } from "@/utils/cache.js";
+import { useFocusTrap } from "@/composables/useFocusTrap.js";
 
 const settingsStore = useSettingsStore();
 const firebaseStore = useFirebaseStore();
@@ -749,7 +756,28 @@ const cancel = () => {
   visible.value = false;
 };
 
+const dialogRef = ref(null);
+const { activate: trapFocus, cleanup: cleanupFocusTrap } = useFocusTrap();
+
+const titleId = `admin-upsert-title-${Math.random().toString(36).slice(2)}`;
+const descId = `admin-upsert-desc-${Math.random().toString(36).slice(2)}`;
+
+watch(
+  visible,
+  async (open) => {
+    if (open) {
+      // After open, trap focus inside the dialog wrapper and focus it immediately
+      await new Promise((r) => setTimeout(r, 0));
+      trapFocus({ container: dialogRef.value, initialFocus: dialogRef.value });
+    } else {
+      cleanupFocusTrap();
+    }
+  },
+  { flush: "post", immediate: true },
+);
+
 onBeforeUnmount(() => {
+  cleanupFocusTrap();
   resetState();
 });
 

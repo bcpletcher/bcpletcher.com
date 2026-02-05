@@ -6,7 +6,7 @@
         v-for="item in navItems"
         :key="item.id"
       >
-        <button :class="buttonClass" @click="$emit('nav', item.id)">
+        <button class="cursor-pointer" :class="buttonClass" @click="$emit('nav', item.id)">
           <template v-if="isDesktop">
             <span
               class="h-px transition-all duration-200"
@@ -57,6 +57,6 @@ const wrapperClass = isDesktop ? "mt-16" : "mt-8";
 const listClass = isDesktop ? "space-y-4" : "flex flex-wrap gap-3";
 
 const buttonClass = isDesktop
-  ? "group flex items-center gap-4 w-full text-left"
-  : "px-3 py-2 rounded-full border border-font-primary/15 text-xs tracking-[0.2em] uppercase";
+  ? "kbd-focus group flex items-center gap-4 text-left"
+  : "kbd-focus px-3 py-2 rounded-full border border-font-primary/15 text-xs tracking-[0.2em] uppercase";
 </script>

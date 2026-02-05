@@ -17,7 +17,7 @@
             :aria-disabled="isHidden || undefined"
             target="_blank"
             rel="noreferrer noopener"
-            class="group/title inline-flex min-w-0 items-start gap-2 text-slate-200 transition-colors motion-reduce:transition-none hover:text-sky-300 focus-visible:text-sky-300"
+            class="kbd-focus group/title inline-flex min-w-0 items-start gap-2 text-slate-200 transition-colors motion-reduce:transition-none hover:text-sky-300 focus-visible:text-sky-300"
             :class="isHidden ? 'cursor-default' : ''"
             :aria-label="`${title} (opens in a new tab)`"
           >
@@ -55,7 +55,7 @@
       <!-- Let only the description panel overlap further into the image column -->
       <div
         v-if="summary && showSummary"
-        class="z-4 mt-3 rounded md:bg-surface-2/70 md:border md:border-border md:p-6 md:backdrop-blur md:-mr-16"
+        class="z-4 mt-3 rounded md:bg-slate-950/75 md:border md:border-slate-700 md:p-6 md:backdrop-blur md:-mr-16"
       >
         <p class="text-sm leading-normal">
           {{ summary }}
@@ -84,15 +84,12 @@
         </div>
       </template>
 
-      <div class="mt-4 flex items-center gap-3">
-        <!-- Mobile-only gallery link (desktop uses image hover affordance) -->
+      <div v-if="isHidden" class="mt-4 flex items-center gap-3">
         <button
           type="button"
-          class="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-slate-300 hover:text-sky-300 focus-visible:text-sky-300 transition-standard md:hidden"
-          :disabled="isHidden"
-          :tabindex="isHidden ? -1 : undefined"
-          :aria-disabled="isHidden || undefined"
-          @click="!isHidden && onOpenGallery(0)"
+          class="kbd-focus inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-slate-300 hover:text-sky-300 focus-visible:text-sky-300 transition-standard md:hidden"
+          :tabindex="-1"
+          @click="onOpenGallery(0)"
         >
           <i class="fa-light fa-images" aria-hidden="true" />
           <span>View Gallery</span>

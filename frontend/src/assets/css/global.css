@@ -19,3 +19,9 @@ body {
   color: #0e131a;
   background: #7dd3fc; /* tailwind sky-300 */
 }
+
+/* Card hover parity for keyboard users (desktop only)
+   When the full-card overlay link is focused via keyboard, apply the same hover background. */
+@media (min-width: 1024px) {
+  /* removed: handled by .card-interactive-link/.card-interactive-bg */
+}

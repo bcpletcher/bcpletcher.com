@@ -23,10 +23,10 @@
           />
 
           <ol class="flex flex-1 min-h-0 flex-col justify-between pr-6">
-            <li v-for="item in items" :key="item.key" class="relative">
+            <li v-for="item in items" :key="item.key" class="relative ml-auto">
               <a
                 :href="item.href"
-                class="group grid grid-cols-[1fr_1.25rem] items-center text-sm text-slate-400 hover:text-slate-200 focus-visible:text-slate-200 transition-standard"
+                class="kbd-focus group grid grid-cols-[1fr_1.25rem] items-center text-sm text-slate-400 hover:text-slate-200 focus-visible:text-slate-200 transition-standard"
                 :class="isActive(item) ? 'text-slate-200' : ''"
                 @click.prevent="scrollToItem(item)"
               >

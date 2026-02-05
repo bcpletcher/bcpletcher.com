@@ -28,7 +28,9 @@
             </div>
             <div class="ml-4 shrink-0 flex">
               <button
-                class="bg-transparent text-font-primary/50 hover:text-font-primary focus:outline-none transition-standard"
+                type="button"
+                aria-label="Close notification"
+                class="kbd-focus cursor-pointer bg-transparent text-font-primary/50 hover:text-font-primary focus:outline-none transition-standard"
                 @click="clear(notification.id)"
               >
                 <span class="sr-only">Close</span>

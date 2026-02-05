@@ -8,7 +8,7 @@
     >
       <button
         type="button"
-        class="cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 hover:text-sky-300 transition-standard"
+        class="kbd-focus cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 hover:text-sky-300 transition-standard"
         aria-label="Edit project"
         @click.stop="handleEdit"
       >
@@ -17,7 +17,7 @@
 
       <button
         type="button"
-        class="cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 transition-standard"
+        class="kbd-focus cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 transition-standard"
         :class="
           isHidden
             ? 'text-amber-200 hover:text-amber-100 hover:bg-amber-400/10'

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="hidden md:block relative md:z-10 z-0 md:mb-2 transition-standard md:col-span-5 md:order-2"
+    class="hidden relative md:z-10 z-0 md:mb-2 transition-standard md:col-span-5 md:order-2 md:flex md:items-center"
     :class="[
       isHidden ? 'opacity-40' : 'opacity-25 md:opacity-100',
       isHidden ? 'pointer-events-none select-none' : '',
@@ -9,7 +9,7 @@
   >
     <div
       ref="imageStackEl"
-      class="relative md:mt-1 w-full group md:cursor-pointer"
+      class="relative w-full group md:cursor-pointer md:-translate-y-3"
       :class="[isHidden ? 'pointer-events-none cursor-default' : '']"
     >
       <!-- Mask = exactly the visible stack bounds (base area + peek offsets) -->
@@ -34,7 +34,7 @@
 
         <button
           type="button"
-          class="absolute inset-0 z-50 hidden md:block md:cursor-pointer"
+          class="kbd-focus absolute inset-0 z-50 hidden md:block md:cursor-pointer"
           aria-label="Open gallery"
           :disabled="isHidden"
           :tabindex="isHidden ? -1 : undefined"
@@ -77,7 +77,7 @@
 
         <!-- Base size + padding for peek offsets (mobile needs extra height for stacked offsets) -->
         <div
-          class="w-full aspect-video pb-32 md:pb-6 md:pr-6"
+          class="w-full aspect-video pb-32 md:pb-14 md:pr-6"
           aria-hidden="true"
         />
       </div>

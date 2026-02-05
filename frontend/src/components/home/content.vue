@@ -48,9 +48,11 @@
     </section>
 
     <div class="text-sm text-slate-500 max-w-lg lg:mt-32 flex gap-4">
-      <div
+      <button
         ref="logoEl"
-        class="my-auto cursor-pointer"
+        type="button"
+        class="kbd-focus my-auto cursor-pointer"
+        aria-label="Open admin sign-in"
         @mouseenter="onLogoEnter"
         @mouseleave="onLogoLeave"
         @click="goToAdmin()"
@@ -60,11 +62,11 @@
           src="./../../assets/images/logo.svg"
           alt="Site Logo"
         />
-      </div>
+      </button>
       <p class="my-auto">
         Designed and coded in
         <a
-          class="font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          class="kbd-focus font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://www.jetbrains.com"
           target="_blank"
           rel="noopener noreferrer"
@@ -73,15 +75,16 @@
         </a>
         by myself. Built with
         <a
-          class="font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          class="kbd-focus font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://vuejs.org"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Vue.js</a
-        >,
+          Vue.js
+        </a>
+        ,
         <a
-          class="font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          class="kbd-focus font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://tailwindcss.com"
           target="_blank"
           rel="noopener noreferrer"
@@ -90,15 +93,16 @@
         </a>
         and
         <a
-          class="font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          class="kbd-focus font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://gsap.com/"
           target="_blank"
           rel="noopener noreferrer"
         >
-          GSAP</a
-        >. Deployed with
+          GSAP
+        </a>
+        . Deployed with
         <a
-          class="font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          class="kbd-focus font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://firebase.google.com/products/hosting"
           target="_blank"
           rel="noopener noreferrer"
@@ -107,13 +111,14 @@
         </a>
         and
         <a
-          class="font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          class="kbd-focus font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://github.com/bcpletcher"
           target="_blank"
           rel="noopener noreferrer"
         >
-          GitHub</a
-        >.
+          GitHub
+        </a>
+        .
       </p>
     </div>
   </main>

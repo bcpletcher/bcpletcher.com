@@ -28,7 +28,7 @@
         <button
           v-if="isLoggedIn"
           type="button"
-          class="cursor-pointer rounded-md bg-white/10 px-2.5 py-1 text-xs font-semibold text-amber-50 hover:bg-white/15 transition-standard"
+          class="kbd-focus cursor-pointer rounded-md bg-white/10 px-2.5 py-1 text-xs font-semibold text-amber-50 hover:bg-white/15 transition-standard"
           @click="openCreate"
         >
           Create Project
@@ -37,7 +37,7 @@
         <button
           v-if="isLoggedIn"
           type="button"
-          class="cursor-pointer rounded-md px-2 py-1 text-xs font-semibold text-amber-100/90 hover:bg-amber-900/40 hover:text-amber-50 transition-standard"
+          class="kbd-focus cursor-pointer rounded-md px-2 py-1 text-xs font-semibold text-amber-100/90 hover:bg-amber-900/40 hover:text-amber-50 transition-standard"
           @click="logout"
         >
           Logout

@@ -9,7 +9,7 @@
       <div class="min-w-0 flex flex-col gap-2">
         <router-link
           to="/"
-          class="group/link inline-flex items-center gap-2 text-sm font-medium text-sky-300 hover:text-sky-300 focus-visible:text-sky-300 transition-standard"
+          class="kbd-focus group/link inline-flex items-center gap-2 text-sm font-medium text-sky-300 hover:text-sky-300 focus-visible:text-sky-300 transition-standard"
           aria-label="Back to home"
         >
           <i

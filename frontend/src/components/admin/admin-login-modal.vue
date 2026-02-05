@@ -5,8 +5,10 @@
       class="fixed left-0 top-0 z-10000 w-dvw h-dvh"
       role="dialog"
       aria-modal="true"
-      aria-label="Admin login"
-      @keydown.esc.stop.prevent
+      :aria-labelledby="titleId"
+      :aria-describedby="descId"
+      tabindex="-1"
+      @keydown.esc.stop.prevent="close"
     >
       <!-- Backdrop -->
       <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" />
@@ -14,20 +16,39 @@
       <!-- Panel -->
       <div class="absolute inset-0 flex items-center justify-center px-4 py-6 sm:px-8 sm:py-10">
         <div
+          ref="panelRef"
           class="relative w-full max-w-md overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 shadow-2xl backdrop-blur"
         >
           <header class="border-b border-white/10 px-4 py-6 sm:px-6">
-            <div class="flex items-center gap-3">
-              <img
-                class="h-8 w-8 opacity-90"
-                src="./../../assets/images/logo.svg"
-                alt="BP Logo"
-              />
-              <div class="min-w-0">
-                <p class="text-xs font-semibold tracking-widest uppercase text-slate-400">
-                  Admin
-                </p>
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <img
+                  class="h-8 w-8 opacity-90"
+                  src="./../../assets/images/logo.svg"
+                  alt="BP Logo"
+                />
+                <div class="min-w-0">
+                  <p
+                    :id="titleId"
+                    class="text-xs font-semibold tracking-widest uppercase text-slate-400"
+                  >
+                    Admin
+                  </p>
+                  <p :id="descId" class="sr-only">
+                    Admin login modal. Enter email and password, then activate Sign In.
+                  </p>
+                </div>
               </div>
+
+              <button
+                ref="closeButtonRef"
+                type="button"
+                class="kbd-focus cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-standard"
+                aria-label="Close"
+                @click="close"
+              >
+                <i class="fa-regular fa-xmark" aria-hidden="true" />
+              </button>
             </div>
           </header>
 
@@ -36,6 +57,7 @@
               <div>
                 <label class="block text-xs font-semibold tracking-widest uppercase text-slate-400">Email</label>
                 <input
+                  ref="emailInputRef"
                   v-model="credentials.email"
                   type="email"
                   autocomplete="email"
@@ -60,7 +82,7 @@
 
               <div class="flex justify-end pt-1">
                 <button
-                  class="btn-primary"
+                  class="kbd-focus cursor-pointer rounded px-4 py-1 border border-gradient-start text-font-secondary font-bold text-sm hover:bg-gradient-start hover:text-font-tertiary transition-standard disabled:opacity-60 disabled:cursor-not-allowed"
                   :disabled="isLoading"
                   @click="signIn"
                 >
@@ -77,11 +99,12 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { useNotificationStore } from "@/stores/notification.js";
+import { useFocusTrap } from "@/composables/useFocusTrap.js";
 
 const firebaseStore = useFirebaseStore();
 const settingsStore = useSettingsStore();
@@ -92,8 +115,14 @@ const credentials = ref({
   email: "",
   password: "",
 });
+const emailInputRef = ref(null);
+const panelRef = ref(null);
+const closeButtonRef = ref(null);
+const { activate: trapFocus, cleanup: cleanupFocusTrap } = useFocusTrap();
 
 const visible = computed(() => settingsStore.showAdminModal);
+const titleId = `admin-login-title-${Math.random().toString(36).slice(2)}`;
+const descId = `admin-login-desc-${Math.random().toString(36).slice(2)}`;
 
 // If the user is already signed in (or becomes signed in), never show the login modal.
 watch(
@@ -264,5 +293,25 @@ watch(
     }
   },
   { flush: "post" },
+);
+
+const close = () => {
+  settingsStore.showAdminModal = false;
+};
+
+watch(
+  () => visible.value,
+  async (open) => {
+    if (open) {
+      await nextTick();
+      trapFocus({
+        container: panelRef.value,
+        initialFocus: closeButtonRef.value || panelRef.value,
+      });
+    } else {
+      cleanupFocusTrap();
+    }
+  },
+  { immediate: true },
 );
 </script>
