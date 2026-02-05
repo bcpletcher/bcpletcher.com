@@ -1,5 +1,5 @@
 <template>
-  <RailLayout :rail-width-rem="16">
+  <RailLayout :rail-width-rem="16" :hide-rail-on-mobile="true">
     <template #rail>
       <ProjectsRailTimeline
         :years="years"
@@ -20,7 +20,14 @@
 
     <template #main>
       <div class="flex flex-col gap-6">
-        <div class="py-6 lg:pb-16 lg:pt-0">
+        <div class="block lg:hidden">
+          <PageHeader
+            title="All Projects"
+            back-label="Benjamin Pletcher"
+            :remove-top-padding="true"
+          />
+        </div>
+        <div class="pb-6 lg:pb-16">
           <p
             :style="{
               height: headerContentHeightPx
@@ -37,7 +44,7 @@
         </div>
 
         <div>
-          <div v-for="y in years" :key="y" class="mb-10">
+          <div v-for="y in years" :key="y">
             <!-- Year anchor/section for timeline tracking -->
             <div
               :id="`year-${y}`"
@@ -76,7 +83,6 @@
         :title="galleryTitle"
         :images="galleryImages"
         :initial-index="galleryIndex"
-        @close="onGalleryClose"
       />
 
       <!-- Admin upsert modal for editing an existing project (admin only) -->
@@ -132,8 +138,10 @@ const projects = computed(() => {
       if (ay !== by) return by - ay; // newest first
 
       // Secondary sort: explicit order if present (ascending)
-      const ao = typeof a.order === "number" ? a.order : Number.POSITIVE_INFINITY;
-      const bo = typeof b.order === "number" ? b.order : Number.POSITIVE_INFINITY;
+      const ao =
+        typeof a.order === "number" ? a.order : Number.POSITIVE_INFINITY;
+      const bo =
+        typeof b.order === "number" ? b.order : Number.POSITIVE_INFINITY;
       if (ao !== bo) return ao - bo;
 
       // Stable-ish fallback
@@ -244,9 +252,5 @@ function openGallery(payload) {
   galleryImages.value = payload.images;
   galleryIndex.value = Number.isFinite(payload.index) ? payload.index : 0;
   isGalleryOpen.value = true;
-}
-
-function onGalleryClose() {
-  // keep a stable hook if we want analytics or state cleanup later
 }
 </script>

@@ -4,7 +4,9 @@
       <div class="flex min-h-[calc(100vh-12rem)] flex-col">
         <div class="pt-0">
           <div class="flex flex-col">
-            <h1 class="text-3xl font-bold tracking-tight text-slate-200 sm:text-5xl">
+            <h1
+              class="text-3xl font-bold tracking-tight text-slate-200 sm:text-5xl"
+            >
               {{ name }}
             </h1>
             <h2 class="max-w-sm mt-4 text-slate-100 text-xl">{{ title }}</h2>
@@ -28,7 +30,7 @@
     </div>
 
     <!-- Mobile rail content (normal flow) -->
-    <div class="pb-16 md:pb-24 lg:hidden">
+    <div class="pb-8 md:pb-16 lg:hidden">
       <h1 class="text-3xl font-bold tracking-tight text-slate-200 sm:text-5xl">
         {{ name }}
       </h1>
@@ -125,7 +127,7 @@ watch(
 
     clearHash();
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 onMounted(() => {

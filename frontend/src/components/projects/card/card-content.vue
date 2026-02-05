@@ -55,7 +55,7 @@
       <!-- Let only the description panel overlap further into the image column -->
       <div
         v-if="summary && showSummary"
-        class="mt-3 rounded md:bg-surface-2/70 md:border md:border-border md:p-6 md:backdrop-blur md:-mr-16"
+        class="z-4 mt-3 rounded md:bg-surface-2/70 md:border md:border-border md:p-6 md:backdrop-blur md:-mr-16"
       >
         <p class="text-sm leading-normal">
           {{ summary }}

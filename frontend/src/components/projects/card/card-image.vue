@@ -1,8 +1,8 @@
 <template>
   <div
-    class="opacity-25 md:opacity-100 relative md:z-10 z-0 md:mb-2 transition-standard md:col-span-5 md:order-2"
+    class="hidden md:block relative md:z-10 z-0 md:mb-2 transition-standard md:col-span-5 md:order-2"
     :class="[
-      isHidden ? 'opacity-40' : '',
+      isHidden ? 'opacity-40' : 'opacity-25 md:opacity-100',
       isHidden ? 'pointer-events-none select-none' : '',
     ]"
     :aria-disabled="isHidden || undefined"

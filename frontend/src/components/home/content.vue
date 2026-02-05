@@ -62,8 +62,7 @@
         />
       </div>
       <p class="my-auto">
-        Designed and codded in
-
+        Designed and coded in
         <a
           class="font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://www.jetbrains.com"
@@ -79,9 +78,8 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          Vue.js
-        </a>
-        and
+          Vue.js</a
+        >,
         <a
           class="font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://tailwindcss.com"
@@ -90,7 +88,15 @@
         >
           Tailwind CSS
         </a>
-        , deployed with
+        and
+        <a
+          class="font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          href="https://gsap.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          GSAP</a
+        >. Deployed with
         <a
           class="font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://firebase.google.com/products/hosting"
@@ -106,9 +112,8 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          GitHub
-        </a>
-        .
+          GitHub</a
+        >.
       </p>
     </div>
   </main>
@@ -156,7 +161,7 @@ const onLogoEnter = () => {
     .to(
       logoEl.value,
       { y: -6, scaleX: 0.96, scaleY: 1.04, duration: 0.16 },
-      "<"
+      "<",
     )
     .to(logoEl.value, {
       y: 0,

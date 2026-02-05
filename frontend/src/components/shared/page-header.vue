@@ -1,7 +1,7 @@
 <template>
   <header
     :class="[
-      'py-6 lg:pb-16',
+      'pb-6 lg:pb-16',
       removeTopPadding ? 'lg:pt-0' : 'lg:pt-24',
     ]"
   >

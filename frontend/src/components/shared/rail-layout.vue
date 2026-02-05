@@ -10,7 +10,7 @@
       "
     >
       <!-- Sticky rail column on desktop: stretch to match page height so sticky never releases early -->
-      <div class="lg:self-stretch">
+      <div :class="hideRailOnMobile ? 'hidden lg:block' : ''" class="lg:self-stretch">
         <div class="lg:sticky" :class="stickyTopClass">
           <slot name="rail" />
         </div>
@@ -25,6 +25,7 @@
 
 <script setup>
 defineProps({
+  hideRailOnMobile: { type: Boolean, default: false },
   /**
    * Tailwind classes for the sticky rail top offset.
    * Defaults to the Home page behavior.
