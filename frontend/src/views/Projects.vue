@@ -50,6 +50,7 @@
               <ProjectsCard
                 v-for="(project, idx) in projectsByYear[y]"
                 :key="project.id || `${y}-${idx}`"
+                :project-id="project.id"
                 :title="project.title"
                 :year="project.year"
                 :summary="project.description"
@@ -62,9 +63,8 @@
                 :show-featured="false"
                 :show-admin-controls="isAdmin"
                 :is-hidden="settingsStore.projects?.[project.id]?.hidden"
+                :on-edit="(id) => openEditById(id)"
                 @open-gallery="openGallery"
-                @admin-edit="() => openEdit(project)"
-                @admin-toggle-hidden="() => toggleHidden(project)"
               />
             </ul>
           </div>
@@ -90,100 +90,28 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import RailLayout from "@/components/shared/rail-layout.vue";
 import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsRailTimeline from "@/components/projects/projects-rail-timeline.vue";
-import ProjectsCard from "@/components/projects/projects-card.vue";
+import ProjectsCard from "@/components/projects/card/card.vue";
 import ProjectsGalleryModal from "@/components/projects/projects-gallery-modal.vue";
 import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
 import { useSettingsStore } from "@/stores/settings.js";
-import { useFirebaseStore } from "@/stores/firebase.js";
-import { useNotificationStore } from "@/stores/notification.js";
-import { saveProjectsToCache } from "@/utils/cache.js";
 
 const settingsStore = useSettingsStore();
-const firebaseStore = useFirebaseStore();
-const notificationStore = useNotificationStore();
 
 const adminUpsertRef = ref(null);
 
 const isAdmin = computed(() => settingsStore.isSignedIn);
 
-function openEdit(project) {
+function openEditById(projectId) {
   if (!isAdmin.value) return;
-
-  // AdminUpsertProject expects the original firestore-shaped entry.
-  const entry = settingsStore.projects?.[project.id];
+  const entry = settingsStore.projects?.[projectId];
   if (!entry) return;
 
   adminUpsertRef.value?.showModal?.({
-    name: project.id,
+    name: projectId,
     ...entry,
   });
 }
 
-async function toggleHidden(project) {
-  if (!isAdmin.value) {
-    notificationStore.addNotification({
-      variant: "danger",
-      title: "Projects",
-      message: "You must be signed in to hide projects.",
-      duration: 4,
-    });
-    return;
-  }
-  if (!project?.id) {
-    notificationStore.addNotification({
-      variant: "danger",
-      title: "Projects",
-      message: "This project is missing an id, so it can’t be updated.",
-      duration: 5,
-    });
-    return;
-  }
-
-  const current = settingsStore.projects?.[project.id];
-  if (!current) return;
-
-  const nextHidden = !current.hidden;
-
-  const payload = {
-    id: project.id,
-    data: {
-      ...current,
-      hidden: nextHidden,
-    },
-  };
-
-  try {
-    await firebaseStore.dataUpdateProjectDocument(payload);
-
-    // Update store
-    settingsStore.projects = {
-      ...(settingsStore.projects || {}),
-      [project.id]: payload.data,
-    };
-
-    // Update cache
-    try {
-      await saveProjectsToCache(settingsStore.projects);
-    } catch (e) {
-      console.warn("Failed to update projects cache", e);
-    }
-
-    notificationStore.addNotification({
-      variant: "success",
-      title: "Projects",
-      message: nextHidden ? "Project Hidden." : "Project Visible.",
-      duration: 3,
-    });
-  } catch (e) {
-    console.error("Failed to toggle project hidden state", e);
-    notificationStore.addNotification({
-      variant: "danger",
-      title: "Projects",
-      message: "Couldn’t update the project. Please try again.",
-      duration: 5,
-    });
-  }
-}
 
 const projects = computed(() => {
   const all = settingsStore.projects;
