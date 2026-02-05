@@ -37,13 +37,16 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) return savedPosition;
+    // Ignore savedPosition so back/forward also loads at the top.
+    void from;
+    void savedPosition;
 
-    // Returning a Promise allows us to wait a tick for layout/render, which helps
-    // on mobile Safari.
     return new Promise((resolve) => {
+      // Two frames gives the new view time to render on iOS Safari.
       requestAnimationFrame(() => {
-        resolve({ left: 0, top: 0, behavior: "auto" });
+        requestAnimationFrame(() => {
+          resolve({ left: 0, top: 0, behavior: "auto" });
+        });
       });
     });
   },
