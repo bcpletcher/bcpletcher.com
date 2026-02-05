@@ -17,7 +17,7 @@
 ![Vue Router](https://img.shields.io/badge/Vue_Router-5-42b883?logo=vue.js&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?logo=firebase&logoColor=black)
-![Cloud Functions](https://img.shields.io/badge/Firebase_Functions-Node_20-FFCA28?logo=firebase&logoColor=black)
+![Cloud Functions](https://img.shields.io/badge/Firebase_Functions-Node_22-FFCA28?logo=firebase&logoColor=black)
 ![GSAP](https://img.shields.io/badge/GSAP-88CE02?logo=greensock&logoColor=0b0b0b)
 ![ESLint](https://img.shields.io/badge/ESLint-9-4B32C3?logo=eslint&logoColor=white)
 ![Prettier](https://img.shields.io/badge/Prettier-3-F7B93E?logo=prettier&logoColor=111827)
@@ -30,9 +30,11 @@ Personal portfolio site powered by Vue 3 + Vite and backed by Firebase (Firestor
 - `firebase.json`: Firebase Hosting + Functions configuration
 
 ## Prerequisites
-- **Node.js** (see `.nvmrc`)
+- **Node.js 22** (standardized via `.nvmrc`)
 - **npm**
 - **Firebase CLI** (`firebase-tools`) for deploy/emulators
+
+> This repo enforces the Node version via `engine-strict=true` in `.npmrc`.
 
 ## Quick start
 ### 0) Use the right Node version
@@ -111,11 +113,16 @@ npm run lint     # eslint
 
 ### Functions (`firebase/functions/`)
 ```bash
-npm run serve   # firebase emulators:start --only functions,firestore
-npm run deploy  # deploy functions only
-npm run logs    # view function logs
-npm run lint    # eslint
+npm run serve            # firebase emulators:start --only functions,firestore
+npm run deploy:functions # deploy functions only
+npm run logs:functions   # view function logs
+npm run lint             # eslint
 ```
+
+## Security / maintenance notes
+- Cloud Functions runtime is set to **Node 22** via `firebase/functions/package.json` (`engines.node`).
+- `firebase-tools` is pinned to a recent version in `firebase/functions` to keep `npm audit` clean.
+- Removed unused Functions dependencies (e.g. `username-generator`).
 
 ## Functions emulator workflow (seeded with production data)
 When you run Firestore + Functions emulators, Firestore starts **empty** unless you import data.
@@ -144,51 +151,6 @@ That command:
 
 > Local emulator DB data is stored under `firebase/.databases/` and ignored by git.
 
-## Functions scripts (`firebase/functions/package.json`)
-Below is what each script does.
-
-### Day-to-day
-- `npm run serve`
-  - Kills emulator ports, then starts Firestore + Functions emulators.
-  - Does **not** import seed data.
-
-- `npm run serve:seeded`
-  - Kills emulator ports.
-  - Starts emulators seeded from `firebase/.databases/imports/firestore/`.
-  - If no seed exists locally, it will download one.
-
-- `npm run serve:aio`
-  - The “always works” command.
-  - Kills emulator ports, refreshes the seed download (deletes older local copies), then starts seeded emulators.
-
-### Emulator / environment utilities
-- `npm run emulators:kill`
-  - Kills any processes listening on the standard emulator ports and removes stale hub locator files.
-  - Fixes common “port taken” / “multiple instances” issues.
-
-- `npm run env:java`
-  - Sets `JAVA_HOME` and `PATH` so the Firestore emulator runs with **Java 21**.
-
-### Seed utilities
-- `npm run seed:refresh`
-  - Deletes local seed data (`firebase/.databases/imports/firestore`) and downloads the newest production export folder from:
-    - `gs://pletcher-portfolio-app.firebasestorage.app/firestore-exports/`
-
-- `npm run seed:path`
-  - Prints the absolute path to the local import folder: `firebase/.databases/imports/firestore/`.
-
-### Functions shell / deploy / logs
-- `npm run functions:shell`
-  - Starts the Functions shell REPL.
-
-- `npm run deploy:functions`
-  - Deploys Cloud Functions only.
-
-- `npm run logs:functions`
-  - Streams Cloud Functions logs.
-
-- `npm run lint`
-  - Runs ESLint for Cloud Functions code.
 
 ## Deployment
 Firebase Hosting is configured to serve `frontend/dist`.

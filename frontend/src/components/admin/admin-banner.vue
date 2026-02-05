@@ -72,6 +72,23 @@ const isLoggedIn = computed(() => Boolean(settingsStore.user?.uid));
 
 const createEntryModalRef = useTemplateRef("createEntryModalRef");
 
+/**
+ * TODO(admin): Clear cache
+ * - Clear any client-side caches used for content/scrapbook (localStorage + IndexedDB).
+ * - Consider clearing: localStorage keys like `scrapbookCache` and any idb databases.
+ * - Should also refresh in-memory store state after clearing.
+ *
+ * TODO(admin): Verify edits
+ * - Add a lightweight "verify" step before persisting admin edits (esp. delete/reorder).
+ * - Options: diff preview modal, validation checks, or a simple "Are you sure?".
+ * - After save, re-fetch/reconcile with Firestore to ensure UI matches server.
+ *
+ * TODO(admin): Toggle non-admin view
+ * - Provide a banner toggle to temporarily hide admin-only UI while still signed in.
+ * - Intended for QA: ensure public layout/behaviors without signing out.
+ * - Likely lives in settingsStore (e.g. `adminPreviewPublicMode`) and is checked by admin-only components.
+ */
+
 function openCreate() {
   createEntryModalRef.value?.showModal?.();
 }
