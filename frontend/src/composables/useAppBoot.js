@@ -115,7 +115,7 @@ export function useAppBoot() {
       // 2a) Featured-first (non-fatal)
       try {
         const featuredFresh =
-          await firebaseStore.dataGetFeaturedScrapbookCollection();
+          await firebaseStore.dataGetFeaturedProjectsCollection();
         if (featuredFresh && typeof featuredFresh === "object") {
           settingsStore.featuredProjects = featuredFresh;
           if (CACHE_ENABLED) {
@@ -133,7 +133,7 @@ export function useAppBoot() {
       }
 
       // 2b) Full fetch (fatal if fails)
-      const scrapbookFresh = await firebaseStore.dataGetScrapbookCollection();
+      const scrapbookFresh = await firebaseStore.dataGetProjectsCollection();
       console.log("[boot] scrapbook API resolved", {
         keys: scrapbookFresh ? Object.keys(scrapbookFresh).length : 0,
       });

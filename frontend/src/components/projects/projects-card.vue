@@ -2,19 +2,87 @@
   <li class="overflow-visible mb-10">
     <article
       v-gsap-reveal="{ once: true, start: 'top 92%' }"
-      class="relative grid overflow-visible pb-1 sm:grid-cols-12 sm:items-center sm:gap-8 md:gap-4"
+      class="relative grid overflow-visible pb-1 pr-3 sm:pr-0 sm:grid-cols-12 sm:items-center sm:gap-8 md:gap-4"
     >
+      <!-- Hidden stripe overlay (admin visual only) -->
+      <div
+        v-if="showAdminControls && isHidden"
+        class="pointer-events-none absolute z-0 overflow-hidden rounded-2xl"
+        style="inset:-1rem; left:calc(-1rem - 3.5rem); right:calc(-1rem - 2.5rem);"
+        aria-hidden="true"
+      >
+        <div
+          class="absolute inset-0 opacity-10"
+          style="
+            background-image: repeating-linear-gradient(
+              135deg,
+              rgba(250, 204, 21, 1) 0px,
+              rgba(250, 204, 21, 1) 10px,
+              rgba(15, 23, 42, 0) 10px,
+              rgba(15, 23, 42, 0) 20px
+            );
+          "
+        />
+        <div class="absolute inset-0 ring-1 ring-yellow-300/15" />
+      </div>
+
+      <!-- Admin sidebar (doesn't take layout space) -->
+      <div
+        v-if="showAdminControls"
+        class="absolute left-0 top-0 -translate-x-full pr-3 z-30"
+      >
+        <div
+          class="flex flex-col gap-2 rounded-xl border border-white/10 bg-slate-950/70 backdrop-blur px-2 py-2 shadow-lg"
+        >
+          <button
+            type="button"
+            class="cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 hover:text-sky-300 transition-standard"
+            aria-label="Edit project"
+            @click.stop="emit('admin-edit')"
+          >
+            <i class="fa-light fa-pen-to-square" aria-hidden="true" />
+          </button>
+
+          <button
+            type="button"
+            class="cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 transition-standard"
+            :class="
+              isHidden
+                ? 'text-amber-200 hover:text-amber-100 hover:bg-amber-400/10'
+                : 'text-slate-200 hover:text-amber-200 hover:bg-white/10'
+            "
+            :aria-label="isHidden ? 'Unhide project' : 'Hide project'"
+            @click.stop="emit('admin-toggle-hidden')"
+          >
+            <i
+              :class="isHidden ? 'fa-light fa-eye' : 'fa-light fa-eye-slash'"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+      </div>
+
       <!-- Content column (left) -->
-      <div class="relative z-20 sm:col-span-7 sm:order-1">
+      <div
+        class="relative z-20 sm:col-span-7 sm:order-1 transition-standard"
+        :class="[
+          isHidden ? 'opacity-40' : '',
+          isHidden ? 'pointer-events-none select-none' : '',
+        ]"
+        :aria-disabled="isHidden || undefined"
+      >
         <div class="flex flex-col justify-center">
           <div v-if="showTitle" class="flex items-start justify-between gap-4">
             <div class="min-w-0">
               <a
                 v-if="href && showLink"
-                :href="href"
+                :href="isHidden ? undefined : href"
+                :tabindex="isHidden ? -1 : undefined"
+                :aria-disabled="isHidden || undefined"
                 target="_blank"
                 rel="noreferrer noopener"
                 class="group/title inline-flex min-w-0 items-start gap-2 text-slate-200 transition-colors motion-reduce:transition-none hover:text-sky-300 focus-visible:text-sky-300"
+                :class="isHidden ? 'cursor-default' : ''"
                 :aria-label="`${title} (opens in a new tab)`"
               >
                 <h3 class="min-w-0 font-medium leading-snug wrap-break-word">
@@ -73,19 +141,24 @@
           </div>
 
           <!-- Meta row (bottom) -->
-          <div
-            v-if="showFeatured && featured"
-            class="mt-3 flex items-center gap-2 text-xs text-slate-400"
-          >
-            <i class="fa-solid fa-star text-yellow-300/60" aria-hidden="true" />
-            <span>Featured</span>
-          </div>
+          <template v-if="showFeatured && featured">
+            <div class="mt-3 flex items-center gap-3 text-xs text-slate-400">
+              <i
+                class="fa-solid fa-star text-yellow-300/60"
+                aria-hidden="true"
+              />
+              <span>Featured</span>
+            </div>
+          </template>
 
           <div class="mt-4 flex items-center gap-3">
             <button
               type="button"
               class="inline-flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-slate-300 hover:text-sky-300 focus-visible:text-sky-300 transition-standard"
-              @click="emitOpenGallery(0)"
+              :disabled="isHidden"
+              :tabindex="isHidden ? -1 : undefined"
+              :aria-disabled="isHidden || undefined"
+              @click="!isHidden && emitOpenGallery(0)"
             >
               <i class="fa-light fa-images" aria-hidden="true" />
               <span>View Gallery</span>
@@ -95,13 +168,23 @@
       </div>
 
       <!-- Images column (right) -->
-      <div class="relative z-10 mb-2 sm:col-span-5 sm:order-2">
+      <div
+        class="relative z-10 mb-2 sm:col-span-5 sm:order-2 transition-standard"
+        :class="[
+          isHidden ? 'opacity-40' : '',
+          isHidden ? 'pointer-events-none select-none' : '',
+        ]"
+        :aria-disabled="isHidden || undefined"
+      >
         <div class="relative mt-1 w-full">
           <button
             type="button"
             class="absolute inset-0 z-20 rounded-lg"
             aria-label="Open gallery"
-            @click="emitOpenGallery(0)"
+            :disabled="isHidden"
+            :tabindex="isHidden ? -1 : undefined"
+            :aria-disabled="isHidden || undefined"
+            @click="!isHidden && emitOpenGallery(0)"
           />
 
           <div
@@ -129,7 +212,7 @@
 <script setup>
 import { computed } from "vue";
 
-const emit = defineEmits(["open-gallery"]);
+const emit = defineEmits(["open-gallery", "admin-edit", "admin-toggle-hidden"]);
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -153,11 +236,17 @@ const props = defineProps({
   showSummary: { type: Boolean, default: true },
   showTechnology: { type: Boolean, default: true },
   showFeatured: { type: Boolean, default: true },
+
+  // Admin-only controls
+  showAdminControls: { type: Boolean, default: false },
+  isHidden: { type: Boolean, default: false },
 });
 
 const previewImages = computed(() => {
   const imgs =
-    Array.isArray(props.images) && props.images.length ? props.images : [props.hero];
+    Array.isArray(props.images) && props.images.length
+      ? props.images
+      : [props.hero];
   return imgs.filter(Boolean).slice(0, 3);
 });
 

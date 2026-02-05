@@ -47,7 +47,10 @@ const items = computed(() => {
   const requireFeaturedFlag = !featured; // only enforce when using the full dataset
 
   return Object.values(raw)
-    .filter((p) => !p?.deleted)
+    .filter((p) => {
+      if (settingsStore.isSignedIn) return true;
+      return !p?.hidden;
+    })
     .filter((p) => (requireFeaturedFlag ? !!p?.featured : true))
     .sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
     .map((p) => ({

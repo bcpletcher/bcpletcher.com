@@ -76,44 +76,46 @@ export const useFirebaseStore = defineStore("firebase", {
     adminSignIn(email, password) {
       return adminSignIn(this.auth, email, password);
     },
-    dataGetScrapbookCollection() {
+
+    // --- Projects (preferred names) ---
+    dataGetProjectsCollection() {
       return dataGetCollection(
         this.functions,
         "getScrapbookCollection",
         "bcpletcherProjects"
       );
     },
-    dataGetFeaturedScrapbookCollection() {
+    dataGetFeaturedProjectsCollection() {
       return dataGetCollection(
         this.functions,
         "getFeaturedScrapbookCollection",
         "bcpletcherProjectsFeatured"
       );
     },
-    dataCreateScrapbookDocument(document) {
+    dataCreateProjectDocument(document) {
       return dataCreateDocument(
         this.functions,
         "createScrapbookDocument",
         document
       );
     },
-    dataUpdateScrapbookDocument(document) {
+    dataUpdateProjectDocument(document) {
       return dataUpdateDocument(
         this.functions,
         "updateScrapbookDocument",
         document
       );
     },
-    dataUpdateScrapbookDocumentOrder(documents) {
+    dataUpdateProjectDocumentOrder(documents) {
       return dataUpdateScrapbookDocumentOrder(
         this.functions,
         "updateScrapbookDocumentOrder",
         documents
       );
     },
-    async uploadScrapbookImages(entryId, files, existingCount = 0) {
+    async uploadProjectImages(entryId, files, existingCount = 0) {
       if (!entryId) {
-        throw new Error("uploadScrapbookImages requires a valid entryId");
+        throw new Error("uploadProjectImages requires a valid entryId");
       }
       const uploadedUrls = [];
       let index = existingCount;
@@ -130,14 +132,28 @@ export const useFirebaseStore = defineStore("firebase", {
       }
       return uploadedUrls;
     },
-    async deleteScrapbookImageByUrl(url) {
+    async deleteProjectImageByUrl(url) {
       if (!url) return;
       try {
         const ref = storageRef(this.storage, url);
         await deleteObject(ref);
       } catch (e) {
-        console.error("Failed to delete scrapbook image from storage", e);
+        console.error("Failed to delete project image from storage", e);
       }
+    },
+
+    // --- Backward-compatible aliases (scrapbook) ---
+    dataCreateScrapbookDocument(document) {
+      return this.dataCreateProjectDocument(document);
+    },
+    dataUpdateScrapbookDocument(document) {
+      return this.dataUpdateProjectDocument(document);
+    },
+    uploadScrapbookImages(entryId, files, existingCount = 0) {
+      return this.uploadProjectImages(entryId, files, existingCount);
+    },
+    deleteScrapbookImageByUrl(url) {
+      return this.deleteProjectImageByUrl(url);
     },
   },
 });

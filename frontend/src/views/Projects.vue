@@ -60,7 +60,11 @@
                 :featured="project.featured"
                 :show-year="false"
                 :show-featured="false"
+                :show-admin-controls="isAdmin"
+                :is-hidden="settingsStore.projects?.[project.id]?.hidden"
                 @open-gallery="openGallery"
+                @admin-edit="() => openEdit(project)"
+                @admin-toggle-hidden="() => toggleHidden(project)"
               />
             </ul>
           </div>
@@ -74,6 +78,9 @@
         :initial-index="galleryIndex"
         @close="onGalleryClose"
       />
+
+      <!-- Admin upsert modal for editing an existing project (admin only) -->
+      <AdminUpsertProject ref="adminUpsertRef" />
     </template>
   </RailLayout>
 </template>
@@ -85,27 +92,121 @@ import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsRailTimeline from "@/components/projects/projects-rail-timeline.vue";
 import ProjectsCard from "@/components/projects/projects-card.vue";
 import ProjectsGalleryModal from "@/components/projects/projects-gallery-modal.vue";
+import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
 import { useSettingsStore } from "@/stores/settings.js";
+import { useFirebaseStore } from "@/stores/firebase.js";
+import { useNotificationStore } from "@/stores/notification.js";
+import { saveScrapbookToCache } from "@/utils/cache.js";
 
 const settingsStore = useSettingsStore();
+const firebaseStore = useFirebaseStore();
+const notificationStore = useNotificationStore();
 
-// Assumption: projects are currently sourced from the same dataset as Scrapbook.
-// We keep this isolated in this view so the existing scrapbook page stays unchanged.
+const adminUpsertRef = ref(null);
+
+const isAdmin = computed(() => settingsStore.isSignedIn);
+
+function openEdit(project) {
+  if (!isAdmin.value) return;
+
+  // AdminUpsertProject expects the original firestore-shaped entry.
+  const entry = settingsStore.projects?.[project.id];
+  if (!entry) return;
+
+  adminUpsertRef.value?.showModal?.({
+    name: project.id,
+    ...entry,
+  });
+}
+
+async function toggleHidden(project) {
+  if (!isAdmin.value) {
+    notificationStore.addNotification({
+      variant: "danger",
+      title: "Projects",
+      message: "You must be signed in to hide projects.",
+      duration: 4,
+    });
+    return;
+  }
+  if (!project?.id) {
+    notificationStore.addNotification({
+      variant: "danger",
+      title: "Projects",
+      message: "This project is missing an id, so it can’t be updated.",
+      duration: 5,
+    });
+    return;
+  }
+
+  const current = settingsStore.projects?.[project.id];
+  if (!current) return;
+
+  const nextHidden = !current.hidden;
+
+  const payload = {
+    id: project.id,
+    data: {
+      ...current,
+      hidden: nextHidden,
+    },
+  };
+
+  try {
+    await firebaseStore.dataUpdateProjectDocument(payload);
+
+    // Update store
+    settingsStore.projects = {
+      ...(settingsStore.projects || {}),
+      [project.id]: payload.data,
+    };
+
+    // Update cache + featured index
+    try {
+      const { featured } = await saveScrapbookToCache(settingsStore.projects);
+      settingsStore.featuredProjects = featured;
+    } catch (e) {
+      console.warn("Failed to update projects cache", e);
+    }
+
+    notificationStore.addNotification({
+      variant: "success",
+      title: "Projects",
+      message: nextHidden ? "Project Hidden." : "Project Visible.",
+      duration: 3,
+    });
+  } catch (e) {
+    console.error("Failed to toggle project hidden state", e);
+    notificationStore.addNotification({
+      variant: "danger",
+      title: "Projects",
+      message: "Couldn’t update the project. Please try again.",
+      duration: 5,
+    });
+  }
+}
+
 const projects = computed(() => {
-  if (settingsStore.projects === null) return [];
+  const all = settingsStore.projects;
+  if (!all) return [];
 
-  return Object.values(settingsStore.projects)
-    .filter((item) => !item.deleted)
+  return Object.entries(all)
+    .map(([id, item]) => ({
+      id,
+      ...(item || {}),
+    }))
+    .filter((item) => {
+      if (isAdmin.value) return true;
+      return !item?.hidden;
+    })
     .sort((a, b) => {
       const ay = typeof a.year === "number" ? a.year : Number.NEGATIVE_INFINITY;
       const by = typeof b.year === "number" ? b.year : Number.NEGATIVE_INFINITY;
       if (ay !== by) return by - ay; // newest first
 
       // Secondary sort: explicit order if present (ascending)
-      const ao =
-        typeof a.order === "number" ? a.order : Number.POSITIVE_INFINITY;
-      const bo =
-        typeof b.order === "number" ? b.order : Number.POSITIVE_INFINITY;
+      const ao = typeof a.order === "number" ? a.order : Number.POSITIVE_INFINITY;
+      const bo = typeof b.order === "number" ? b.order : Number.POSITIVE_INFINITY;
       if (ao !== bo) return ao - bo;
 
       // Stable-ish fallback
@@ -124,6 +225,7 @@ const projects = computed(() => {
       url: item.url || null,
       technology: item.technology || [],
       featured: Boolean(item.featured),
+      hidden: Boolean(item.hidden),
     }))
     .filter((item) => item.hero);
 });

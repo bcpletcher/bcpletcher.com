@@ -24,7 +24,8 @@ function buildFeaturedIndex(allScrapbook) {
   if (!allScrapbook || typeof allScrapbook !== "object") return {};
 
   const entries = Object.entries(allScrapbook)
-    .filter(([, item]) => item && !item.deleted)
+    .filter(([, item]) => item)
+    .filter(([, item]) => !item.hidden)
     .filter(([, item]) => !!item.featured)
     .sort(([, a], [, b]) => {
       const orderA = a && a.order != null ? Number(a.order) : 0;
@@ -74,11 +75,15 @@ export async function saveScrapbookToCache(allScrapbook) {
   const db = await getDb();
   const tx = db.transaction([STORES.data, STORES.meta], "readwrite");
 
-  const featured = buildFeaturedIndex(allScrapbook);
+  // IndexedDB uses the structured clone algorithm; Vue proxies and certain objects
+  // can throw DataCloneError. Normalize to plain JSON first.
+  const plainAll = JSON.parse(JSON.stringify(allScrapbook || null));
+
+  const featured = buildFeaturedIndex(plainAll);
   const now = Date.now();
 
   await Promise.all([
-    tx.objectStore(STORES.data).put(allScrapbook, KEYS.scrapbookAll),
+    tx.objectStore(STORES.data).put(plainAll, KEYS.scrapbookAll),
     tx.objectStore(STORES.data).put(featured, KEYS.scrapbookFeatured),
     tx.objectStore(STORES.meta).put(now, KEYS.scrapbookUpdatedAt),
     tx.done,
@@ -92,10 +97,15 @@ export async function saveFeaturedScrapbookToCache(featuredScrapbook) {
   const tx = db.transaction([STORES.data, STORES.meta], "readwrite");
 
   const now = Date.now();
+
+  const plainFeatured = featuredScrapbook
+    ? JSON.parse(JSON.stringify(featuredScrapbook))
+    : null;
+
   await Promise.all([
     tx
       .objectStore(STORES.data)
-      .put(featuredScrapbook || null, KEYS.scrapbookFeatured),
+      .put(plainFeatured, KEYS.scrapbookFeatured),
     // We still update updatedAt so we can reason about staleness even if only featured was fetched.
     tx.objectStore(STORES.meta).put(now, KEYS.scrapbookUpdatedAt),
     tx.done,

@@ -411,10 +411,10 @@ const emptyDocument = () => ({
     description: "",
     featured: false,
     hero: null,
-    images: [], // committed image URLs only
+    images: [],
     technology: [],
     url: null,
-    deleted: false,
+    hidden: false,
   },
 });
 
@@ -578,7 +578,7 @@ const submit = async () => {
 
       try {
         const files = pendingFiles.value.map((p) => p.file);
-        const urls = await firebaseStore.uploadScrapbookImages(
+        const urls = await firebaseStore.uploadProjectImages(
           entryId,
           files,
           existingCount
@@ -613,12 +613,12 @@ const submit = async () => {
 
     if (isEdit.value) {
       const payload = documentModel.value;
-      await firebaseStore.dataUpdateScrapbookDocument(payload);
+      await firebaseStore.dataUpdateProjectDocument(payload);
 
       if (pendingRemovals.value.images.length) {
         await Promise.all(
           pendingRemovals.value.images.map((url) =>
-            firebaseStore.deleteScrapbookImageByUrl(url)
+            firebaseStore.deleteProjectImageByUrl(url)
           )
         );
         pendingRemovals.value.images = [];
@@ -648,7 +648,7 @@ const submit = async () => {
         : 0;
 
       const payload = documentModel.value;
-      const result = await firebaseStore.dataCreateScrapbookDocument(payload);
+      const result = await firebaseStore.dataCreateProjectDocument(payload);
 
       const newId = (result && result.id) || payload.id;
       if (newId) {
@@ -671,7 +671,7 @@ const submit = async () => {
         try {
           await Promise.all(
             pendingRemovals.value.images.map((url) =>
-              firebaseStore.deleteScrapbookImageByUrl(url)
+              firebaseStore.deleteProjectImageByUrl(url)
             )
           );
         } catch (e) {
@@ -738,7 +738,7 @@ const showModal = async (existingEntry) => {
           ? [...existingEntry.technology]
           : [],
         url: existingEntry.url ?? null,
-        deleted: existingEntry.deleted ?? false,
+        hidden: existingEntry.hidden ?? false,
       },
     };
   }
