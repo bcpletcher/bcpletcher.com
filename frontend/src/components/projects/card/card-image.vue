@@ -45,7 +45,7 @@
         <!-- Images -->
         <div
           v-for="(src, i) in previewImages"
-          :key="src + i"
+          :key="getImageKey(src, i)"
           class="absolute top-0 right-0 left-0"
           :data-stack-index="i"
           :class="[
@@ -61,8 +61,12 @@
           <div class="relative mx-auto" :class="[]">
             <img
               class="h-full w-full rounded-md border border-white/10 bg-white/5 object-cover shadow-lg"
-              :src="src"
+              :src="responsiveFor(src).src"
+              :srcset="responsiveFor(src).srcset || undefined"
+              sizes="(min-width: 768px) 40vw, 100vw"
               :alt="`${title} screenshot`"
+              width="1280"
+              height="720"
               loading="lazy"
               decoding="async"
             />
@@ -88,11 +92,11 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import gsap from "gsap";
+import { buildResponsiveImageSourcesFromImageValue } from "@/utils/firebaseStorageImages.js";
 
 const props = defineProps({
   title: { type: String, required: true },
-  hero: { type: String, required: true },
-  images: { type: Array, default: null },
+  images: { type: Array, required: true },
   isHidden: { type: Boolean, default: false },
 });
 
@@ -103,12 +107,15 @@ function onOpenGallery(index) {
 }
 
 const previewImages = computed(() => {
-  const imgs =
-    Array.isArray(props.images) && props.images.length
-      ? props.images
-      : [props.hero];
-  return imgs.filter(Boolean).slice(0, 3);
+  return (props.images || []).filter(Boolean).slice(0, 3);
 });
+
+const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+const responsiveFor = (img) =>
+  buildResponsiveImageSourcesFromImageValue(img, {
+    bucket: storageBucket,
+    widths: [480, 720, 1080],
+  });
 
 const isMdUp = ref(true);
 let mq;
@@ -179,5 +186,13 @@ const onImagesLeave = () => {
 
 function isDesktopLike() {
   return isMdUp.value;
+}
+
+function getImageKey(img, index) {
+  if (!img) return `img-${index}`;
+  if (typeof img === "string") return `img-url-${img}`;
+  if (typeof img === "object" && img.path) return `img-path-${img.path}`;
+  if (typeof img === "object" && img.url) return `img-url-${img.url}`;
+  return `img-${index}`;
 }
 </script>

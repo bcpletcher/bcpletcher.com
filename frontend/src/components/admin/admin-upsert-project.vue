@@ -209,14 +209,14 @@
               >
                 <div
                   v-for="(item, index) in documentModel.data.images"
-                  :key="`committed-${index}`"
+                  :key="getImageKey(item, index)"
                   class="relative group cursor-move overflow-hidden rounded-xl border border-white/10 bg-black/20"
                 >
                   <div
                     class="w-full aspect-video bg-black/30 flex items-center justify-center transition-opacity duration-200 group-hover:opacity-70"
                   >
                     <img
-                      :src="item"
+                      :src="getImagePreviewUrl(item)"
                       alt="Preview"
                       class="w-full h-full object-cover"
                     />
@@ -226,20 +226,20 @@
                   <button
                     class="absolute top-2 left-2 pointer-events-auto w-8 h-8 flex items-center justify-center bg-black/70 rounded-full transition-opacity duration-200"
                     :class="[
-                      documentModel.data.hero === item
-                        ? 'text-yellow-400 opacity-100'
-                        : 'text-white opacity-0 group-hover:opacity-100',
-                    ]"
+                      index === 0
+                         ? 'text-yellow-400 opacity-100'
+                         : 'text-white opacity-0 group-hover:opacity-100',
+                     ]"
                     type="button"
                     aria-label="Set hero image"
                     @click.stop="setHeroImage(item)"
                   >
                     <i
                       :class="
-                        documentModel.data.hero === item
-                          ? 'fa-solid fa-star'
-                          : 'fa-regular fa-star'
-                      "
+                         index === 0
+                           ? 'fa-solid fa-star'
+                           : 'fa-regular fa-star'
+                       "
                       aria-hidden="true"
                     />
                   </button>
@@ -417,7 +417,6 @@ const emptyDocument = () => ({
     summary: "",
     description: "",
     featured: false,
-    hero: null,
     images: [],
     technology: [],
     url: null,
@@ -464,18 +463,44 @@ const pendingFiles = ref([]); // { file: File, previewUrl: string }
 
 const fileInputRef = ref(null);
 
-const setHeroImage = (url) => {
-  // If this image is already the hero, do nothing (don't allow unselecting)
-  if (documentModel.value.data.hero === url) return;
+function getImagePreviewUrl(item) {
+  if (!item) return "";
+  if (typeof item === "string") return item;
+  if (typeof item === "object" && item.url) return item.url;
+  return "";
+}
 
-  documentModel.value.data.hero = url;
+function getImageKey(item, index) {
+  if (typeof item === "string") return `img-url-${item}`;
+  if (item && typeof item === "object" && item.path) return `img-path-${item.path}`;
+  if (item && typeof item === "object" && item.url) return `img-url-${item.url}`;
+  return `img-${index}`;
+}
 
+function imagesEqual(a, b) {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  if (typeof a === "string" && typeof b === "string") return a === b;
+
+  // Compare objects by path, then url.
+  const aPath = typeof a === "object" ? a.path : null;
+  const bPath = typeof b === "object" ? b.path : null;
+  if (aPath && bPath) return aPath === bPath;
+
+  const aUrl = typeof a === "object" ? a.url : typeof a === "string" ? a : null;
+  const bUrl = typeof b === "object" ? b.url : typeof b === "string" ? b : null;
+  if (aUrl && bUrl) return aUrl === bUrl;
+
+  return false;
+}
+
+const setHeroImage = (item) => {
   const images = documentModel.value.data.images;
-  const index = images.indexOf(url);
-  if (index > 0) {
-    images.splice(index, 1);
-    images.unshift(url);
-  }
+  const index = images.findIndex((x) => imagesEqual(x, item));
+  if (index <= 0) return; // already hero (first)
+
+  images.splice(index, 1);
+  images.unshift(item);
 };
 
 const queueRemoval = (index, key) => {
@@ -484,9 +509,6 @@ const queueRemoval = (index, key) => {
 
   if (key === "images" && value) {
     pendingRemovals.value.images.push(value);
-    if (documentModel.value.data.hero === value) {
-      documentModel.value.data.hero = null;
-    }
   }
 
   arr.splice(index, 1);
@@ -585,12 +607,14 @@ const submit = async () => {
 
       try {
         const files = pendingFiles.value.map((p) => p.file);
-        const urls = await firebaseStore.uploadProjectImages(
+        const uploaded = await firebaseStore.uploadProjectImages(
           entryId,
           files,
           existingCount
         );
-        documentModel.value.data.images.push(...urls);
+
+        // Save as objects for robust delete/reorder.
+        documentModel.value.data.images.push(...uploaded);
       } catch (e) {
         console.error("Failed to upload images", e);
         alert("Failed to upload one or more images. Please try again.");
@@ -624,8 +648,8 @@ const submit = async () => {
 
       if (pendingRemovals.value.images.length) {
         await Promise.all(
-          pendingRemovals.value.images.map((url) =>
-            firebaseStore.deleteProjectImageByUrl(url)
+          pendingRemovals.value.images.map((img) =>
+            firebaseStore.deleteProjectImage(img)
           )
         );
         pendingRemovals.value.images = [];
@@ -671,8 +695,8 @@ const submit = async () => {
       if (pendingRemovals.value.images.length) {
         try {
           await Promise.all(
-            pendingRemovals.value.images.map((url) =>
-              firebaseStore.deleteProjectImageByUrl(url)
+            pendingRemovals.value.images.map((img) =>
+              firebaseStore.deleteProjectImage(img)
             )
           );
         } catch (e) {
@@ -731,7 +755,6 @@ const showModal = async (existingEntry) => {
         summary: existingEntry.summary ?? "",
         description: existingEntry.description ?? "",
         featured: existingEntry.featured ?? false,
-        hero: existingEntry.hero ?? null,
         images: Array.isArray(existingEntry.images)
           ? [...existingEntry.images]
           : [],
@@ -766,9 +789,13 @@ watch(
   visible,
   async (open) => {
     if (open) {
-      // After open, trap focus inside the dialog wrapper and focus it immediately
+      // After open, trap focus inside the dialog wrapper and focus close button immediately
       await new Promise((r) => setTimeout(r, 0));
-      trapFocus({ container: dialogRef.value, initialFocus: dialogRef.value });
+      const closeBtn = dialogRef.value?.querySelector?.('button[aria-label="Close"]');
+      trapFocus({
+        container: dialogRef.value,
+        initialFocus: closeBtn || dialogRef.value,
+      });
     } else {
       cleanupFocusTrap();
     }

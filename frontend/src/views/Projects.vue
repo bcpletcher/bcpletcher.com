@@ -61,7 +61,6 @@
                 :title="project.title"
                 :year="project.year"
                 :summary="project.description"
-                :hero="project.hero"
                 :images="project.images"
                 :href="project.url"
                 :technology="project.technology"
@@ -154,8 +153,7 @@ const projects = computed(() => {
       title: item.title || "Untitled",
       year: item.year ?? null,
       description: item.description || "",
-      hero:
-        item.hero || (Array.isArray(item.images) ? item.images?.[0] : "") || "",
+      hero: Array.isArray(item.images) ? item.images?.[0] || "" : "",
       images: Array.isArray(item.images) ? item.images : null,
       url: item.url || null,
       technology: item.technology || [],

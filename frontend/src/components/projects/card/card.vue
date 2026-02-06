@@ -47,10 +47,9 @@
 
       <CardImage
         :title="title"
-        :hero="hero"
         :images="images"
         :is-hidden="isHidden"
-        @open-gallery="(idx) => emitOpenGallery(idx)"
+        @open-gallery="emitOpenGallery"
       />
     </article>
   </li>
@@ -70,8 +69,7 @@ const props = defineProps({
   summary: { type: String, default: "" },
   year: { type: [Number, String], default: null },
 
-  hero: { type: String, required: true },
-  images: { type: Array, default: null },
+  images: { type: Array, required: true },
 
   href: { type: String, default: null },
   technology: { type: Array, default: () => [] },
@@ -99,7 +97,7 @@ function emitOpenGallery(index) {
   const imgs =
     Array.isArray(props.images) && props.images.length
       ? props.images
-      : [props.hero];
+      : [];
   const list = imgs.filter(Boolean).slice(0, 3);
   if (!list?.length) return;
 

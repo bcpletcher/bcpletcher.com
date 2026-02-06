@@ -61,12 +61,14 @@
           class="w-14"
           src="./../../assets/images/logo.svg"
           alt="Site Logo"
+          width="56"
+          height="56"
         />
       </button>
       <p class="my-auto">
         Designed and coded in
         <a
-          class="kbd-focus font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://www.jetbrains.com"
           target="_blank"
           rel="noopener noreferrer"
@@ -75,7 +77,7 @@
         </a>
         by myself. Built with
         <a
-          class="kbd-focus font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://vuejs.org"
           target="_blank"
           rel="noopener noreferrer"
@@ -84,7 +86,7 @@
         </a>
         ,
         <a
-          class="kbd-focus font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://tailwindcss.com"
           target="_blank"
           rel="noopener noreferrer"
@@ -93,7 +95,7 @@
         </a>
         and
         <a
-          class="kbd-focus font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://gsap.com/"
           target="_blank"
           rel="noopener noreferrer"
@@ -102,7 +104,7 @@
         </a>
         . Deployed with
         <a
-          class="kbd-focus font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://firebase.google.com/products/hosting"
           target="_blank"
           rel="noopener noreferrer"
@@ -111,7 +113,7 @@
         </a>
         and
         <a
-          class="kbd-focus font-medium text-slate-400 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://github.com/bcpletcher"
           target="_blank"
           rel="noopener noreferrer"
