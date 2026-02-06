@@ -11,6 +11,7 @@ import {
   useScrollLock,
 } from "@/composables/useScrollLock.js";
 import {
+  clearProjectsCache,
   loadProjectsFromCache,
   saveProjectsToCache,
 } from "@/utils/cache.js";
@@ -59,15 +60,44 @@ export function useAppBoot() {
   const boot = async () => {
     const bootStart = Date.now();
 
+    // URL overrides for QA/debugging.
+    const urlFlags = (() => {
+      if (typeof window === "undefined") return { noCache: false, clearCache: false };
+      const sp = new URLSearchParams(window.location.search);
+      const enabled = (v) => v === "1" || v === "true" || v === "yes";
+      return {
+        noCache: enabled((sp.get("nocache") || "").toLowerCase()),
+        clearCache: enabled((sp.get("clearcache") || "").toLowerCase()),
+      };
+    })();
+
+    const cacheEnabledThisBoot = CACHE_ENABLED && !urlFlags.noCache;
+    if (urlFlags.noCache) {
+      console.log("[boot] nocache=1 -> bypassing projects cache read/write");
+    }
+    if (urlFlags.clearCache) {
+      console.log("[boot] clearcache=1 -> clearing projects cache before boot");
+    }
+
     // Prevent scrollbar/layout jitter while the loader is animating.
     // (We keep off until loader fades out OR we early-exit via fresh cache.)
     try {
       // 0) Decide whether we need loader + network boot.
       // We do this before showing the loader to avoid a brief flash.
 
+      // Optional: force-clear cache via URL.
+      if (cacheEnabledThisBoot && urlFlags.clearCache) {
+        try {
+          await clearProjectsCache();
+          console.log("[boot] projects cache cleared via URL flag");
+        } catch (e) {
+          console.warn("[boot] failed to clear projects cache", e);
+        }
+      }
+
       // 1) Cache-first: avoid unnecessary network calls within TTL.
       // Controlled via VITE_CACHE_ENABLED (default true).
-      if (CACHE_ENABLED) {
+      if (cacheEnabledThisBoot) {
         let cacheIsFresh = false;
         try {
           const cached = await loadProjectsFromCache();
@@ -107,7 +137,7 @@ export function useAppBoot() {
 
       settingsStore.projects = projectsFresh;
 
-      if (CACHE_ENABLED) {
+      if (cacheEnabledThisBoot) {
         withTimeout(
           saveProjectsToCache(projectsFresh),
           1000,

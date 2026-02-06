@@ -164,13 +164,6 @@ cd ..
 firebase deploy
 ```
 
-## Performance notes
-### `/resume`
-The `/resume` route is optimized for fast direct loads:
-- Does **not** wait for projects APIs
-- Does **not** show the fullscreen boot loader
-- Skips loading the Font Awesome kit on `/resume` (loaded dynamically on other routes)
-
 ## Troubleshooting
 ### Boot loader shows maintenance message
 - Confirm Firestore/Functions are reachable (or emulators are running if `VITE_USE_EMULATOR=true`).
@@ -178,4 +171,7 @@ The `/resume` route is optimized for fast direct loads:
 
 ### Caching issues / stale data
 - Set `VITE_CACHE_ENABLED=false` to disable caching.
-- Use the Admin dropdown: **Clear Cache** to clear IndexedDB cache.
+- Admin (signed in): use the top banner **Clear cache** button to clear IndexedDB cache + reload.
+- QA URLs:
+  - `/?nocache=1` bypasses cache read/write for that page load (forces a network boot).
+  - `/?clearcache=1` clears the projects cache then boots normally.

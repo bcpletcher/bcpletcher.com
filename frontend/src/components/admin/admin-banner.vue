@@ -28,6 +28,15 @@
         <button
           v-if="isLoggedIn"
           type="button"
+          class="kbd-focus cursor-pointer rounded-md px-2.5 py-1 text-xs font-semibold text-amber-100/90 hover:bg-amber-900/40 hover:text-amber-50 transition-standard"
+          @click="clearCache"
+        >
+          Clear cache
+        </button>
+
+        <button
+          v-if="isLoggedIn"
+          type="button"
           class="kbd-focus cursor-pointer rounded-md bg-white/10 px-2.5 py-1 text-xs font-semibold text-amber-50 hover:bg-white/15 transition-standard"
           @click="openCreate"
         >
@@ -59,9 +68,12 @@ import { signOut } from "firebase/auth";
 import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
+import { clearProjectsCache } from "@/utils/cache.js";
+import { useNotificationStore } from "@/stores/notification.js";
 
 const firebaseStore = useFirebaseStore();
 const settingsStore = useSettingsStore();
+const notificationStore = useNotificationStore();
 
 const isEmulatorEnabled =
   String(import.meta.env.VITE_USE_EMULATOR).toLowerCase() === "true";
@@ -72,22 +84,31 @@ const isLoggedIn = computed(() => Boolean(settingsStore.user?.uid));
 
 const createEntryModalRef = useTemplateRef("createEntryModalRef");
 
-/**
- * TODO(admin): Clear cache
- * - Clear any client-side caches used for projects (localStorage + IndexedDB).
- * - Consider clearing: localStorage keys like `projectsCache` and any idb databases.
- * - Should also refresh in-memory store state after clearing.
- *
- * TODO(admin): Verify edits
- * - Add a lightweight "verify" step before persisting admin edits (esp. delete/reorder).
- * - Options: diff preview modal, validation checks, or a simple "Are you sure?".
- * - After save, re-fetch/reconcile with Firestore to ensure UI matches server.
- *
- * TODO(admin): Toggle non-admin view
- * - Provide a banner toggle to temporarily hide admin-only UI while still signed in.
- * - Intended for QA: ensure public layout/behaviors without signing out.
- * - Likely lives in settingsStore (e.g. `adminPreviewPublicMode`) and is checked by admin-only components.
- */
+async function clearCache() {
+  try {
+    await clearProjectsCache();
+
+    notificationStore.addNotification({
+      variant: "success",
+      title: "Cache cleared",
+      message: "Projects cache cleared. Reloading…",
+      duration: 2,
+    });
+
+    // Reload so boot sequence runs without cached payload.
+    setTimeout(() => {
+      window.location.reload();
+    }, 600);
+  } catch (e) {
+    console.warn("Failed to clear projects cache", e);
+    notificationStore.addNotification({
+      variant: "danger",
+      title: "Cache not cleared",
+      message: "Couldn’t clear the cache. Check console for details.",
+      duration: 4,
+    });
+  }
+}
 
 function openCreate() {
   createEntryModalRef.value?.showModal?.();
