@@ -53,6 +53,9 @@
               class="scroll-mt-28"
             />
 
+            <!-- Semantic heading so cards (h3) don't skip levels -->
+            <h2 class="sr-only">{{ y }}</h2>
+
             <ul class="grid gap-4 list-none p-0 m-0">
               <ProjectsCard
                 v-for="(project, idx) in projectsByYear[y]"

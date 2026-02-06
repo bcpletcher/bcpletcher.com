@@ -1,13 +1,26 @@
 html {
   background: #0f172a; /* tailwind slate-900 */
   color-scheme: dark;
-  /*overflow-x: hidden;*/
-  scrollbar-gutter: stable;
+  /* IMPORTANT: don't set overflow on html; it can break position: sticky */
+  /* Avoid forcing dvw widths on the root; it can create right-edge gaps with scrollbars/overlay locks. */
+  /* max-width: 100dvw; */
+  /* min-width: 100dvw; */
+
+  /* Defensive: some scroll-lock implementations set scrollbar-gutter: stable and it can create a visible right-edge strip.
+     We never rely on it; force default behavior. */
+  scrollbar-gutter: auto !important;
 }
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+#app {
+  max-width: 100%;
+  /*overflow-x: hidden;*/
 }
 
 ::selection {

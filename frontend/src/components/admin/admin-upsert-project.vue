@@ -1,382 +1,344 @@
 <template>
-  <Teleport to="body">
-    <!-- Always-mounted overlay to avoid blur snap and transition teardown hitches -->
-    <div
-      class="fixed left-0 top-0 z-9999 w-dvw h-dvh"
-      :class="visible ? 'pointer-events-auto' : 'pointer-events-none'"
-      aria-hidden="true"
-    >
-      <!-- Blur layer stays mounted; only opacity changes -->
-      <div
-        class="absolute inset-0 backdrop-blur-sm"
-        :class="visible ? 'opacity-100' : 'opacity-0'"
-        style="transition: opacity 260ms cubic-bezier(0.16, 1, 0.3, 1)"
-      />
-
-      <!-- Tint layer (click-to-close) -->
-      <button
-        type="button"
-        class="kbd-focus absolute inset-0 bg-black/70 cursor-pointer"
-        :class="visible ? 'opacity-100' : 'opacity-0'"
-        style="transition: opacity 260ms cubic-bezier(0.16, 1, 0.3, 1)"
-        aria-label="Close project editor"
-        @click="cancel"
-      />
-    </div>
-
-    <!-- Always-mounted dialog wrapper; animate with opacity/transform to avoid unmount hitches -->
+  <ModalWrapper
+    v-model="visible"
+    :labelledby="titleId"
+    :describedby="descId"
+    z-class="z-9999"
+    :initial-focus-selector="'button[aria-label=Close]'"
+    panel-selector="[data-modal-panel]"
+  >
     <div
       ref="dialogRef"
-      class="fixed left-0 top-0 z-10000 flex h-dvh w-dvw items-center justify-center"
-      :class="visible ? 'pointer-events-auto' : 'pointer-events-none'"
-      role="dialog"
-      aria-modal="true"
-      :aria-labelledby="titleId"
-      :aria-describedby="descId"
-      tabindex="-1"
-      @keydown.esc="cancel"
-      @transitionend="onDialogTransitionEnd"
+      data-modal-panel
+      class="relative w-[92vw] max-w-5xl overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl backdrop-blur"
+      @click.stop
     >
-      <div
-        class="relative w-[92vw] max-w-5xl overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl backdrop-blur"
-        :class="
-          visible
-            ? 'opacity-100 translate-y-0 scale-100 blur-0'
-            : 'opacity-0 translate-y-3 scale-[0.985] blur-sm'
-        "
-        style="
-          transition: opacity 320ms cubic-bezier(0.16, 1, 0.3, 1),
-            transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
-            filter 360ms cubic-bezier(0.16, 1, 0.3, 1);
-        "
-      >
-        <!-- Header -->
-        <div class="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-3 md:px-6">
-          <div class="flex flex-col">
-            <p
-              :id="titleId"
-              class="text-xs font-semibold tracking-widest uppercase text-slate-400"
-            >
-              {{ isEdit ? 'Edit Project' : 'Create Project' }}
-            </p>
-            <p :id="descId" class="text-xs text-slate-500">
-              {{ isEdit ? 'Update fields and save changes.' : 'Fill out fields and publish a new entry.' }}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            class="kbd-focus cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-standard"
-            aria-label="Close"
-            @click="cancel"
+      <!-- Header -->
+      <div class="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-3 md:px-6">
+        <div class="flex flex-col">
+          <p
+            :id="titleId"
+            class="text-xs font-semibold tracking-widest uppercase text-slate-400"
           >
-            <i class="fa-regular fa-xmark" aria-hidden="true" />
-          </button>
+            {{ isEdit ? 'Edit Project' : 'Create Project' }}
+          </p>
+          <p :id="descId" class="text-xs text-slate-500">
+            {{ isEdit ? 'Update fields and save changes.' : 'Fill out fields and publish a new entry.' }}
+          </p>
         </div>
 
-        <!-- Body -->
-        <div class="px-4 pb-4 pt-4 md:px-6 md:pb-6">
-          <div class="max-h-[70vh] overflow-y-auto pr-1">
-            <!-- Generated form fields -->
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <button
+          type="button"
+          class="kbd-focus cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-standard"
+          aria-label="Close"
+          @click="cancel"
+        >
+          <i class="fa-regular fa-xmark" aria-hidden="true" />
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="px-4 pb-4 pt-4 md:px-6 md:pb-6">
+        <div class="max-h-[70vh] overflow-y-auto pr-1">
+          <!-- Generated form fields -->
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div
+              v-for="field in formFields"
+              :key="field.key"
+              :class="field.colSpan"
+            >
+              <!-- Standard label + side meta (like counters) -->
               <div
-                v-for="field in formFields"
-                :key="field.key"
-                :class="field.colSpan"
+                v-if="field.type !== 'toggle'"
+                class="flex items-center justify-between"
               >
-                <!-- Standard label + side meta (like counters) -->
-                <div
-                  v-if="field.type !== 'toggle'"
-                  class="flex items-center justify-between"
+                <label
+                  class="block text-xs font-semibold tracking-widest uppercase text-slate-400"
                 >
+                  {{ field.label }}
+                </label>
+                <span
+                  v-if="field.counter"
+                  class="text-xs text-slate-500"
+                >
+                  {{ field.counter() }}
+                </span>
+              </div>
+
+              <!-- Toggle field -->
+              <div
+                v-else
+                class="flex items-center justify-between gap-4"
+              >
+                <div>
                   <label
                     class="block text-xs font-semibold tracking-widest uppercase text-slate-400"
                   >
                     {{ field.label }}
                   </label>
-                  <span
-                    v-if="field.counter"
-                    class="text-xs text-slate-500"
-                  >
-                    {{ field.counter() }}
-                  </span>
+                  <p v-if="field.help" class="mt-1 text-xs text-slate-500">
+                    {{ field.help }}
+                  </p>
                 </div>
 
-                <!-- Toggle field -->
-                <div
-                  v-else
-                  class="flex items-center justify-between gap-4"
+                <button
+                  type="button"
+                  class="kbd-focus cursor-pointer relative inline-flex h-7 w-12 items-center rounded-full border transition-standard focus:outline-none focus:ring-2 focus:ring-sky-300/40 disabled:opacity-60 disabled:cursor-not-allowed"
+                  :class="
+                    field.model.value
+                      ? 'bg-sky-300 border-sky-300/60'
+                      : 'bg-white/5 border-white/10 hover:bg-white/10'
+                  "
+                  :disabled="isSubmitting || field.disabled?.()"
+                  :aria-label="field.ariaLabel || field.label"
+                  @click="field.model.value = !field.model.value"
                 >
-                  <div>
-                    <label
-                      class="block text-xs font-semibold tracking-widest uppercase text-slate-400"
-                    >
-                      {{ field.label }}
-                    </label>
-                    <p v-if="field.help" class="mt-1 text-xs text-slate-500">
-                      {{ field.help }}
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    class="kbd-focus cursor-pointer relative inline-flex h-7 w-12 items-center rounded-full border transition-standard focus:outline-none focus:ring-2 focus:ring-sky-300/40 disabled:opacity-60 disabled:cursor-not-allowed"
+                  <span
+                    class="inline-block h-5 w-5 transform rounded-full shadow transition-standard"
                     :class="
                       field.model.value
-                        ? 'bg-sky-300 border-sky-300/60'
-                        : 'bg-white/5 border-white/10 hover:bg-white/10'
+                        ? 'translate-x-6 bg-slate-900'
+                        : 'translate-x-1 bg-slate-200/90'
                     "
-                    :disabled="isSubmitting || field.disabled?.()"
-                    :aria-label="field.ariaLabel || field.label"
-                    @click="field.model.value = !field.model.value"
-                  >
-                    <span
-                      class="inline-block h-5 w-5 transform rounded-full shadow transition-standard"
-                      :class="
-                        field.model.value
-                          ? 'translate-x-6 bg-slate-900'
-                          : 'translate-x-1 bg-slate-200/90'
-                      "
-                      aria-hidden="true"
-                    />
-                  </button>
-                </div>
-
-                <!-- Input -->
-                <input
-                  v-if="field.type === 'input'"
-                  v-model="field.model.value"
-                  :disabled="isSubmitting || field.disabled?.()"
-                  :type="field.inputType || 'text'"
-                  :inputmode="field.inputMode"
-                  :placeholder="field.placeholder"
-                  class="mt-2 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/40 disabled:opacity-60 disabled:cursor-not-allowed"
-                />
-
-                <!-- Textarea -->
-                <textarea
-                  v-else-if="field.type === 'textarea'"
-                  v-model="field.model.value"
-                  :disabled="isSubmitting || field.disabled?.()"
-                  :rows="field.rows || 3"
-                  :maxlength="field.maxLength"
-                  :placeholder="field.placeholder"
-                  class="mt-2 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/40 disabled:opacity-60 disabled:cursor-not-allowed"
-                />
-
-                <!-- Help text (non-toggle) -->
-                <p
-                  v-if="field.type !== 'toggle' && field.help"
-                  class="mt-1 text-xs text-slate-500"
-                >
-                  {{ field.help }}
-                </p>
-              </div>
-            </div>
-
-            <!-- Images -->
-            <div class="mt-6">
-              <div class="flex items-center justify-between">
-                <p class="text-xs font-semibold tracking-widest uppercase text-slate-400">Images</p>
-                <p class="text-xs text-slate-500">Drag to reorder. Star sets the hero.</p>
-              </div>
-
-              <div
-                class="mt-3 mb-2 rounded-xl border-2 border-dashed border-white/10 bg-black/20 px-4 py-6 text-center hover:border-sky-300/40 hover:bg-white/5 transition-standard cursor-pointer"
-                @click="fileInputRef?.click()"
-                @dragover.prevent
-                @dragenter.prevent
-                @drop.prevent="onImageFilesDropped($event)"
-              >
-                <input
-                  ref="fileInputRef"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  class="hidden"
-                  @change="onImageFilesSelected($event)"
-                />
-                <p class="text-sm text-slate-200 mb-1">
-                  Drag & drop images here, or <span class="text-sky-300">click to browse</span>
-                </p>
-                <p class="text-xs text-slate-500">(16:9 recommended)</p>
-              </div>
-
-              <VueDraggableNext
-                v-model="documentModel.data.images"
-                :disabled="documentModel.data.images.length < 2 || isSubmitting"
-                class="grid grid-cols-2 gap-4 sm:grid-cols-3"
-              >
-                <div
-                  v-for="(item, index) in documentModel.data.images"
-                  :key="getImageKey(item, index)"
-                  class="relative group cursor-move overflow-hidden rounded-xl border border-white/10 bg-black/20"
-                >
-                  <div
-                    class="w-full aspect-video bg-black/30 flex items-center justify-center transition-opacity duration-200 group-hover:opacity-70"
-                  >
-                    <img
-                      :src="getImagePreviewUrl(item)"
-                      alt="Preview"
-                      class="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  <!-- Hero button -->
-                  <button
-                    class="absolute top-2 left-2 pointer-events-auto w-8 h-8 flex items-center justify-center bg-black/70 rounded-full transition-opacity duration-200"
-                    :class="[
-                      index === 0
-                         ? 'text-yellow-400 opacity-100'
-                         : 'text-white opacity-0 group-hover:opacity-100',
-                     ]"
-                    type="button"
-                    aria-label="Set hero image"
-                    @click.stop="setHeroImage(item)"
-                  >
-                    <i
-                      :class="
-                         index === 0
-                           ? 'fa-solid fa-star'
-                           : 'fa-regular fa-star'
-                       "
-                      aria-hidden="true"
-                    />
-                  </button>
-
-                  <!-- Remove image button -->
-                  <button
-                    class="absolute top-2 right-2 pointer-events-auto w-8 h-8 flex items-center justify-center text-red-300 bg-black/70 rounded-full transition-standard opacity-0 group-hover:opacity-100"
-                    type="button"
-                    aria-label="Remove image"
-                    @click.stop="queueRemoval(index, 'images')"
-                  >
-                    <i class="fa-regular fa-minus" aria-hidden="true" />
-                  </button>
-                </div>
-              </VueDraggableNext>
-
-              <div
-                v-if="!isSubmitting && pendingFiles.length"
-                class="grid grid-cols-2 gap-4 mt-3 opacity-80 sm:grid-cols-3"
-              >
-                <div
-                  v-for="(pending, pIndex) in pendingFiles"
-                  :key="`pending-${pIndex}`"
-                  class="relative overflow-hidden rounded-xl border border-white/10 bg-black/20"
-                >
-                  <div class="w-full aspect-video bg-black/30">
-                    <img
-                      :src="pending.previewUrl"
-                      alt="Pending preview"
-                      class="w-full h-full object-cover opacity-80"
-                    />
-                  </div>
-                  <div
-                    class="absolute bottom-2 left-2 px-2 py-1 text-[10px] uppercase tracking-wide bg-black/70 text-white rounded-full"
-                  >
-                    Pending
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Technology -->
-            <div class="mt-6">
-              <!-- Title + add row (inline) -->
-              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p class="text-xs font-semibold tracking-widest uppercase text-slate-400">
-                  Technology
-                </p>
-
-                <div class="w-full sm:max-w-md">
-                  <label class="sr-only" for="tech-add">Add technology</label>
-                  <div class="flex gap-2">
-                    <input
-                      id="tech-add"
-                      v-model="techToAdd"
-                      :disabled="isSubmitting"
-                      type="text"
-                      placeholder="Add a technology"
-                      class="w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/40 disabled:opacity-60 disabled:cursor-not-allowed"
-                      @keydown.enter.prevent="commitTechToAdd"
-                    />
-                    <button
-                      type="button"
-                      class="kbd-focus cursor-pointer inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-standard disabled:opacity-60 disabled:cursor-not-allowed"
-                      :disabled="isSubmitting || !techToAdd.trim()"
-                      aria-label="Add technology"
-                      @click="commitTechToAdd"
-                    >
-                      <i class="fa-regular fa-plus" aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Technology pills list (below) -->
-              <div class="mt-3 flex flex-wrap gap-2">
-                <div
-                  v-for="(tech, index) in documentModel.data.technology"
-                  :key="`tech-${index}`"
-                  class="group flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5"
-                >
-                  <input
-                    v-model="documentModel.data.technology[index]"
-                    :disabled="isSubmitting"
-                    type="text"
-                    class="w-[10ch] min-w-[8ch] max-w-[18ch] bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
-                    :placeholder="tech ? '' : 'Tech'"
-                    @blur="normalizeTechnology(index)"
-                    @keydown.enter.prevent="normalizeTechnology(index)"
+                    aria-hidden="true"
                   />
+                </button>
+              </div>
 
-                  <button
-                    type="button"
-                    class="kbd-focus cursor-pointer inline-flex h-6 w-6 items-center justify-center rounded-full text-slate300/90 hover:text-red-200 hover:bg-white/10 transition-standard"
-                    :disabled="isSubmitting"
-                    aria-label="Remove technology"
-                    @click="removeTechnology(index)"
-                  >
-                    <i class="fa-regular fa-xmark" aria-hidden="true" />
-                  </button>
+              <!-- Input -->
+              <input
+                v-if="field.type === 'input'"
+                v-model="field.model.value"
+                :disabled="isSubmitting || field.disabled?.()"
+                :type="field.inputType || 'text'"
+                :inputmode="field.inputMode"
+                :placeholder="field.placeholder"
+                class="mt-2 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/40 disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+
+              <!-- Textarea -->
+              <textarea
+                v-else-if="field.type === 'textarea'"
+                v-model="field.model.value"
+                :disabled="isSubmitting || field.disabled?.()"
+                :rows="field.rows || 3"
+                :maxlength="field.maxLength"
+                :placeholder="field.placeholder"
+                class="mt-2 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/40 disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+
+              <!-- Help text (non-toggle) -->
+              <p
+                v-if="field.type !== 'toggle' && field.help"
+                class="mt-1 text-xs text-slate-500"
+              >
+                {{ field.help }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Images -->
+          <div class="mt-6">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-semibold tracking-widest uppercase text-slate-400">Images</p>
+              <p class="text-xs text-slate-500">Drag to reorder. Star sets the hero.</p>
+            </div>
+
+            <div
+              class="mt-3 mb-2 rounded-xl border-2 border-dashed border-white/10 bg-black/20 px-4 py-6 text-center hover:border-sky-300/40 hover:bg-white/5 transition-standard cursor-pointer"
+              @click="fileInputRef?.click()"
+              @dragover.prevent
+              @dragenter.prevent
+              @drop.prevent="onImageFilesDropped($event)"
+            >
+              <input
+                ref="fileInputRef"
+                type="file"
+                accept="image/*"
+                multiple
+                class="hidden"
+                @change="onImageFilesSelected($event)"
+              />
+              <p class="text-sm text-slate-200 mb-1">
+                Drag & drop images here, or <span class="text-sky-300">click to browse</span>
+              </p>
+              <p class="text-xs text-slate-500">(16:9 recommended)</p>
+            </div>
+
+            <VueDraggableNext
+              v-model="documentModel.data.images"
+              :disabled="documentModel.data.images.length < 2 || isSubmitting"
+              class="grid grid-cols-2 gap-4 sm:grid-cols-3"
+            >
+              <div
+                v-for="(item, index) in documentModel.data.images"
+                :key="getImageKey(item, index)"
+                class="relative group cursor-move overflow-hidden rounded-xl border border-white/10 bg-black/20"
+              >
+                <div
+                  class="w-full aspect-video bg-black/30 flex items-center justify-center transition-opacity duration-200 group-hover:opacity-70"
+                >
+                  <img
+                    :src="getImagePreviewUrl(item)"
+                    alt="Preview"
+                    class="w-full h-full object-cover"
+                  />
                 </div>
 
-                <div v-if="!documentModel.data.technology.length" class="text-sm text-slate-500">
-                  Add technologies like Vue, Tailwind, Firebase
+                <!-- Hero button -->
+                <button
+                  class="absolute top-2 left-2 pointer-events-auto w-8 h-8 flex items-center justify-center bg-black/70 rounded-full transition-opacity duration-200"
+                  :class="[
+                    index === 0
+                       ? 'text-yellow-400 opacity-100'
+                       : 'text-white opacity-0 group-hover:opacity-100',
+                 ]"
+                  type="button"
+                  aria-label="Set hero image"
+                  @click.stop="setHeroImage(item)"
+                >
+                  <i
+                    :class="
+                       index === 0
+                         ? 'fa-solid fa-star'
+                         : 'fa-regular fa-star'
+                     "
+                    aria-hidden="true"
+                  />
+                </button>
+
+                <!-- Remove image button -->
+                <button
+                  class="absolute top-2 right-2 pointer-events-auto w-8 h-8 flex items-center justify-center text-red-300 bg-black/70 rounded-full transition-standard opacity-0 group-hover:opacity-100"
+                  type="button"
+                  aria-label="Remove image"
+                  @click.stop="queueRemoval(index, 'images')"
+                >
+                  <i class="fa-regular fa-minus" aria-hidden="true" />
+                </button>
+              </div>
+            </VueDraggableNext>
+
+            <div
+              v-if="!isSubmitting && pendingFiles.length"
+              class="grid grid-cols-2 gap-4 mt-3 opacity-80 sm:grid-cols-3"
+            >
+              <div
+                v-for="(pending, pIndex) in pendingFiles"
+                :key="`pending-${pIndex}`"
+                class="relative overflow-hidden rounded-xl border border-white/10 bg-black/20"
+              >
+                <div class="w-full aspect-video bg-black/30">
+                  <img
+                    :src="pending.previewUrl"
+                    alt="Pending preview"
+                    class="w-full h-full object-cover opacity-80"
+                  />
+                </div>
+                <div
+                  class="absolute bottom-2 left-2 px-2 py-1 text-[10px] uppercase tracking-wide bg-black/70 text-white rounded-full"
+                >
+                  Pending
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Footer -->
-        <div class="border-t border-white/10 px-4 py-3 md:px-6">
-          <div class="flex justify-end gap-3">
-            <button
-              type="button"
-              class="kbd-focus cursor-pointer rounded px-4 py-1 border border-font-primary text-font-primary font-bold text-sm hover:bg-font-primary/10 transition-standard disabled:opacity-60 disabled:cursor-not-allowed"
-              :disabled="isSubmitting"
-              @click="cancel"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              class="kbd-focus cursor-pointer rounded px-4 py-1 border border-gradient-start text-font-secondary font-bold text-sm hover:bg-gradient-start hover:text-font-tertiary transition-standard disabled:opacity-60 disabled:cursor-not-allowed"
-              :disabled="isSubmitting"
-              @click="submit"
-            >
-              <span v-if="isSubmitting">
-                {{ isEdit ? "Updating..." : "Submitting..." }}
-              </span>
-              <span v-else>{{ isEdit ? "Update" : "Submit" }}</span>
-            </button>
+          <!-- Technology -->
+          <div class="mt-6">
+            <!-- Title + add row (inline) -->
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p class="text-xs font-semibold tracking-widest uppercase text-slate-400">
+                Technology
+              </p>
+
+              <div class="w-full sm:max-w-md">
+                <label class="sr-only" for="tech-add">Add technology</label>
+                <div class="flex gap-2">
+                  <input
+                    id="tech-add"
+                    v-model="techToAdd"
+                    :disabled="isSubmitting"
+                    type="text"
+                    placeholder="Add a technology"
+                    class="w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-300/40 disabled:opacity-60 disabled:cursor-not-allowed"
+                    @keydown.enter.prevent="commitTechToAdd"
+                  />
+                  <button
+                    type="button"
+                    class="kbd-focus cursor-pointer inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 transition-standard disabled:opacity-60 disabled:cursor-not-allowed"
+                    :disabled="isSubmitting || !techToAdd.trim()"
+                    aria-label="Add technology"
+                    @click="commitTechToAdd"
+                  >
+                    <i class="fa-regular fa-plus" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Technology pills list (below) -->
+            <div class="mt-3 flex flex-wrap gap-2">
+              <div
+                v-for="(tech, index) in documentModel.data.technology"
+                :key="`tech-${index}`"
+                class="group flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5"
+              >
+                <input
+                  v-model="documentModel.data.technology[index]"
+                  :disabled="isSubmitting"
+                  type="text"
+                  class="w-[10ch] min-w-[8ch] max-w-[18ch] bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
+                  :placeholder="tech ? '' : 'Tech'"
+                  @blur="normalizeTechnology(index)"
+                  @keydown.enter.prevent="normalizeTechnology(index)"
+                />
+
+                <button
+                  type="button"
+                  class="kbd-focus cursor-pointer inline-flex h-6 w-6 items-center justify-center rounded-full text-slate300/90 hover:text-red-200 hover:bg-white/10 transition-standard"
+                  :disabled="isSubmitting"
+                  aria-label="Remove technology"
+                  @click="removeTechnology(index)"
+                >
+                  <i class="fa-regular fa-xmark" aria-hidden="true" />
+                </button>
+              </div>
+
+              <div v-if="!documentModel.data.technology.length" class="text-sm text-slate-500">
+                Add technologies like Vue, Tailwind, Firebase
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Footer -->
+      <div class="border-t border-white/10 px-4 py-3 md:px-6">
+        <div class="flex justify-end gap-3">
+          <button
+            type="button"
+            class="kbd-focus cursor-pointer rounded px-4 py-1 border border-font-primary text-font-primary font-bold text-sm hover:bg-font-primary/10 transition-standard disabled:opacity-60 disabled:cursor-not-allowed"
+            :disabled="isSubmitting"
+            @click="cancel"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="kbd-focus cursor-pointer rounded px-4 py-1 border border-gradient-start text-font-secondary font-bold text-sm hover:bg-gradient-start hover:text-font-tertiary transition-standard disabled:opacity-60 disabled:cursor-not-allowed"
+            :disabled="isSubmitting"
+            @click="submit"
+          >
+            <span v-if="isSubmitting">
+              {{ isEdit ? "Updating..." : "Submitting..." }}
+            </span>
+            <span v-else>{{ isEdit ? "Update" : "Submit" }}</span>
+          </button>
+        </div>
+      </div>
     </div>
-  </Teleport>
+  </ModalWrapper>
 </template>
 
 <script setup>
@@ -386,23 +348,14 @@ import { VueDraggableNext } from "vue-draggable-next";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { saveProjectsToCache } from "@/utils/cache.js";
-import { useFocusTrap } from "@/composables/useFocusTrap.js";
 import { normalizeProjectDate } from "@/utils/projectDate.js";
+import ModalWrapper from "@/components/shared/modal-wrapper.vue";
 
 const settingsStore = useSettingsStore();
 const firebaseStore = useFirebaseStore();
 const visible = ref(false);
 const isEdit = ref(false);
 const isSubmitting = ref(false);
-
-// Close cleanup: keep mounted, but wipe expensive state after transition is done
-const pendingCloseCleanup = ref(false);
-
-const onDialogTransitionEnd = () => {
-  if (!pendingCloseCleanup.value) return;
-  pendingCloseCleanup.value = false;
-  resetState();
-};
 
 const DESCRIPTION_MAX = 500;
 const SUMMARY_MAX = 200;
@@ -710,7 +663,6 @@ const resetState = () => {
 const showModal = async (existingEntry) => {
   // Fresh state on open.
   resetState();
-  pendingCloseCleanup.value = false;
 
   if (existingEntry) {
     isEdit.value = true;
@@ -748,36 +700,13 @@ const cancel = () => {
   if (!visible.value) return;
 
   // Start close animation; cleanup after the panel transition ends.
-  pendingCloseCleanup.value = true;
   visible.value = false;
 };
-
-const dialogRef = ref(null);
-const { activate: trapFocus, cleanup: cleanupFocusTrap } = useFocusTrap();
 
 const titleId = `admin-upsert-title-${Math.random().toString(36).slice(2)}`;
 const descId = `admin-upsert-desc-${Math.random().toString(36).slice(2)}`;
 
-watch(
-  visible,
-  async (open) => {
-    if (open) {
-      // After open, trap focus inside the dialog wrapper and focus close button immediately
-      await new Promise((r) => setTimeout(r, 0));
-      const closeBtn = dialogRef.value?.querySelector?.('button[aria-label="Close"]');
-      trapFocus({
-        container: dialogRef.value,
-        initialFocus: closeBtn || dialogRef.value,
-      });
-    } else {
-      cleanupFocusTrap();
-    }
-  },
-  { flush: "post", immediate: true },
-);
-
 onBeforeUnmount(() => {
-  cleanupFocusTrap();
   resetState();
 });
 
@@ -913,80 +842,5 @@ const formFields = computed(() => {
       model: toRef(data, "description"),
     },
   ];
-});
-
-const SCROLL_LOCK_KEY = "__bc_scroll_lock_count__";
-
-function getLockCount() {
-  return Number(document.documentElement.dataset[SCROLL_LOCK_KEY] || 0);
-}
-
-function setLockCount(val) {
-  document.documentElement.dataset[SCROLL_LOCK_KEY] = String(val);
-}
-
-function getScrollbarWidth() {
-  return Math.max(0, window.innerWidth - document.documentElement.clientWidth);
-}
-
-function lockBodyScroll() {
-  const count = getLockCount();
-  if (count === 0) {
-    document.documentElement.dataset.__bc_prev_html_overflow__ =
-      document.documentElement.style.overflow || "";
-    document.documentElement.dataset.__bc_prev_html_padding_right__ =
-      document.documentElement.style.paddingRight || "";
-    document.body.dataset.__bc_prev_body_overflow__ =
-      document.body.style.overflow || "";
-    document.body.dataset.__bc_prev_body_padding_right__ =
-      document.body.style.paddingRight || "";
-
-    const sbw = getScrollbarWidth();
-
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-
-    if (sbw > 0) {
-      document.documentElement.style.paddingRight = `${sbw}px`;
-      document.body.style.paddingRight = `${sbw}px`;
-    }
-  }
-  setLockCount(count + 1);
-}
-
-function unlockBodyScroll() {
-  const count = getLockCount();
-  if (count <= 1) {
-    document.documentElement.style.overflow =
-      document.documentElement.dataset.__bc_prev_html_overflow__ || "";
-    document.documentElement.style.paddingRight =
-      document.documentElement.dataset.__bc_prev_html_padding_right__ || "";
-    document.body.style.overflow =
-      document.body.dataset.__bc_prev_body_overflow__ || "";
-    document.body.style.paddingRight =
-      document.body.dataset.__bc_prev_body_padding_right__ || "";
-
-    delete document.documentElement.dataset.__bc_prev_html_overflow__;
-    delete document.documentElement.dataset.__bc_prev_html_padding_right__;
-    delete document.body.dataset.__bc_prev_body_overflow__;
-    delete document.body.dataset.__bc_prev_body_padding_right__;
-
-    setLockCount(0);
-  } else {
-    setLockCount(count - 1);
-  }
-}
-
-watch(
-  visible,
-  (isOpen) => {
-    if (isOpen) lockBodyScroll();
-    else unlockBodyScroll();
-  },
-  { flush: "post" },
-);
-
-onBeforeUnmount(() => {
-  unlockBodyScroll();
 });
 </script>
