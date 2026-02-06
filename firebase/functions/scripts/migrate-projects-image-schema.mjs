@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* eslint-disable no-undef, no-console */
+/* eslint-disable no-undef */
 /**
  * One-time Firestore migration: projects images from string[] -> [{path,url}]
  *

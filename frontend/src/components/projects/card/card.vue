@@ -30,12 +30,12 @@
       <CardContent
         :title="title"
         :summary="summary"
-        :year="year"
+        :date="date"
         :href="href"
         :technology="technology"
         :featured="featured"
         :show-title="showTitle"
-        :show-year="showYear"
+        :show-date="showDate"
         :show-link="showLink"
         :show-link-arrow="showLinkArrow"
         :show-summary="showSummary"
@@ -67,7 +67,7 @@ const props = defineProps({
 
   title: { type: String, required: true },
   summary: { type: String, default: "" },
-  year: { type: [Number, String], default: null },
+  date: { type: String, default: null },
 
   images: { type: Array, required: true },
 
@@ -78,7 +78,7 @@ const props = defineProps({
 
   // Visibility controls
   showTitle: { type: Boolean, default: true },
-  showYear: { type: Boolean, default: true },
+  showDate: { type: Boolean, default: true },
   showLink: { type: Boolean, default: true },
   showLinkArrow: { type: Boolean, default: true },
   showSummary: { type: Boolean, default: true },
@@ -94,11 +94,8 @@ const props = defineProps({
 });
 
 function emitOpenGallery(index) {
-  const imgs =
-    Array.isArray(props.images) && props.images.length
-      ? props.images
-      : [];
-  const list = imgs.filter(Boolean).slice(0, 3);
+  const imgs = Array.isArray(props.images) ? props.images : [];
+  const list = imgs.filter(Boolean);
   if (!list?.length) return;
 
   emit("open-gallery", {

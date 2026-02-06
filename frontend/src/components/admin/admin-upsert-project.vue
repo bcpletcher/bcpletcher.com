@@ -333,7 +333,7 @@
 
                   <button
                     type="button"
-                    class="kbd-focus cursor-pointer inline-flex h-6 w-6 items-center justify-center rounded-full text-slate-300/90 hover:text-red-200 hover:bg-white/10 transition-standard"
+                    class="kbd-focus cursor-pointer inline-flex h-6 w-6 items-center justify-center rounded-full text-slate300/90 hover:text-red-200 hover:bg-white/10 transition-standard"
                     :disabled="isSubmitting"
                     aria-label="Remove technology"
                     @click="removeTechnology(index)"
@@ -387,6 +387,7 @@ import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { saveProjectsToCache } from "@/utils/cache.js";
 import { useFocusTrap } from "@/composables/useFocusTrap.js";
+import { normalizeProjectDate } from "@/utils/projectDate.js";
 
 const settingsStore = useSettingsStore();
 const firebaseStore = useFirebaseStore();
@@ -409,10 +410,8 @@ const SUMMARY_MAX = 200;
 const emptyDocument = () => ({
   id: null,
   data: {
-    order: 0,
     eyebrow: null,
     date: null,
-    year: null,
     title: null,
     summary: "",
     description: "",
@@ -467,6 +466,11 @@ function getImagePreviewUrl(item) {
   if (!item) return "";
   if (typeof item === "string") return item;
   if (typeof item === "object" && item.url) return item.url;
+  // If url isn't stored, derive it from path (public alt=media)
+  if (typeof item === "object" && item.path) {
+    const bucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(item.path)}?alt=media`;
+  }
   return "";
 }
 
@@ -556,41 +560,15 @@ const submit = async () => {
   isSubmitting.value = true;
 
   try {
-    // Normalize date/year for storage.
-    // Store `date` as YYYY-MM-DD for predictable querying.
-    // Keep `year` in sync for existing UI/sorts until the rest of the app migrates.
-    const dateStr = (documentModel.value.data.date || "").toString().trim();
-    if (dateStr) {
-      // Basic guard: accept only YYYY-MM-DD
-      const m = /^\d{4}-\d{2}-\d{2}$/.exec(dateStr);
-      if (m) {
-        documentModel.value.data.date = dateStr;
-        const yearNumber = Number(dateStr.slice(0, 4));
-        if (!Number.isNaN(yearNumber)) documentModel.value.data.year = yearNumber;
-      }
-    } else {
-      documentModel.value.data.date = null;
-      // leave year as-is (may be set manually on older entries)
+    // Normalize date for storage.
+    // Canonical Firestore: YYYY-MM-DD
+    const normalized = normalizeProjectDate(documentModel.value.data.date);
+    if (documentModel.value.data.date && !normalized) {
+      alert("Date must be a valid date.");
+      isSubmitting.value = false;
+      return;
     }
-
-    // Legacy: if year is set but date is missing, backfill an approximate date.
-    if (!documentModel.value.data.date && documentModel.value.data.year) {
-      const yearNumber = Number(documentModel.value.data.year);
-      if (!Number.isNaN(yearNumber)) {
-        documentModel.value.data.year = yearNumber;
-        documentModel.value.data.date = `${yearNumber}-01-01`;
-      }
-    }
-
-    if (
-      documentModel.value.data.year !== null &&
-      documentModel.value.data.year !== ""
-    ) {
-      const yearNumber = Number(documentModel.value.data.year);
-      if (!Number.isNaN(yearNumber)) {
-        documentModel.value.data.year = yearNumber;
-      }
-    }
+    documentModel.value.data.date = normalized;
 
     // Upload any pending files first
     if (pendingFiles.value.length) {
@@ -613,8 +591,10 @@ const submit = async () => {
           existingCount
         );
 
-        // Save as objects for robust delete/reorder.
-        documentModel.value.data.images.push(...uploaded);
+        // Canonical: persist path only (url is derived client-side)
+        documentModel.value.data.images.push(
+          ...uploaded.map((u) => ({ path: u.path }))
+        );
       } catch (e) {
         console.error("Failed to upload images", e);
         alert("Failed to upload one or more images. Please try again.");
@@ -623,13 +603,16 @@ const submit = async () => {
       }
     }
 
-    ["images", "technology"].forEach((key) => {
-      if (Array.isArray(documentModel.value.data[key])) {
-        documentModel.value.data[key] = documentModel.value.data[key].filter(
-          (v) => v !== null && v !== undefined && v !== ""
-        );
-      }
-    });
+    // Normalize images to canonical path-only objects
+    if (Array.isArray(documentModel.value.data.images)) {
+      documentModel.value.data.images = documentModel.value.data.images
+        .filter(Boolean)
+        .map((img) => {
+          if (typeof img === "object" && img.path) return { path: img.path };
+          return null;
+        })
+        .filter(Boolean);
+    }
 
     // Normalize + enforce caps before saving
     documentModel.value.data.featured = !!documentModel.value.data.featured;
@@ -671,10 +654,6 @@ const submit = async () => {
         }
       }
     } else {
-      documentModel.value.data.order = settingsStore.projects
-        ? Object.keys(settingsStore.projects).length + 1
-        : 0;
-
       const payload = documentModel.value;
       const result = await firebaseStore.dataCreateProjectDocument(payload);
 
@@ -736,27 +715,21 @@ const showModal = async (existingEntry) => {
   if (existingEntry) {
     isEdit.value = true;
 
-    // Prefer `date`; fall back to existing `year`.
     const incomingDate = (existingEntry.date || "").toString().trim();
-    const incomingYear = existingEntry.year ?? null;
 
     documentModel.value = {
       id: existingEntry.name,
       data: {
-        order: existingEntry.order ?? 0,
         eyebrow: existingEntry.eyebrow ?? null,
-        date: incomingDate
-          ? incomingDate
-          : incomingYear
-            ? `${incomingYear}-01-01`
-            : null,
-        year: incomingYear ?? null,
+        date: incomingDate || null,
         title: existingEntry.title ?? null,
         summary: existingEntry.summary ?? "",
         description: existingEntry.description ?? "",
         featured: existingEntry.featured ?? false,
         images: Array.isArray(existingEntry.images)
-          ? [...existingEntry.images]
+          ? existingEntry.images
+              .map((img) => (img && typeof img === "object" && img.path ? { path: img.path } : null))
+              .filter(Boolean)
           : [],
         technology: Array.isArray(existingEntry.technology)
           ? [...existingEntry.technology]

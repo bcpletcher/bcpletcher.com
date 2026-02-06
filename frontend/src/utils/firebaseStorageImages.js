@@ -79,6 +79,7 @@ export function buildResponsiveImageSourcesFromPath(originalStoragePath, {
   widths = [480, 720, 1080],
   height = 9999,
   resizedSubfolder = DEFAULT_RESIZED_SUBFOLDER,
+  preferWidth = null,
 } = {}) {
   if (!originalStoragePath || typeof originalStoragePath !== "string") {
     return {
@@ -103,7 +104,14 @@ export function buildResponsiveImageSourcesFromPath(originalStoragePath, {
     bucket && resizedPaths.length
       ? buildAltMediaUrl(
           bucket,
-          resizedPaths[Math.floor(widths.length / 2)] || resizedPaths[0]
+          (() => {
+            if (preferWidth && widths.includes(preferWidth)) {
+              const idx = widths.indexOf(preferWidth);
+              return resizedPaths[idx] || resizedPaths[resizedPaths.length - 1];
+            }
+            // Default: a middle-sized src to balance quality/bytes.
+            return resizedPaths[Math.floor(widths.length / 2)] || resizedPaths[0];
+          })()
         )
       : bucket
         ? buildAltMediaUrl(bucket, originalStoragePath)

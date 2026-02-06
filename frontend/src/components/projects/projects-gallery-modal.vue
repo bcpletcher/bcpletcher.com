@@ -178,6 +178,7 @@ const responsiveFor = (img) =>
   buildResponsiveImageSourcesFromImageValue(img, {
     bucket: storageBucket,
     widths: [480, 720, 1080],
+    preferWidth: 1080,
   });
 
 function getImageKey(img, index) {

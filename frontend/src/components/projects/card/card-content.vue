@@ -24,10 +24,10 @@
             <h3 class="min-w-0 font-medium leading-snug wrap-break-word">
               {{ title }}
               <span
-                v-if="year && showYear"
+                v-if="date && showDate"
                 class="ml-2 align-baseline text-xs font-semibold tracking-widest text-slate-400"
               >
-                {{ year }}
+                {{ date }}
               </span>
             </h3>
             <i
@@ -43,10 +43,10 @@
           >
             {{ title }}
             <span
-              v-if="year && showYear"
+              v-if="date && showDate"
               class="ml-2 align-baseline text-xs font-semibold tracking-widest text-slate-400"
             >
-              {{ year }}
+              {{ date }}
             </span>
           </h3>
         </div>
@@ -103,7 +103,7 @@
 defineProps({
   title: { type: String, required: true },
   summary: { type: String, default: "" },
-  year: { type: [Number, String], default: null },
+  date: { type: String, default: null },
 
   href: { type: String, default: null },
   technology: { type: Array, default: () => [] },
@@ -111,7 +111,7 @@ defineProps({
 
   // Visibility controls
   showTitle: { type: Boolean, default: true },
-  showYear: { type: Boolean, default: true },
+  showDate: { type: Boolean, default: true },
   showLink: { type: Boolean, default: true },
   showLinkArrow: { type: Boolean, default: true },
   showSummary: { type: Boolean, default: true },
