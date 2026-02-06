@@ -1,5 +1,9 @@
 import { defineStore } from "pinia";
-import { v4 as uuidv4 } from "uuid";
+
+function makeId() {
+  // Good enough for low-traffic UI notifications.
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
 
 export const useNotificationStore = defineStore("notification", {
   state: () => ({
@@ -8,7 +12,7 @@ export const useNotificationStore = defineStore("notification", {
   actions: {
     addNotification({ variant, title, message, duration = 5 }) {
       // Generate a unique ID for the notification
-      const uuid = uuidv4();
+      const uuid = makeId();
       let style = {
         icon: "exclamation-circle",
         colorText: "text-primary",

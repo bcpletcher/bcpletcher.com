@@ -33,17 +33,14 @@
     </div>
 
     <div class="mt-4 pt-10 border-t border-white/10 flex justify-center">
-      <router-link to="/resume" custom>
-        <template #default="{ href, navigate }">
-          <a
-            :href="href"
-            class="uppercase tracking-widest text-sm font-semibold hover:text-gradient-start transition-standard"
-            @click="navigate"
-          >
-            View Resume
-          </a>
-        </template>
-      </router-link>
+      <a
+        href="https://www.bcpletcher.com/resume.pdf"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="uppercase tracking-widest text-sm font-semibold hover:text-gradient-start transition-standard"
+      >
+        View Resume
+      </a>
     </div>
   </div>
 </template>

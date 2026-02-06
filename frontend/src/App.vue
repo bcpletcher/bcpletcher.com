@@ -86,8 +86,6 @@ const updateMousePosition = (event) => {
 };
 
 onMounted(async () => {
-  await firebaseStore.auth.signOut();
-
   isMounted.value = true;
   window.addEventListener("mousemove", updateMousePosition);
 
@@ -104,7 +102,12 @@ onMounted(async () => {
 
   // Always fetch fresh data from Firestore and overwrite cache
   settingsStore.resources = await firebaseStore.dataGetResourcesCollection();
-  settingsStore.scrapbook = await firebaseStore.dataGetScrapbookCollection();
+
+  const scrapbookDocs = await firebaseStore.dataGetScrapbookCollection();
+  // The UI expects `settingsStore.scrapbook` to be an object map.
+  settingsStore.scrapbook = Array.isArray(scrapbookDocs)
+    ? Object.fromEntries(scrapbookDocs.map((d) => [d.id, { ...d }]))
+    : scrapbookDocs;
 
   // Keep scrapbook cached in localStorage whenever it changes
   watch(

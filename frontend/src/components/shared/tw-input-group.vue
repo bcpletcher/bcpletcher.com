@@ -27,8 +27,7 @@
             :type="props.type"
             :class="[
               {
-                'cursor-not-allowed  text-gray-500':
-                  props.disabled,
+                'cursor-not-allowed  text-gray-500': props.disabled,
               },
               {
                 'pr-10 border-red-300! focus:border-red-500 dark:border-red-700! dark:focus:border-red-500 ':

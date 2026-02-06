@@ -16,7 +16,7 @@
                 :class="{ animationLogo: isHovered }"
                 @mouseenter="isHovered = true"
                 @mouseleave="isHovered = false"
-                @click="goToAdmin()"
+                @click="settingsStore.expanded = false"
               >
                 <img
                   v-if="settingsStore.resources"
@@ -100,7 +100,6 @@ import { useSettingsStore } from "@/stores/settings.js";
 import About from "@/components/navigation/pages/about.vue";
 import Contact from "@/components/navigation/pages/contact.vue";
 import Experience from "@/components/navigation/pages/experience.vue";
-import router from "@/router/index.js";
 const { width, isBreakpointOrBelow } = useBreakpoints();
 
 const settingsStore = useSettingsStore();
@@ -134,12 +133,7 @@ const contentWidth = computed(() => {
   }
 });
 
-const goToAdmin = () => {
-  settingsStore.expanded = false;
-  setTimeout(() => {
-    router.push("/admin");
-  }, 500);
-};
+// Admin removed on archive branch.
 </script>
 
 <style lang="scss">

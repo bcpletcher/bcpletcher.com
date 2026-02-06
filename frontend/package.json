@@ -7,30 +7,22 @@
     "serve": "NODE_ENV=development vite --config=vite.config.dev.mjs",
     "build": "vite build --config=vite.config.prod.mjs",
     "preview": "vite preview --config=vite.config.prod.mjs",
-    "lint": "eslint ."
+    "lint": "eslint \"src/**/*.{js,vue}\" \"*.{js,mjs,cjs}\""
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.6",
     "@headlessui/vue": "^1.7.22",
     "@heroicons/vue": "^2.1.5",
-    "axios": "^1.7.4",
-    "dotenv": "^16.4.5",
     "firebase": "^10.13.0",
-    "firebaseui": "^6.1.0",
-    "fontfaceobserver": "^2.3.0",
-    "lodash": "^4.17.21",
-    "moment": "^2.30.1",
     "pinia": "^2.2.2",
     "swiper": "^11.2.10",
     "tailwind-scrollbar": "^3.1.0",
-    "uuid": "^10.0.0",
     "vue": "^3.4.38",
-    "vue-draggable-next": "^2.2.1",
     "vue-router": "^4.4.3"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",
-    "@vitejs/plugin-vue": "^5.1.2",
+    "@vitejs/plugin-vue": "5.2.4",
     "@vue/eslint-config-prettier": "^7.1.0",
     "autoprefixer": "^10.4.20",
     "cssnano": "^7.0.5",
@@ -40,8 +32,7 @@
     "prettier": "^2.8.8",
     "sass": "^1.77.8",
     "tailwindcss": "^3.4.10",
-    "vite": "^5.4.1",
-    "vite-plugin-eslint": "^1.8.1",
-    "vite-plugin-vue-devtools": "^7.3.8"
+    "vite": "5.4.21",
+    "vite-plugin-eslint": "^1.8.1"
   }
 }

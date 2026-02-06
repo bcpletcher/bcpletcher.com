@@ -13,12 +13,6 @@ const routes = [
     component: () => import("@/views/Scrapbook.vue"),
   },
   {
-    path: "/admin",
-    name: "Admin",
-    component: () => import("@/views/Admin.vue"),
-    meta: {},
-  },
-  {
     path: "/resume",
     name: "Resume",
     component: () => import("@/views/Resume.vue"),
