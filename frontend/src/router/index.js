@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { setCanonical } from "@/utils/seo.js";
 
 // Opt out of the browser's scroll restoration so SPA navigations don't inherit
 // previous scroll positions (notably on mobile Safari).
@@ -52,6 +53,11 @@ const router = createRouter({
       });
     });
   },
+});
+
+// Keep canonical URL in sync with the current route.
+router.afterEach((to) => {
+  setCanonical(to.path);
 });
 
 function forceWindowScrollTop() {
