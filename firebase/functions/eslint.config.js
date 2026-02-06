@@ -10,10 +10,10 @@ module.exports = [
   },
   js.configs.recommended,
   {
-    files: ["**/*.js"],
+    files: ["**/*.{js,mjs}"],
     languageOptions: {
-      ecmaVersion: 2018,
-      sourceType: "script",
+      ecmaVersion: 2022,
+      sourceType: "module",
       globals: {
         ...globals.node,
       },

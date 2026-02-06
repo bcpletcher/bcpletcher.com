@@ -14,7 +14,9 @@
           :class="isEmulatorEnabled ? 'bg-amber-300' : 'bg-sky-300'"
           aria-hidden="true"
         />
-        <p class="min-w-0 truncate text-xs font-semibold tracking-widest uppercase">
+        <p
+          class="min-w-0 truncate text-xs font-semibold tracking-widest uppercase"
+        >
           <span v-if="settingsStore.isSignedIn">Signed in</span>
           <span v-else>Admin tools</span>
           <span v-if="isEmulatorEnabled" class="opacity-80">
@@ -24,7 +26,22 @@
       </div>
 
       <!-- Keep a stable action area so height doesn't change when buttons appear/disappear -->
-      <div class="flex items-center gap-2 py-2.5 min-h-11">
+      <div class="flex items-center gap-4 py-2.5 min-h-11">
+        <button
+          v-if="isLoggedIn"
+          type="button"
+          class="kbd-focus cursor-pointer rounded-md px-2.5 py-1 text-xs font-semibold transition-standard"
+          :class="
+            settingsStore.impersonateUser
+              ? 'bg-sky-300/20 text-sky-100 hover:bg-sky-300/30'
+              : 'bg-white/10 text-amber-50 hover:bg-white/15'
+          "
+          @click="toggleImpersonate"
+        >
+          <span v-if="settingsStore.impersonateUser">Viewing as user</span>
+          <span v-else>Impersonate user</span>
+        </button>
+
         <button
           v-if="isLoggedIn"
           type="button"
@@ -32,6 +49,15 @@
           @click="openCreate"
         >
           Create Project
+        </button>
+
+        <button
+          v-if="isLoggedIn"
+          type="button"
+          class="kbd-focus cursor-pointer rounded-md px-2.5 py-1 text-xs font-semibold text-amber-100/90 hover:bg-amber-900/40 hover:text-amber-50 transition-standard"
+          @click="clearCache"
+        >
+          Clear cache
         </button>
 
         <button
@@ -59,9 +85,12 @@ import { signOut } from "firebase/auth";
 import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
+import { clearProjectsCache } from "@/utils/cache.js";
+import { useNotificationStore } from "@/stores/notification.js";
 
 const firebaseStore = useFirebaseStore();
 const settingsStore = useSettingsStore();
+const notificationStore = useNotificationStore();
 
 const isEmulatorEnabled =
   String(import.meta.env.VITE_USE_EMULATOR).toLowerCase() === "true";
@@ -72,30 +101,44 @@ const isLoggedIn = computed(() => Boolean(settingsStore.user?.uid));
 
 const createEntryModalRef = useTemplateRef("createEntryModalRef");
 
-/**
- * TODO(admin): Clear cache
- * - Clear any client-side caches used for projects (localStorage + IndexedDB).
- * - Consider clearing: localStorage keys like `projectsCache` and any idb databases.
- * - Should also refresh in-memory store state after clearing.
- *
- * TODO(admin): Verify edits
- * - Add a lightweight "verify" step before persisting admin edits (esp. delete/reorder).
- * - Options: diff preview modal, validation checks, or a simple "Are you sure?".
- * - After save, re-fetch/reconcile with Firestore to ensure UI matches server.
- *
- * TODO(admin): Toggle non-admin view
- * - Provide a banner toggle to temporarily hide admin-only UI while still signed in.
- * - Intended for QA: ensure public layout/behaviors without signing out.
- * - Likely lives in settingsStore (e.g. `adminPreviewPublicMode`) and is checked by admin-only components.
- */
+async function clearCache() {
+  try {
+    await clearProjectsCache();
+
+    notificationStore.addNotification({
+      variant: "success",
+      title: "Cache cleared",
+      message: "Projects cache cleared. Reloading…",
+      duration: 2,
+    });
+
+    // Reload so boot sequence runs without cached payload.
+    setTimeout(() => {
+      window.location.reload();
+    }, 600);
+  } catch (e) {
+    console.warn("Failed to clear projects cache", e);
+    notificationStore.addNotification({
+      variant: "danger",
+      title: "Cache not cleared",
+      message: "Couldn’t clear the cache. Check console for details.",
+      duration: 4,
+    });
+  }
+}
 
 function openCreate() {
   createEntryModalRef.value?.showModal?.();
+}
+
+function toggleImpersonate() {
+  settingsStore.impersonateUser = !settingsStore.impersonateUser;
 }
 
 const logout = async () => {
   await signOut(firebaseStore.auth);
   // Defensive: ensure UI updates even if auth listener is elsewhere.
   settingsStore.user = {};
+  settingsStore.impersonateUser = false;
 };
 </script>

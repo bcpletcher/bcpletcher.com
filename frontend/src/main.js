@@ -9,6 +9,7 @@ import "./assets/css/global.css";
 import "./assets/css/tailwind.css";
 
 import gsapReveal from "./directives/gsap-reveal";
+import { initAnalytics } from "./utils/analytics";
 
 // Always start at the top on hard refresh.
 // Some browsers try to restore scroll on reload; this opts out when available.
@@ -21,6 +22,8 @@ if (typeof window !== "undefined") {
     // no-op
   }
 }
+
+initAnalytics();
 
 const app = createApp(App);
 

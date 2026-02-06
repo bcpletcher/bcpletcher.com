@@ -108,7 +108,7 @@ const settingsStore = useSettingsStore();
 
 const adminUpsertRef = ref(null);
 
-const isAdmin = computed(() => settingsStore.isSignedIn);
+const isAdmin = computed(() => settingsStore.isAdminView);
 
 function openEditById(projectId) {
   if (!isAdmin.value) return;

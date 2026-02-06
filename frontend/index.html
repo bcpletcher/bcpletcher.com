@@ -44,15 +44,7 @@
 
     <link rel="preload" href="/resume.pdf" as="fetch" crossorigin="anonymous" />
 
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-144556565-1"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'UA-144556565-1');
-    </script>
+    <!-- Analytics is initialized in src/main.js (env-driven) to avoid BFCache blockers -->
 
     <!-- Load Font Awesome after initial paint to avoid render-blocking font/CSS work in Lighthouse -->
     <script>

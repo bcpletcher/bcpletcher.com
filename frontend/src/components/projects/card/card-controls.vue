@@ -60,7 +60,7 @@ const settingsStore = useSettingsStore();
 const firebaseStore = useFirebaseStore();
 const notificationStore = useNotificationStore();
 
-const isAdmin = computed(() => settingsStore.isSignedIn);
+const isAdmin = computed(() => settingsStore.isAdminView);
 
 function handleEdit() {
   if (!isAdmin.value) return;
