@@ -59,14 +59,13 @@
                 :key="project.id || `${y}-${idx}`"
                 :project-id="project.id"
                 :title="project.title"
-                :year="project.year"
+                :date="project.date"
                 :summary="project.description"
-                :hero="project.hero"
                 :images="project.images"
                 :href="project.url"
                 :technology="project.technology"
                 :featured="project.featured"
-                :show-year="false"
+                :show-date="false"
                 :show-featured="false"
                 :show-admin-controls="isAdmin"
                 :is-hidden="settingsStore.projects?.[project.id]?.hidden"
@@ -100,6 +99,7 @@ import ProjectsCard from "@/components/projects/card/card.vue";
 import ProjectsGalleryModal from "@/components/projects/projects-gallery-modal.vue";
 import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
 import { useSettingsStore } from "@/stores/settings.js";
+import { getYearFromProjectDate, normalizeProjectDate } from "@/utils/projectDate.js";
 
 const settingsStore = useSettingsStore();
 
@@ -132,37 +132,37 @@ const projects = computed(() => {
       if (isAdmin.value) return true;
       return !item?.hidden;
     })
-    .sort((a, b) => {
-      const ay = typeof a.year === "number" ? a.year : Number.NEGATIVE_INFINITY;
-      const by = typeof b.year === "number" ? b.year : Number.NEGATIVE_INFINITY;
-      if (ay !== by) return by - ay; // newest first
+    .map((item) => {
+      // Canonical Firestore: YYYY-MM-DD
+      const normalizedDate = normalizeProjectDate(item.date);
+      const yearFromDate = getYearFromProjectDate(normalizedDate);
 
-      // Secondary sort: explicit order if present (ascending)
-      const ao =
-        typeof a.order === "number" ? a.order : Number.POSITIVE_INFINITY;
-      const bo =
-        typeof b.order === "number" ? b.order : Number.POSITIVE_INFINITY;
-      if (ao !== bo) return ao - bo;
+      return {
+        id: item.id,
+        title: item.title || "Untitled",
+        date: normalizedDate,
+        year: yearFromDate,
+        description: item.description || "",
+        images: Array.isArray(item.images) ? item.images : [],
+        url: item.url || null,
+        technology: item.technology || [],
+        featured: Boolean(item.featured),
+        hidden: Boolean(item.hidden),
+      };
+    })
+    // Require at least one image to show the card
+    .filter((item) => item.images?.length)
+    .sort((a, b) => {
+      // Primary sort: canonical date (newest first). ISO date strings are safe to compare.
+      const ad = a.date || "";
+      const bd = b.date || "";
+      if (ad !== bd) return bd.localeCompare(ad);
 
       // Stable-ish fallback
-      const at = (a.title || "").toString();
-      const bt = (b.title || "").toString();
-      return at.localeCompare(bt);
-    })
-    .map((item) => ({
-      id: item.id,
-      title: item.title || "Untitled",
-      year: item.year ?? null,
-      description: item.description || "",
-      hero:
-        item.hero || (Array.isArray(item.images) ? item.images?.[0] : "") || "",
-      images: Array.isArray(item.images) ? item.images : null,
-      url: item.url || null,
-      technology: item.technology || [],
-      featured: Boolean(item.featured),
-      hidden: Boolean(item.hidden),
-    }))
-    .filter((item) => item.hero);
+      const aTitle = (a.title || "").toString();
+      const bTitle = (b.title || "").toString();
+      return aTitle.localeCompare(bTitle);
+    });
 });
 
 const years = computed(() => {

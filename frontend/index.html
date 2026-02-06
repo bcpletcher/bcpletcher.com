@@ -3,18 +3,35 @@
   <head>
     <meta charset="utf-8">
     <title>Benjamin Pletcher - UX/UI Designer & Full Stack Developer</title>
+    <link rel="canonical" href="https://www.bcpletcher.com/" />
     <meta
       name="description"
       content="Benjamin Pletcher is a senior software engineer building accessible, pixel-perfect digital experiences from interface to production. View featured work and projects."
     >
+
+    <!-- Open Graph / Twitter (no visual impact, helps SEO when sharing) -->
+    <meta property="og:site_name" content="Benjamin Pletcher" />
+    <meta property="og:title" content="Benjamin Pletcher - UX/UI Designer & Full Stack Developer" />
+    <meta
+      property="og:description"
+      content="Benjamin Pletcher is a senior software engineer building accessible, pixel-perfect digital experiences from interface to production. View featured work and projects."
+    />
+    <meta property="og:url" content="https://www.bcpletcher.com/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Benjamin Pletcher - UX/UI Designer & Full Stack Developer" />
+    <meta
+      name="twitter:description"
+      content="Benjamin Pletcher is a senior software engineer building accessible, pixel-perfect digital experiences from interface to production. View featured work and projects."
+    />
+
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <script
-      src="https://kit.fontawesome.com/b5b13ceb62.js"
-      crossorigin="anonymous"
-      defer
-    ></script>
+    <!-- Reduce latency for third-party critical chains -->
+    <link rel="preconnect" href="https://kit.fontawesome.com" crossorigin>
+    <link rel="preconnect" href="https://ka-p.fontawesome.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
 
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
@@ -37,6 +54,24 @@
       gtag('config', 'UA-144556565-1');
     </script>
 
+    <!-- Load Font Awesome after initial paint to avoid render-blocking font/CSS work in Lighthouse -->
+    <script>
+      (function () {
+        const loadFA = () => {
+          const s = document.createElement("script");
+          s.src = "https://kit.fontawesome.com/b5b13ceb62.js";
+          s.crossOrigin = "anonymous";
+          s.defer = true;
+          document.head.appendChild(s);
+        };
+
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(loadFA, { timeout: 2000 });
+        } else {
+          setTimeout(loadFA, 1200);
+        }
+      })();
+    </script>
 
   </head>
   <body>

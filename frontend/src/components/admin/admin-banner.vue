@@ -74,8 +74,8 @@ const createEntryModalRef = useTemplateRef("createEntryModalRef");
 
 /**
  * TODO(admin): Clear cache
- * - Clear any client-side caches used for content/scrapbook (localStorage + IndexedDB).
- * - Consider clearing: localStorage keys like `scrapbookCache` and any idb databases.
+ * - Clear any client-side caches used for projects (localStorage + IndexedDB).
+ * - Consider clearing: localStorage keys like `projectsCache` and any idb databases.
  * - Should also refresh in-memory store state after clearing.
  *
  * TODO(admin): Verify edits

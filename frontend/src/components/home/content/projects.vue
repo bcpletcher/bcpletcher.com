@@ -46,7 +46,7 @@ const items = computed(() => {
     .filter((p) => !!p?.featured)
     .sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
     .map((p) => ({
-      hero: p?.hero || p?.images?.[0] || "",
+      hero: Array.isArray(p?.images) ? p.images[0] || "" : "",
       title: p?.title || "Untitled",
       summary: p?.summary || "",
       technology: Array.isArray(p?.technology) ? p.technology : [],

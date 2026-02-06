@@ -37,15 +37,31 @@ function callable(handler) {
 
 exports.getProjectsCollection = callable(({ data, auth }) => {
   const context = { auth };
-  return database.getCollection(data, context, firestore, "scrapbook");
+  return database.getCollection(data, context, firestore, "projects");
 });
 
 exports.createProjectDocument = callable(({ data, auth }) => {
   const context = { auth };
-  return database.createDocument(data, context, firestore, "scrapbook");
+  return database.createDocument(data, context, firestore, "projects");
 });
 
 exports.updateProjectDocument = callable(({ data, auth }) => {
+  const context = { auth };
+  return database.updateDocument(data, context, firestore, "projects");
+});
+
+// --- Archive-only: scrapbook endpoints (kept for admin/legacy tooling) ---
+exports.getScrapbookCollection = callable(({ data, auth }) => {
+  const context = { auth };
+  return database.getCollection(data, context, firestore, "scrapbook");
+});
+
+exports.createScrapbookDocument = callable(({ data, auth }) => {
+  const context = { auth };
+  return database.createDocument(data, context, firestore, "scrapbook");
+});
+
+exports.updateScrapbookDocument = callable(({ data, auth }) => {
   const context = { auth };
   return database.updateDocument(data, context, firestore, "scrapbook");
 });

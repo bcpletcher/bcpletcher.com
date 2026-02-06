@@ -4,8 +4,12 @@
     <div class="z-10 mb-2 sm:col-span-2">
       <img
         class="mt-1 w-full rounded border border-white/10 bg-white/5 object-cover"
-        :src="hero"
+        :src="img.src"
+        :srcset="img.srcset || undefined"
+        sizes="(min-width: 640px) 16rem, 100vw"
         :alt="imageAlt"
+        width="1280"
+        height="720"
         loading="lazy"
         decoding="async"
       />
@@ -64,11 +68,13 @@
 
 <script setup>
 import CardWrapper from "@/components/home/content/card-wrapper.vue";
+import { computed } from "vue";
+import { buildResponsiveImageSourcesFromImageValue } from "@/utils/firebaseStorageImages.js";
 
-defineProps({
+const props = defineProps({
   title: { type: String, required: true },
   summary: { type: String, default: "" },
-  hero: { type: String, required: true },
+  hero: { type: [String, Object], required: true },
   href: { type: String, default: null },
   technology: { type: Array, default: () => [] },
   ariaLabel: { type: String, default: "Project (opens in a new tab)" },
@@ -76,4 +82,12 @@ defineProps({
   metaText: { type: String, default: "" },
   isLast: { type: Boolean, default: false },
 });
+
+const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+const img = computed(() =>
+  buildResponsiveImageSourcesFromImageValue(props.hero, {
+    bucket: storageBucket,
+    widths: [480, 720, 1080],
+  })
+);
 </script>

@@ -89,13 +89,17 @@
                 @swiper="onSwiper"
                 @slide-change="onSlideChange"
               >
-                <SwiperSlide v-for="(src, i) in images" :key="src + i">
+                <SwiperSlide v-for="(src, i) in images" :key="getImageKey(src, i)">
                   <div class="h-full w-full">
                     <div class="h-full w-full overflow-hidden">
                       <img
                         class="h-full w-full select-none object-contain"
-                        :src="src"
+                        :src="responsiveFor(src).src"
+                        :srcset="responsiveFor(src).srcset || undefined"
+                        sizes="100vw"
                         :alt="`${title || 'Project'} image ${i + 1}`"
+                        width="1280"
+                        height="720"
                         loading="eager"
                         decoding="async"
                         draggable="false"
@@ -137,6 +141,7 @@
 <script setup>
 import { nextTick, onBeforeUnmount, ref, watch } from "vue";
 import gsap from "gsap";
+import { buildResponsiveImageSourcesFromImageValue } from "@/utils/firebaseStorageImages.js";
 
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { Keyboard } from "swiper/modules";
@@ -167,6 +172,22 @@ const prefersReducedMotion =
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const modules = [Keyboard];
+
+const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+const responsiveFor = (img) =>
+  buildResponsiveImageSourcesFromImageValue(img, {
+    bucket: storageBucket,
+    widths: [480, 720, 1080],
+    preferWidth: 1080,
+  });
+
+function getImageKey(img, index) {
+  if (!img) return `img-${index}`;
+  if (typeof img === "string") return `img-url-${img}`;
+  if (typeof img === "object" && img.path) return `img-path-${img.path}`;
+  if (typeof img === "object" && img.url) return `img-url-${img.url}`;
+  return `img-${index}`;
+}
 
 function close() {
   emit("update:modelValue", false);

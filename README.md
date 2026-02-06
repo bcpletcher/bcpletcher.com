@@ -167,7 +167,7 @@ firebase deploy
 ## Performance notes
 ### `/resume`
 The `/resume` route is optimized for fast direct loads:
-- Does **not** wait for scrapbook APIs
+- Does **not** wait for projects APIs
 - Does **not** show the fullscreen boot loader
 - Skips loading the Font Awesome kit on `/resume` (loaded dynamically on other routes)
 

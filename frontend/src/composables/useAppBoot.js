@@ -21,7 +21,7 @@ import { withTimeout } from "@/utils/asyncTimeout.js";
  *
  * Contract:
  * - Hydrates stores from cache when fresh (skips network + loader).
- * - Otherwise fetches featured then full scrapbook, writes caches (non-blocking).
+ * - Otherwise fetches featured then full projects collection, writes caches (non-blocking).
  * - Exposes state to drive the fullscreen loader.
  */
 export function useAppBoot() {
@@ -82,7 +82,7 @@ export function useAppBoot() {
           }
         } catch (e) {
           // Ignore cache failures (private mode / blocked storage / etc.)
-          console.warn("Scrapbook cache unavailable:", e);
+          console.warn("Projects cache unavailable:", e);
         }
 
         if (cacheIsFresh) {
@@ -100,16 +100,16 @@ export function useAppBoot() {
       showLoader.value = true;
 
       // 2) Full fetch (fatal if fails)
-      const scrapbookFresh = await firebaseStore.dataGetProjectsCollection();
-      console.log("[boot] scrapbook API resolved", {
-        keys: scrapbookFresh ? Object.keys(scrapbookFresh).length : 0,
+      const projectsFresh = await firebaseStore.dataGetProjectsCollection();
+      console.log("[boot] projects API resolved", {
+        keys: projectsFresh ? Object.keys(projectsFresh).length : 0,
       });
 
-      settingsStore.projects = scrapbookFresh;
+      settingsStore.projects = projectsFresh;
 
       if (CACHE_ENABLED) {
         withTimeout(
-          saveProjectsToCache(scrapbookFresh),
+          saveProjectsToCache(projectsFresh),
           1000,
           "Projects cache write timed out"
         ).catch((e) => {
@@ -118,7 +118,8 @@ export function useAppBoot() {
       }
 
       if (SIMULATE_BOOT_ERROR) {
-        throw new Error("[boot-test] Simulated boot error");
+        // Don't throw (caught locally) — set the error state directly.
+        bootError.value = "[boot-test] Simulated boot error";
       }
     } catch (err) {
       console.error("App boot failed:", err);
