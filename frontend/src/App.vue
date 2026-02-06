@@ -14,9 +14,12 @@
         @done="onLoaderDone"
       />
 
-      <div class="mx-auto min-h-screen max-w-7xl px-6 py-12 font-sans md:px-12 md:py-16 lg:py-0">
+      <main
+        id="main"
+        class="mx-auto min-h-screen max-w-7xl px-6 py-12 font-sans md:px-12 md:py-16 lg:py-0"
+      >
         <router-view />
-      </div>
+      </main>
     </div>
   </div>
 </template>
