@@ -13,7 +13,7 @@
               :class="
                 activeSectionId === item.id
                   ? 'bg-slate-100 w-16'
-                  : 'bg-slate-500 w-9'
+                  : 'bg-slate-400 w-9'
               "
             />
             <span
@@ -21,7 +21,7 @@
               :class="
                 activeSectionId === item.id
                   ? 'text-slate-100'
-                  : 'text-slate-500 group-hover:text-slate-100'
+                  : 'text-slate-400 group-hover:text-slate-100'
               "
             >
               {{ item.label }}

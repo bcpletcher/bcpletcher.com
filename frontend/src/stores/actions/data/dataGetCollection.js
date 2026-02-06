@@ -1,12 +1,17 @@
 import { httpsCallable } from "firebase/functions";
 
-export async function dataGetCollection(functions, functionName) {
+export async function dataGetCollection(functions, functionName, ..._ignored) { // eslint-disable-line no-unused-vars
   // Cache has been intentionally disabled.
   try {
     const getFunction = httpsCallable(functions, functionName);
     const functionResult = await getFunction();
 
     const data = functionResult.data;
+
+    // If the backend returns { error }, treat it as a failure so callers don't silently render empty pages.
+    if (data && typeof data === "object" && data.error) {
+      throw new Error(data.error);
+    }
 
     // Generic normalization for entries
     if (data && typeof data === "object") {

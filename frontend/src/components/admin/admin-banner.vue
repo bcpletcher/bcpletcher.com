@@ -14,7 +14,9 @@
           :class="isEmulatorEnabled ? 'bg-amber-300' : 'bg-sky-300'"
           aria-hidden="true"
         />
-        <p class="min-w-0 truncate text-xs font-semibold tracking-widest uppercase">
+        <p
+          class="min-w-0 truncate text-xs font-semibold tracking-widest uppercase"
+        >
           <span v-if="settingsStore.isSignedIn">Signed in</span>
           <span v-else>Admin tools</span>
           <span v-if="isEmulatorEnabled" class="opacity-80">
@@ -24,14 +26,20 @@
       </div>
 
       <!-- Keep a stable action area so height doesn't change when buttons appear/disappear -->
-      <div class="flex items-center gap-2 py-2.5 min-h-11">
+      <div class="flex items-center gap-4 py-2.5 min-h-11">
         <button
           v-if="isLoggedIn"
           type="button"
-          class="kbd-focus cursor-pointer rounded-md px-2.5 py-1 text-xs font-semibold text-amber-100/90 hover:bg-amber-900/40 hover:text-amber-50 transition-standard"
-          @click="clearCache"
+          class="kbd-focus cursor-pointer rounded-md px-2.5 py-1 text-xs font-semibold transition-standard"
+          :class="
+            settingsStore.impersonateUser
+              ? 'bg-sky-300/20 text-sky-100 hover:bg-sky-300/30'
+              : 'bg-white/10 text-amber-50 hover:bg-white/15'
+          "
+          @click="toggleImpersonate"
         >
-          Clear cache
+          <span v-if="settingsStore.impersonateUser">Viewing as user</span>
+          <span v-else>Impersonate user</span>
         </button>
 
         <button
@@ -41,6 +49,15 @@
           @click="openCreate"
         >
           Create Project
+        </button>
+
+        <button
+          v-if="isLoggedIn"
+          type="button"
+          class="kbd-focus cursor-pointer rounded-md px-2.5 py-1 text-xs font-semibold text-amber-100/90 hover:bg-amber-900/40 hover:text-amber-50 transition-standard"
+          @click="clearCache"
+        >
+          Clear cache
         </button>
 
         <button
@@ -114,9 +131,14 @@ function openCreate() {
   createEntryModalRef.value?.showModal?.();
 }
 
+function toggleImpersonate() {
+  settingsStore.impersonateUser = !settingsStore.impersonateUser;
+}
+
 const logout = async () => {
   await signOut(firebaseStore.auth);
   // Defensive: ensure UI updates even if auth listener is elsewhere.
   settingsStore.user = {};
+  settingsStore.impersonateUser = false;
 };
 </script>

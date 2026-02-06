@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { execSync } from "node:child_process";
 
 // Kills any processes listening on the standard Firebase emulator ports and

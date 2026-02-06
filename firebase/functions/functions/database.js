@@ -66,40 +66,6 @@ exports.createDocument = async (data, context, firestore, collectionName) => {
   }
 };
 
-exports.updateScrapbookDocumentOrder = async (data, context, firestore, collectionName) => {
-  try {
-    // Fetch all documents in the collection
-    const snapshot = await firestore.collection(collectionName).get();
-
-    if (snapshot.empty) {
-      return {success: false, message: "No documents found in the collection."};
-    }
-
-    // Prepare a Firestore batch
-    const batch = firestore.batch();
-
-    // Iterate over all documents and update the 'order' field
-    snapshot.docs.forEach((doc) => {
-      const docRef = firestore.collection(collectionName).doc(doc.id);
-
-      // Assuming `data.orderUpdates` is a function or logic to calculate the new 'order'
-      // Example: If `data.orderUpdates` is an object with { id: newOrderValue }
-      const newOrderValue = data.documents[doc.id].order || doc.data().order; // Update or keep the existing value
-
-      // Update the 'order' field
-      batch.update(docRef, {order: newOrderValue});
-    });
-
-    // Commit the batch
-    await batch.commit();
-
-    return {success: true, message: "Collection updated successfully."};
-  } catch (error) {
-    console.error(`Error updating collection ${collectionName}:`, error);
-    return {success: false, error: error.message};
-  }
-};
-
 exports.updateDocument = async (data, context, firestore, collectionName) => {
   try {
     if (!data || !data.document || !data.document.id) {

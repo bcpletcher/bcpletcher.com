@@ -5,12 +5,13 @@
     "lint": "eslint .",
     "env:java": "JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home PATH=$JAVA_HOME/bin:$PATH",
     "emulators:kill": "node ./scripts/kill-emulators.mjs",
-    "seed:refresh": "EXPORT_PREFIX=${EXPORT_PREFIX:-gs://pletcher-portfolio-app.firebasestorage.app/firestore-exports} && LATEST=$(gsutil ls -d \"$EXPORT_PREFIX/*\" | tail -n 1) && echo \"Downloading seed: $LATEST\" && rm -rf ../.databases/imports/firestore && mkdir -p ../.databases/imports/firestore && gsutil -m cp -r \"$LATEST\" ../.databases/imports/firestore/",
-    "seed:path": "node ./scripts/find-latest-firestore-export.mjs",
-    "serve": "npm run emulators:kill && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json",
-    "serve:seeded": "npm run emulators:kill && (test -d ../.databases/imports/firestore || npm run seed:refresh) && SEED_DIR=$(npm run -s seed:path) && echo \"Importing Firestore from: $SEED_DIR\" && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app --import \"$SEED_DIR\"",
-    "serve:aio": "npm run emulators:kill && npm run seed:refresh && SEED_DIR=$(npm run -s seed:path) && echo \"Importing Firestore from: $SEED_DIR\" && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app --import \"$SEED_DIR\"",
-    "functions:shell": "npm run env:java -- npx firebase-tools functions:shell --config ../../firebase.json",
+
+    "seed:from-prod": "node ./scripts/seed-from-prod.mjs",
+
+    "serve": "npm run emulators:kill && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app",
+    "serve:seeded": "npm run emulators:kill && echo \"Importing Firestore from: ../.databases/imports/firestore/latest\" && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app --import ../.databases/imports/firestore/latest",
+    "serve:aio": "npm run seed:from-prod && npm run serve:seeded",
+
     "deploy:functions": "npm run env:java -- npx firebase-tools deploy --only functions --config ../../firebase.json",
     "logs:functions": "npm run env:java -- npx firebase-tools functions:log --config ../../firebase.json"
   },
