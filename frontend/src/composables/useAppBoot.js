@@ -6,10 +6,7 @@ import {
   computeLoaderMinMs,
   LOADER_DEFAULTS,
 } from "@/constants/loaderTiming.js";
-import {
-  unlockBodyScroll,
-  useScrollLock,
-} from "@/composables/useScrollLock.js";
+import { useOverlayScrollLock } from "@/composables/useOverlayScrollLock.js";
 import {
   loadProjectsFromCache,
   saveProjectsToCache,
@@ -90,7 +87,6 @@ export function useAppBoot() {
           didDecideBoot.value = true;
           showLoader.value = false;
           isBootLoading.value = false;
-          unlockBodyScroll();
           return;
         }
       }
@@ -148,12 +144,13 @@ export function useAppBoot() {
     // If a boot error happened, we intentionally keep the overlay visible.
     if (bootError.value) return;
     showLoader.value = false;
-    unlockBodyScroll();
   };
 
   onMounted(() => {
-    // Lock scroll while loader is shown.
-    useScrollLock(() => showLoader.value);
+    // Lock scroll while loader is visible.
+    // The loader emits `done` only after its fade-out completes, so this avoids
+    // scrollbar/padding changes while the overlay is still on screen.
+    useOverlayScrollLock(() => showLoader.value);
 
     boot();
 
@@ -165,7 +162,7 @@ export function useAppBoot() {
   });
 
   onUnmounted(() => {
-    unlockBodyScroll();
+    // no-op: useOverlayScrollLock cleans up on unmount
   });
 
   return {
