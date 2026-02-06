@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen w-full bg-slate-900 text-slate-400">
+  <div class="min-h-screen w-full bg-slate-900 text-slate-300">
     <!-- App content mounts immediately behind the loader so there's no repaint/jump when loader disappears -->
     <div class="min-h-screen w-full">
       <AdminBanner />
