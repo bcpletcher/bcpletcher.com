@@ -36,25 +36,16 @@
         />
       </transition>
     </template>
-
-    <div
-      aria-live="assertive"
-      class="fixed inset-0 flex items-end justify-center p-4 pointer-events-none sm:justify-end z-50"
-    >
-      <notifications />
-    </div>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import Sidebar from "@/components/navigation/sidebar.vue";
-import Notifications from "@/components/shared/notifications.vue";
 import { useFirebaseStore } from "@/stores/firebase.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { useBreakpoints } from "@/composables/breakpoints.js";
 import { useRoute } from "vue-router";
-// import { useNotificationStore } from "@/stores/notification.js";
 const route = useRoute();
 
 const firebaseStore = useFirebaseStore();
