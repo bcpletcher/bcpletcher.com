@@ -7,6 +7,12 @@
       "hosting": {
         "prod": [
           "pletcher-portfolio-app"
+        ],
+        "v1": [
+          "bcpletcher-v1"
+        ]
+        "v1": [
+          "bcpletcher-v1",
         ]
       }
     }
