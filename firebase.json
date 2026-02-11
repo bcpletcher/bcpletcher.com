@@ -30,7 +30,6 @@
   },
   "hosting": [
     {
-      "target": "prod",
       "site": "pletcher-portfolio-app",
       "public": "frontend/dist",
       "ignore": [
