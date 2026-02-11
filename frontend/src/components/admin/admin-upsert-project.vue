@@ -570,7 +570,7 @@ const submit = async () => {
          pendingFiles.value.forEach(({ previewUrl }) => {
            try {
              URL.revokeObjectURL(previewUrl);
-           } catch (e) {
+           } catch {
              // no-op
            }
          });

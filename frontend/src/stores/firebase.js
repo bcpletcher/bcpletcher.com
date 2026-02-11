@@ -86,12 +86,11 @@ async function waitForStorageObject(ref, {
 
   // Poll by requesting metadata. This is cheaper than download and works with public/private.
   // If it times out, we let the caller decide how to proceed.
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
       await getMetadata(ref);
       return true;
-    } catch (e) {
+    } catch {
       // Firebase Storage errors can vary; treat any failure as "not ready" during the window.
       if (Date.now() - started >= timeoutMs) return false;
       await sleep(delay);
