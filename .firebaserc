@@ -5,16 +5,11 @@
   "targets": {
     "pletcher-portfolio-app": {
       "hosting": {
-        "v1": [
-          "bcpletcher-v1",
-          "v1"
-        ],
-        "v2": [
-          "bcpletcher-v2",
-          "v2"
-        ],
         "prod": [
           "pletcher-portfolio-app"
+        ]
+        "v1": [
+          "bcpletcher-v1",
         ]
       }
     }
