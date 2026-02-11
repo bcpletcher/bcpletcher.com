@@ -31,7 +31,7 @@ const firestore = getFirestore(firebaseApp);
 
 setLogLevel("silent");
 
-const CACHE_PREFIX = "bcpletcher:v2:firestore:";
+const CACHE_PREFIX = "bcpletcher:v1:firestore:";
 const CACHE_TTL_MS = (() => {
   const raw = import.meta.env.VITE_FIRESTORE_CACHE_TTL_HOURS;
   const hours =
@@ -100,7 +100,7 @@ export const useFirebaseStore = defineStore("firebase", {
   }),
   actions: {
     async dataGetScrapbookCollection() {
-      return fetchCollectionAsArray("v2-projects", {
+      return fetchCollectionAsArray("v1-projects", {
         orderByField: "order",
         cache: true,
       });

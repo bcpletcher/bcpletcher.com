@@ -1,14 +1,14 @@
-name: Deploy to Firebase Hosting (v2)
+name: Deploy to Firebase Hosting (v1)
 
 on:
   push:
     branches:
-      - archives/v2
+      - archives/v1
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: V2
+    environment: V1
 
     env:
       VITE_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
@@ -53,5 +53,5 @@ jobs:
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
-      - name: Deploy to Firebase Hosting (v2 target)
-        run: firebase deploy --only hosting:v2 --project pletcher-portfolio-app
+      - name: Deploy to Firebase Hosting (v1 target)
+        run: firebase deploy --only hosting:v1 --project pletcher-portfolio-app

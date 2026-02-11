@@ -38,3 +38,7 @@ key.json
 
 # Client Configuration
 .env*
+
+# JetBrains IDE
+.idea/
+
