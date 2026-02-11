@@ -9,10 +9,23 @@
         :hero="item.hero"
         :href="item.url"
         :technology="item.technology"
-        :aria-label="`${item.title} (opens in a new tab)`"
+        :images="item.images"
+        :aria-label="
+          item.url
+            ? `${item.title} (opens in a new tab)`
+            : `${item.title} (opens gallery)`
+        "
         :is-last="idx === items.length - 1"
+        @open-gallery="openGallery"
       />
     </ol>
+
+    <ProjectsGalleryModal
+      v-model="isGalleryOpen"
+      :title="galleryTitle"
+      :images="galleryImages"
+      :initial-index="galleryIndex"
+    />
 
     <div class="mt-12">
       <router-link
@@ -30,12 +43,26 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useSettingsStore } from "@/stores/settings.js";
 
 import ProjectsCard from "@/components/home/content/projects-card.vue";
+import ProjectsGalleryModal from "@/components/projects/projects-gallery-modal.vue";
 
 const settingsStore = useSettingsStore();
+
+const isGalleryOpen = ref(false);
+const galleryTitle = ref("");
+const galleryImages = ref([]);
+const galleryIndex = ref(0);
+
+function openGallery(payload) {
+  if (!payload?.images?.length) return;
+  galleryTitle.value = payload.title || "Project Gallery";
+  galleryImages.value = payload.images;
+  galleryIndex.value = Number.isFinite(payload.index) ? payload.index : 0;
+  isGalleryOpen.value = true;
+}
 
 const items = computed(() => {
   const all = settingsStore.projects;
@@ -45,13 +72,17 @@ const items = computed(() => {
     .filter((p) => !p?.hidden)
     .filter((p) => !!p?.featured)
     .sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
-    .map((p) => ({
-      hero: Array.isArray(p?.images) ? p.images[0] || "" : "",
-      title: p?.title || "Untitled",
-      summary: p?.summary || "",
-      technology: Array.isArray(p?.technology) ? p.technology : [],
-      url: p?.url || null,
-    }))
+    .map((p) => {
+      const images = Array.isArray(p?.images) ? p.images.filter(Boolean) : [];
+      return {
+        hero: images[0] || "",
+        images,
+        title: p?.title || "Untitled",
+        summary: p?.summary || "",
+        technology: Array.isArray(p?.technology) ? p.technology : [],
+        url: p?.url || null,
+      };
+    })
     .filter((p) => Boolean(p.hero));
 });
 </script>

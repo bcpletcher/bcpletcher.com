@@ -28,9 +28,39 @@ function isEditableTarget(target) {
   );
 }
 
+function hasScrollableAncestor(target) {
+  if (typeof document === "undefined") return false;
+  let el = target;
+  // Walk up until body; if any ancestor can scroll, allow wheel/touch to proceed.
+  while (el && el !== document.body && el !== document.documentElement) {
+    try {
+      if (el instanceof HTMLElement) {
+        const style = window.getComputedStyle(el);
+        const overflowY = style.overflowY;
+        const overflowX = style.overflowX;
+        const canScrollY =
+          (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") &&
+          el.scrollHeight > el.clientHeight;
+        const canScrollX =
+          (overflowX === "auto" || overflowX === "scroll" || overflowX === "overlay") &&
+          el.scrollWidth > el.clientWidth;
+
+        if (canScrollY || canScrollX) return true;
+      }
+    } catch {
+      // ignore
+    }
+    el = el.parentElement;
+  }
+  return false;
+}
+
 function preventScrollEvent(e) {
   if (lockCount <= 0) return;
-  e.preventDefault?.();
+  // Allow scrolling inside scrollable containers (e.g., modal bodies).
+  if (isEditableTarget(e.target)) return;
+  if (hasScrollableAncestor(e.target)) return;
+   e.preventDefault?.();
 }
 
 function preventKeyScroll(e) {

@@ -10,7 +10,7 @@
     <div
       ref="panelRef"
       data-modal-panel
-      class="relative w-full max-w-6xl overflow-hidden rounded-2xl border border-slate-800 bg-base-background/90 shadow-2xl backdrop-blur"
+      class="relative w-[98vw] max-w-none overflow-hidden rounded-2xl border border-slate-800 bg-base-background/90 shadow-2xl backdrop-blur"
       @click.stop
     >
       <header
@@ -60,8 +60,8 @@
           <i class="fa-light fa-chevron-right" aria-hidden="true" />
         </button>
 
-        <!-- 16:9 stage -->
-        <div class="w-full aspect-video">
+        <!-- 16:9 stage (size to the largest possible area within the viewport) -->
+        <div class="w-full aspect-video max-h-[calc(100vh-11rem)]">
           <Swiper
             class="h-full"
             :modules="modules"
@@ -80,7 +80,7 @@
               <div class="h-full w-full">
                 <div class="h-full w-full overflow-hidden">
                   <img
-                    class="h-full w-full select-none object-contain"
+                    class="h-full w-full select-none object-contain max-h-[calc(100vh-11rem)]"
                     :src="responsiveFor(src).src"
                     :srcset="responsiveFor(src).srcset || undefined"
                     sizes="100vw"
