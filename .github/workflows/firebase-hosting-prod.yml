@@ -81,4 +81,4 @@ jobs:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
       - name: Deploy to Firebase Hosting
-        run: firebase deploy --only hosting:prod
+        run: firebase deploy --only hosting:prod --project pletcher-portfolio-app
