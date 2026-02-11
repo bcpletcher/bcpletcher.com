@@ -31,14 +31,67 @@ const firestore = getFirestore(firebaseApp);
 
 setLogLevel("silent");
 
+const CACHE_PREFIX = "bcpletcher:v2:firestore:";
+const CACHE_TTL_MS = (() => {
+  const raw = import.meta.env.VITE_FIRESTORE_CACHE_TTL_HOURS;
+  const hours =
+    raw === undefined || raw === null || raw === "" ? 24 * 7 : Number(raw);
+  return Number.isFinite(hours) && hours > 0
+    ? hours * 60 * 60 * 1000
+    : 24 * 7 * 60 * 60 * 1000;
+})();
+
+function getCacheKey(collectionName) {
+  return `${CACHE_PREFIX}${collectionName}`;
+}
+
+function loadFromCache(collectionName) {
+  try {
+    const raw = localStorage.getItem(getCacheKey(collectionName));
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+
+    const { ts, data } = parsed;
+    if (typeof ts !== "number") return null;
+
+    const age = Date.now() - ts;
+    if (age < 0 || age > CACHE_TTL_MS) return null;
+
+    return data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function saveToCache(collectionName, data) {
+  try {
+    // Ensure we don't accidentally try to serialize non-plain objects.
+    const plain = JSON.parse(JSON.stringify(data ?? null));
+    const payload = JSON.stringify({ ts: Date.now(), data: plain });
+    localStorage.setItem(getCacheKey(collectionName), payload);
+  } catch {
+    // Best-effort cache; ignore quota/JSON failures.
+  }
+}
+
 async function fetchCollectionAsArray(
   colName,
-  { orderByField = "order" } = {}
+  { orderByField = "order", cache = true } = {}
 ) {
+  if (cache) {
+    const cached = loadFromCache(colName);
+    if (cached) return cached;
+  }
+
   const colRef = collection(firestore, colName);
   const q = orderByField ? query(colRef, orderBy(orderByField, "asc")) : colRef;
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const data = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  if (cache) saveToCache(colName, data);
+  return data;
 }
 
 export const useFirebaseStore = defineStore("firebase", {
@@ -48,12 +101,31 @@ export const useFirebaseStore = defineStore("firebase", {
   actions: {
     async dataGetResourcesCollection() {
       // resources are likely keyed by order as well; if not, remove orderBy.
-      return fetchCollectionAsArray("resources", { orderByField: "order" });
+      return fetchCollectionAsArray("resources", {
+        orderByField: "order",
+        cache: true,
+      });
     },
     async dataGetScrapbookCollection() {
       return fetchCollectionAsArray("v2-projects", {
         orderByField: "order",
+        cache: true,
       });
+    },
+    /**
+     * Clears the v2 Firestore localStorage cache.
+     *
+     * Not used by default UI flows; handy to call from devtools when needed:
+     *   useFirebaseStore().clearFirestoreCache()
+     */
+    clearFirestoreCache() {
+      try {
+        Object.keys(localStorage)
+          .filter((k) => k.startsWith(CACHE_PREFIX))
+          .forEach((k) => localStorage.removeItem(k));
+      } catch {
+        // ignore
+      }
     },
   },
 });
