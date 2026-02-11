@@ -99,33 +99,11 @@ export const useFirebaseStore = defineStore("firebase", {
     firestore,
   }),
   actions: {
-    async dataGetResourcesCollection() {
-      // resources are likely keyed by order as well; if not, remove orderBy.
-      return fetchCollectionAsArray("resources", {
-        orderByField: "order",
-        cache: true,
-      });
-    },
     async dataGetScrapbookCollection() {
       return fetchCollectionAsArray("v2-projects", {
         orderByField: "order",
         cache: true,
       });
-    },
-    /**
-     * Clears the v2 Firestore localStorage cache.
-     *
-     * Not used by default UI flows; handy to call from devtools when needed:
-     *   useFirebaseStore().clearFirestoreCache()
-     */
-    clearFirestoreCache() {
-      try {
-        Object.keys(localStorage)
-          .filter((k) => k.startsWith(CACHE_PREFIX))
-          .forEach((k) => localStorage.removeItem(k));
-      } catch {
-        // ignore
-      }
     },
   },
 });

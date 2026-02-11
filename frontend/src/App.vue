@@ -91,9 +91,6 @@ onMounted(async () => {
     }
   }
 
-  // Always fetch fresh data from Firestore and overwrite cache
-  settingsStore.resources = await firebaseStore.dataGetResourcesCollection();
-
   const scrapbookDocs = await firebaseStore.dataGetScrapbookCollection();
   // The UI expects `settingsStore.scrapbook` to be an object map.
   settingsStore.scrapbook = Array.isArray(scrapbookDocs)

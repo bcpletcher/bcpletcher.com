@@ -19,7 +19,6 @@
                 @click="settingsStore.expanded = false"
               >
                 <img
-                  v-if="settingsStore.resources"
                   class="w-full h-full"
                   src="./../../../assets/images/logo.svg"
                   alt="BP Logo"

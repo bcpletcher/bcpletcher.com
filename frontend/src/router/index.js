@@ -13,15 +13,9 @@ const routes = [
     component: () => import("@/views/Scrapbook.vue"),
   },
   {
-    path: "/resume",
-    name: "Resume",
-    component: () => import("@/views/Resume.vue"),
-    meta: {},
+    path: "/:catchAll(.*)",
+    component: () => import("@/views/Home.vue"),
   },
-  // {
-  //   path: "/:catchAll(.*)",
-  //   component: Dashboard,
-  // },
 ];
 
 const router = createRouter({
