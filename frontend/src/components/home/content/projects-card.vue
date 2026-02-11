@@ -1,5 +1,10 @@
 <template>
-  <CardWrapper :href="href" :aria-label="ariaLabel" :is-last="isLast">
+  <CardWrapper
+    :href="href"
+    :aria-label="ariaLabel"
+    :is-last="isLast"
+    @open-gallery="onOpenGallery"
+  >
     <!-- Image column -->
     <div class="z-10 mb-2 sm:col-span-2">
       <img
@@ -24,6 +29,7 @@
           {{ title }}
         </h3>
 
+        <!-- If there is an external url, show the "open in new" icon. -->
         <i
           v-if="href"
           :class="[
@@ -35,6 +41,27 @@
           ]"
           aria-hidden="true"
         />
+
+        <!-- If there is NO url, show a gallery icon button (always visible). -->
+        <button
+          v-else
+          type="button"
+          :class="[
+            // Keep baseline/size 1:1 with the external-link icon
+            'ml-1 translate-y-px inline-block h-4 w-4 shrink-0',
+            'text-slate-200 transition-[color] motion-reduce:transition-none',
+            'lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300',
+            // button-specific
+            'kbd-focus cursor-pointer',
+          ]"
+          aria-label="Open gallery"
+          @click.stop.prevent="onOpenGallery(0)"
+        >
+          <i
+            class="fa-light fa-images gallery-icon-wiggle leading-none"
+            aria-hidden="true"
+          />
+        </button>
       </div>
 
       <p v-if="summary" class="mt-2 text-sm leading-normal">
@@ -71,6 +98,8 @@ import CardWrapper from "@/components/home/content/card-wrapper.vue";
 import { computed } from "vue";
 import { buildResponsiveImageSourcesFromImageValue } from "@/utils/firebaseStorageImages.js";
 
+const emit = defineEmits(["open-gallery"]);
+
 const props = defineProps({
   title: { type: String, required: true },
   summary: { type: String, default: "" },
@@ -81,7 +110,21 @@ const props = defineProps({
   imageAlt: { type: String, default: "Project screenshot" },
   metaText: { type: String, default: "" },
   isLast: { type: Boolean, default: false },
+
+  // Needed to open the modal when there is no external URL
+  images: { type: Array, default: () => [] },
 });
+
+function onOpenGallery(index = 0) {
+  const list = Array.isArray(props.images) ? props.images.filter(Boolean) : [];
+  if (!list.length) return;
+
+  emit("open-gallery", {
+    title: props.title,
+    images: list,
+    index: Number.isFinite(index) ? index : 0,
+  });
+}
 
 const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
 const img = computed(() =>

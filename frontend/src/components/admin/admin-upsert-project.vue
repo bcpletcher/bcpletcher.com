@@ -523,49 +523,76 @@ const submit = async () => {
     }
     documentModel.value.data.date = normalized;
 
-    // Upload any pending files first
-    if (pendingFiles.value.length) {
-      const entryId = documentModel.value.id;
-      if (!entryId) {
-        alert("Please set an Id before uploading images.");
-        isSubmitting.value = false;
-        return;
-      }
-
-      const existingCount = Array.isArray(documentModel.value.data.images)
-        ? documentModel.value.data.images.length
-        : 0;
-
-      try {
-        const files = pendingFiles.value.map((p) => p.file);
-        const uploaded = await firebaseStore.uploadProjectImages(
-          entryId,
-          files,
-          existingCount
-        );
-
-        // Canonical: persist path only (url is derived client-side)
-        documentModel.value.data.images.push(
-          ...uploaded.map((u) => ({ path: u.path }))
-        );
-      } catch (e) {
-        console.error("Failed to upload images", e);
-        alert("Failed to upload one or more images. Please try again.");
-        isSubmitting.value = false;
-        return;
-      }
-    }
-
-    // Normalize images to canonical path-only objects
+    // Normalize images early so counts and deletes are consistent.
     if (Array.isArray(documentModel.value.data.images)) {
       documentModel.value.data.images = documentModel.value.data.images
         .filter(Boolean)
-        .map((img) => {
-          if (typeof img === "object" && img.path) return { path: img.path };
-          return null;
-        })
+        .map((img) => (img && typeof img === "object" && img.path ? { path: img.path } : null))
         .filter(Boolean);
     }
+
+     // Delete removed images first so upload naming/count is based on the final list.
+     if (pendingRemovals.value.images.length) {
+       try {
+         await Promise.all(
+           pendingRemovals.value.images.map((img) =>
+             firebaseStore.deleteProjectImage(img)
+           )
+         );
+       } catch (e) {
+         console.error("Failed to delete one or more removed images", e);
+         alert("Failed to delete one or more removed images. Please try again.");
+         isSubmitting.value = false;
+         return;
+       }
+       pendingRemovals.value.images = [];
+     }
+
+      // Upload any pending files first
+      if (pendingFiles.value.length) {
+        const entryId = documentModel.value.id;
+        if (!entryId) {
+          alert("Please set an Id before uploading images.");
+          isSubmitting.value = false;
+          return;
+        }
+
+        try {
+          const files = pendingFiles.value.map((p) => p.file);
+          const uploaded = await firebaseStore.uploadProjectImages(entryId, files);
+
+          // Canonical: persist path only (url is derived client-side)
+          documentModel.value.data.images.push(
+            ...uploaded.map((u) => ({ path: u.path }))
+          );
+
+         // Clear pending file previews after successful upload
+         pendingFiles.value.forEach(({ previewUrl }) => {
+           try {
+             URL.revokeObjectURL(previewUrl);
+           } catch (e) {
+             // no-op
+           }
+         });
+         pendingFiles.value = [];
+        } catch (e) {
+          console.error("Failed to upload images", e);
+          alert("Failed to upload one or more images. Please try again.");
+          isSubmitting.value = false;
+          return;
+        }
+      }
+
+      // Normalize images to canonical path-only objects
+      if (Array.isArray(documentModel.value.data.images)) {
+        documentModel.value.data.images = documentModel.value.data.images
+          .filter(Boolean)
+          .map((img) => {
+            if (typeof img === "object" && img.path) return { path: img.path };
+            return null;
+          })
+          .filter(Boolean);
+      }
 
     // Normalize + enforce caps before saving
     documentModel.value.data.featured = !!documentModel.value.data.featured;
@@ -581,15 +608,6 @@ const submit = async () => {
     if (isEdit.value) {
       const payload = documentModel.value;
       await firebaseStore.dataUpdateProjectDocument(payload);
-
-      if (pendingRemovals.value.images.length) {
-        await Promise.all(
-          pendingRemovals.value.images.map((img) =>
-            firebaseStore.deleteProjectImage(img)
-          )
-        );
-        pendingRemovals.value.images = [];
-      }
 
       if (settingsStore.projects && payload.id) {
         settingsStore.projects = {
@@ -622,19 +640,6 @@ const submit = async () => {
         } catch (e) {
           console.warn("Failed to update projects cache", e);
         }
-      }
-
-      if (pendingRemovals.value.images.length) {
-        try {
-          await Promise.all(
-            pendingRemovals.value.images.map((img) =>
-              firebaseStore.deleteProjectImage(img)
-            )
-          );
-        } catch (e) {
-          console.error("Failed to delete one or more removed images", e);
-        }
-        pendingRemovals.value.images = [];
       }
     }
 

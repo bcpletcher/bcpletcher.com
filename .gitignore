@@ -90,3 +90,8 @@ functions/.runtimeconfig.json
 # Firebase emulator data (local exports/imports)
 # =====================
 firebase/.databases/
+
+# =====================
+# Local backups (generated)
+# =====================
+.backups/

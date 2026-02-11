@@ -58,7 +58,7 @@
               : '',
           ]"
         >
-          <div class="relative mx-auto" :class="[]">
+          <div class="relative mx-auto w-full aspect-video" :class="[]">
             <img
               class="h-full w-full rounded-md border border-white/10 bg-white/5 object-cover shadow-lg"
               :src="responsiveFor(src).src"

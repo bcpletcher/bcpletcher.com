@@ -153,8 +153,6 @@ const projects = computed(() => {
         hidden: Boolean(item.hidden),
       };
     })
-    // Require at least one image to show the card
-    .filter((item) => item.images?.length)
     .sort((a, b) => {
       // Primary sort: canonical date (newest first). ISO date strings are safe to compare.
       const ad = a.date || "";

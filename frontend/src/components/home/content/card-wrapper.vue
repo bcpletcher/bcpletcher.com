@@ -15,6 +15,15 @@
         :aria-label="ariaLabel"
       />
 
+      <!-- Full-card button overlay (desktop only) for opening the gallery when there's no URL -->
+      <button
+        v-else
+        type="button"
+        class="peer card-interactive-link absolute -inset-x-4 -inset-y-4 z-20 hidden rounded-md lg:block cursor-pointer"
+        :aria-label="ariaLabel"
+        @click="$emit('open-gallery', 0)"
+      />
+
       <!-- Card hover background -->
       <div
         class="card-interactive-bg absolute -inset-x-4 -inset-y-4 z-0 hidden rounded-md transition motion-reduce:transition-none lg:-inset-y-4 lg:-inset-x-6 lg:block lg:group-hover:bg-slate-800/50 lg:group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:group-hover:drop-shadow-lg"
@@ -38,6 +47,8 @@ const props = defineProps({
     default: "sm:grid-cols-8 sm:gap-8 md:gap-4",
   },
 });
+
+defineEmits(["open-gallery"]);
 
 // Rough mapping: IntersectionObserver threshold -> ScrollTrigger start.
 // Higher threshold means "wait until more of it is visible" => start lower in viewport.

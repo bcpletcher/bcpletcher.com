@@ -21,19 +21,17 @@
         tabindex="-1"
         @keydown.esc.stop.prevent="onEscape"
       >
-        <!-- Backdrop -->
-        <button
-          type="button"
-          class="absolute inset-0 cursor-pointer w-full h-full"
+        <!-- Backdrop (non-button so it won't interfere with wheel scrolling in Chrome) -->
+        <div
+          class="absolute inset-0"
           :class="backdropClass"
-          aria-label="Close"
-          @click="onBackdrop"
+          aria-hidden="true"
         >
-          <span
-            class="absolute inset-0 bg-black/70 pointer-events-none"
-            aria-hidden="true"
+          <div
+            class="absolute inset-0 bg-black/70"
+            @click="onBackdrop"
           />
-        </button>
+        </div>
 
         <div
           class="absolute inset-0 flex items-center justify-center px-4 py-6 sm:px-8 sm:py-10"

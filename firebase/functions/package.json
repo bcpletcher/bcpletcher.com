@@ -5,13 +5,11 @@
     "lint": "eslint .",
     "env:java": "JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home PATH=$JAVA_HOME/bin:$PATH",
     "emulators:kill": "node ./scripts/kill-emulators.mjs",
-
     "seed:from-prod": "node ./scripts/seed-from-prod.mjs",
-
+    "backup:projects": "node ./scripts/backup-projects.mjs",
     "serve": "npm run emulators:kill && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app",
     "serve:seeded": "npm run emulators:kill && echo \"Importing Firestore from: ../.databases/imports/firestore/latest\" && npm run env:java -- npx firebase-tools emulators:start --only functions,firestore --config ../../firebase.json --project pletcher-portfolio-app --import ../.databases/imports/firestore/latest",
     "serve:aio": "npm run seed:from-prod && npm run serve:seeded",
-
     "deploy:functions": "npm run env:java -- npx firebase-tools deploy --only functions --config ../../firebase.json",
     "logs:functions": "npm run env:java -- npx firebase-tools functions:log --config ../../firebase.json"
   },
@@ -22,7 +20,8 @@
   "dependencies": {
     "@google-cloud/storage": "^7.18.0",
     "firebase-admin": "^13.6.1",
-    "firebase-functions": "^7.0.5"
+    "firebase-functions": "^7.0.5",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
