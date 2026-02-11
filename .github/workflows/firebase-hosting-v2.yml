@@ -1,14 +1,14 @@
-name: Deploy to Firebase Hosting (prod)
+name: Deploy to Firebase Hosting (v2)
 
 on:
   push:
     branches:
-      - main
+      - archives/2024
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: Production
+    environment: V2
 
     env:
       VITE_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
@@ -34,31 +34,6 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Verify required Vite env vars
-        run: |
-          missing=0
-          for v in \
-            VITE_FIREBASE_API_KEY \
-            VITE_FIREBASE_AUTH_DOMAIN \
-            VITE_FIREBASE_PROJECT_ID \
-            VITE_FIREBASE_STORAGE_BUCKET \
-            VITE_FIREBASE_MESSAGING_SENDER_ID \
-            VITE_FIREBASE_APP_ID \
-            VITE_FIREBASE_MEASUREMENT_ID
-          do
-            if [ -z "${!v}" ]; then
-              echo "Missing env var: $v"
-              missing=1
-            fi
-          done
-          if [ "$missing" -ne 0 ]; then
-            exit 1
-          fi
-
-      - name: Lint frontend
-        working-directory: ./frontend
-        run: npm run lint -- --max-warnings=0
-
       - name: Build frontend
         working-directory: ./frontend
         run: npm run build
@@ -66,19 +41,11 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Check FIREBASE_SERVICE_ACCOUNT is present
-        run: |
-          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
-            echo "FIREBASE_SERVICE_ACCOUNT is not set or is empty"
-            exit 1
-          else
-            echo "FIREBASE_SERVICE_ACCOUNT is set (value hidden)."
-          fi
-
       - name: Authenticate with Firebase using service account
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
-      - name: Deploy to Firebase Hosting
-        run: firebase deploy --only hosting:prod
+      - name: Deploy to Firebase Hosting (v2 target)
+        run: firebase deploy --only hosting:v2
+

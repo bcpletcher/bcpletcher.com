@@ -2,7 +2,21 @@
   "projects": {
     "default": "pletcher-portfolio-app"
   },
-  "targets": {},
+  "targets": {
+    "pletcher-portfolio-app": {
+      "hosting": {
+        "prod": [
+          "prod"
+        ],
+        "v1": [
+          "v1"
+        ],
+        "v2": [
+          "v2"
+        ]
+      }
+    }
+  },
   "etags": {
     "pletcher-portfolio-app": {
       "extensionInstances": {}
