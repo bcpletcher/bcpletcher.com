@@ -51,7 +51,7 @@ export const useFirebaseStore = defineStore("firebase", {
       return fetchCollectionAsArray("resources", { orderByField: "order" });
     },
     async dataGetScrapbookCollection() {
-      return fetchCollectionAsArray("2024-archive-projects", {
+      return fetchCollectionAsArray("v2-projects", {
         orderByField: "order",
       });
     },
