@@ -61,7 +61,7 @@
                 v-for="(project, idx) in projectsByYear[y]"
                 :key="project.id || `${y}-${idx}`"
                 :project-id="project.id"
-                :title="project.title"
+                :title="project.projectName"
                 :date="project.date"
                 :summary="project.description"
                 :images="project.images"
@@ -128,7 +128,7 @@ const projects = computed(() => {
 
   return Object.entries(all)
     .map(([id, item]) => ({
-      id,
+      entryId: id,
       ...(item || {}),
     }))
     .filter((item) => {
@@ -136,13 +136,14 @@ const projects = computed(() => {
       return !item?.hidden;
     })
     .map((item) => {
-      // Canonical Firestore: YYYY-MM-DD
       const normalizedDate = normalizeProjectDate(item.date);
       const yearFromDate = getYearFromProjectDate(normalizedDate);
 
+      const projectName = item.projectName || item.title || "Untitled";
+
       return {
-        id: item.id,
-        title: item.title || "Untitled",
+        id: item.entryId,
+        projectName,
         date: normalizedDate,
         year: yearFromDate,
         description: item.description || "",
@@ -154,18 +155,15 @@ const projects = computed(() => {
         meta: item.meta,
       };
     })
-    // Date is required (prevents NaN years / weird sorting / timeline gaps)
     .filter((p) => typeof p.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.date))
     .sort((a, b) => {
-      // Primary sort: canonical date (newest first). ISO date strings are safe to compare.
       const ad = a.date || "";
       const bd = b.date || "";
       if (ad !== bd) return bd.localeCompare(ad);
 
-      // Stable-ish fallback
-      const aTitle = (a.title || "").toString();
-      const bTitle = (b.title || "").toString();
-      return aTitle.localeCompare(bTitle);
+      const aName = (a.projectName || "").toString();
+      const bName = (b.projectName || "").toString();
+      return aName.localeCompare(bName);
     });
 });
 

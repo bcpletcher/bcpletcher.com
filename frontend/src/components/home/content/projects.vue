@@ -3,8 +3,8 @@
     <ol class="group/list">
       <ProjectsCard
         v-for="(item, idx) in items"
-        :key="item.title + '-' + idx"
-        :title="item.title"
+        :key="item.projectName + '-' + idx"
+        :title="item.projectName"
         :summary="item.summary"
         :hero="item.hero"
         :href="item.url"
@@ -13,8 +13,8 @@
         :meta="item.meta"
         :aria-label="
           item.url
-            ? `${item.title} (opens in a new tab)`
-            : `${item.title} (opens gallery)`
+            ? `${item.projectName} (opens in a new tab)`
+            : `${item.projectName} (opens gallery)`
         "
         :is-last="idx === items.length - 1"
         @open-gallery="openGallery"
@@ -75,10 +75,12 @@ const items = computed(() => {
     .filter((p) => !!p?.featured)
     .map((p) => {
       const images = Array.isArray(p?.images) ? p.images.filter(Boolean) : [];
+      const projectName = p?.projectName || p?.title || "Untitled";
+
       return {
         hero: images[0] || "",
         images,
-        title: p?.title || "Untitled",
+        projectName,
         summary: p?.summary || "",
         technology: p?.technology || [],
         url: p?.url || null,
@@ -91,7 +93,7 @@ const items = computed(() => {
       const ad = a.date || "";
       const bd = b.date || "";
       if (ad !== bd) return bd.localeCompare(ad);
-      return (a.title || "").localeCompare(b.title || "");
+      return (a.projectName || "").localeCompare(b.projectName || "");
     })
     .filter((p) => Boolean(p.hero));
 });
