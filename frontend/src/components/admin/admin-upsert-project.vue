@@ -67,8 +67,8 @@
                   [
                     'id',
                     'date',
-                    'eyebrow',
-                    'title',
+                    'companyName',
+                    'projectName',
                     'url',
                     'featured',
                   ].includes(f.key),
@@ -178,7 +178,7 @@
                 </div>
 
                 <select
-                  v-model="selectedMetaIconClass"
+                  v-model="selectedMetaKey"
                   :disabled="isSubmitting"
                   :class="inputClassFor('meta')"
                   @change="onMetaPresetChange"
@@ -186,20 +186,17 @@
                 >
                   <option value="">None</option>
                   <option
-                    v-for="opt in metaIconOptions"
-                    :key="opt.iconClass"
-                    :value="opt.iconClass"
+                    v-for="k in metaKeys"
+                    :key="k"
+                    :value="k"
                   >
-                    {{ opt.label }}
+                    {{ metaOptions[k]?.label }}
                   </option>
                 </select>
 
-                <div
-                  v-if="documentModel.data.meta?.label && documentModel.data.meta?.iconClass"
-                  class="mt-2 flex items-center gap-2 text-xs text-slate-400"
-                >
-                  <i :class="documentModel.data.meta.iconClass" aria-hidden="true" />
-                  <span>{{ documentModel.data.meta.label }}</span>
+                <div v-if="selectedMetaKey" class="mt-2 flex items-center gap-2 text-xs text-slate-400">
+                  <i :class="metaOptions[selectedMetaKey]?.iconClass" aria-hidden="true" />
+                  <span>{{ metaOptions[selectedMetaKey]?.label }}</span>
                 </div>
 
 <!--                <p v-if="hasError('meta')" class="mt-1 text-xs text-red-300">-->
@@ -518,7 +515,10 @@ import { useSettingsStore } from "@/stores/settings.js";
 import { useNotificationStore } from "@/stores/notification.js";
 import { saveProjectsToCache } from "@/utils/cache.js";
 import { normalizeProjectDate } from "@/utils/projectDate.js";
-import { PROJECT_META_ICON_OPTIONS } from "@/constants/projectMetaIconOptions.js";
+import {
+  PROJECT_META_OPTIONS,
+  PROJECT_META_KEYS,
+} from "@/constants/projectMetaIconOptions.js";
 import ModalWrapper from "@/components/shared/modal-wrapper.vue";
 
 const settingsStore = useSettingsStore();
@@ -534,9 +534,9 @@ const SUMMARY_MAX = 200;
 const emptyDocument = () => ({
   id: null,
   data: {
-    eyebrow: null,
+    companyName: null,
+    projectName: null,
     date: null,
-    title: null,
     summary: "",
     description: "",
     featured: false,
@@ -544,6 +544,8 @@ const emptyDocument = () => ({
     technology: [],
     url: null,
     hidden: false,
+
+    // canonical meta: preset key (string) or null
     meta: null,
   },
 });
@@ -742,13 +744,11 @@ function validateBeforeSubmit() {
     if (!normalized) nextErrors.date = "Enter a valid date.";
   }
 
-  // Company required
-  const company = (documentModel.value.data.eyebrow ?? "").toString().trim();
-  if (!company) nextErrors.eyebrow = "Company name is required.";
+  const company = (documentModel.value.data.companyName ?? "").toString().trim();
+  if (!company) nextErrors.companyName = "Company name is required.";
 
-  // Project name required
-  const title = (documentModel.value.data.title ?? "").toString().trim();
-  if (!title) nextErrors.title = "Project name is required.";
+  const projectName = (documentModel.value.data.projectName ?? "").toString().trim();
+  if (!projectName) nextErrors.projectName = "Project name is required.";
 
   // Summary required
   const summary = (documentModel.value.data.summary ?? "").toString().trim();
@@ -778,14 +778,17 @@ function validateBeforeSubmit() {
   return true;
 }
 
-const metaIconOptions = PROJECT_META_ICON_OPTIONS;
+const metaOptions = PROJECT_META_OPTIONS;
+const metaKeys = PROJECT_META_KEYS;
+
+const selectedMetaKey = ref("");
 
 function resetState() {
   documentModel.value = emptyDocument();
   isEdit.value = false;
   pendingRemovals.value.images = [];
   pendingRemovals.value.technology = [];
-  selectedMetaIconClass.value = "";
+  selectedMetaKey.value = "";
 
   pendingFiles.value.forEach(({ previewUrl }) => {
     URL.revokeObjectURL(previewUrl);
@@ -808,18 +811,17 @@ const showModal = async (existingEntry) => {
     documentModel.value = {
       id: existingEntry.name,
       data: {
-        eyebrow: existingEntry.eyebrow ?? null,
+        companyName: existingEntry.companyName ?? null,
+        projectName: existingEntry.projectName ?? null,
         date: incomingDate || null,
-        title: existingEntry.title ?? null,
+
         summary: existingEntry.summary ?? "",
         description: existingEntry.description ?? "",
         featured: existingEntry.featured ?? false,
         images: Array.isArray(existingEntry.images)
           ? existingEntry.images
               .map((img) =>
-                img && typeof img === "object" && img.path
-                  ? { path: img.path }
-                  : null,
+                img && typeof img === "object" && img.path ? { path: img.path } : null,
               )
               .filter(Boolean)
           : [],
@@ -828,6 +830,7 @@ const showModal = async (existingEntry) => {
           : [],
         url: existingEntry.url ?? null,
         hidden: existingEntry.hidden ?? false,
+
         meta: existingEntry.meta ?? null,
       },
     };
@@ -835,9 +838,7 @@ const showModal = async (existingEntry) => {
 
   normalizeAllTechnology();
   normalizeMetaInPlace();
-
-  // Keep the select in sync with the normalized meta
-  selectedMetaIconClass.value = documentModel.value.data.meta?.iconClass || "";
+  selectedMetaKey.value = documentModel.value.data.meta || "";
 
   visible.value = true;
 };
@@ -919,21 +920,15 @@ function commitTechToAdd() {
   techToAdd.value = "";
 }
 
-const selectedMetaIconClass = ref("");
-
-function applyMetaPresetByIconClass(iconClass) {
-  const normalized = (iconClass ?? "").toString().trim();
+function applyMetaKey(key) {
+  const normalized = (key ?? "").toString().trim();
   if (!normalized) {
-    delete documentModel.value.data.meta;
-    selectedMetaIconClass.value = "";
+    documentModel.value.data.meta = null;
+    selectedMetaKey.value = "";
     return;
   }
 
-  const preset = (metaIconOptions || []).find(
-    (o) => o.iconClass === normalized,
-  );
-  if (!preset) {
-    // Shouldn't happen via the select, but keep it safe.
+  if (!metaOptions?.[normalized]) {
     errors.value = {
       ...(errors.value || {}),
       meta: "Please select a valid meta option.",
@@ -947,60 +942,22 @@ function applyMetaPresetByIconClass(iconClass) {
     return;
   }
 
-  documentModel.value.data.meta = {
-    label: preset.label,
-    iconClass: preset.iconClass,
-  };
-  selectedMetaIconClass.value = preset.iconClass;
+  documentModel.value.data.meta = normalized;
+  selectedMetaKey.value = normalized;
   clearError("meta");
 }
 
-function onMetaPresetChange() {
-  applyMetaPresetByIconClass(selectedMetaIconClass.value);
-}
-
 function normalizeMetaInPlace() {
-  // Back-compat: existing entries may have { text, iconClass }. Convert if possible.
-  const meta = documentModel.value.data.meta;
-  if (!meta) {
+  const key = (documentModel.value.data.meta ?? "").toString().trim();
+  if (!key) {
+    documentModel.value.data.meta = null;
     return;
   }
 
-  // New format
-  if (typeof meta === "object" && meta.label && meta.iconClass) {
-    const iconClass = (meta.iconClass ?? "").toString().trim();
-    const label = (meta.label ?? "").toString().trim();
-    if (!iconClass || !label) {
-      delete documentModel.value.data.meta;
-      selectedMetaIconClass.value = "";
-      return;
-    }
-
-    // Sanitize
-    const cleanIcon = iconClass.replace(/[^a-zA-Z0-9\s_-]/g, "").trim();
-    documentModel.value.data.meta = { label, iconClass: cleanIcon };
-    selectedMetaIconClass.value = cleanIcon;
-    return;
+  if (!metaOptions?.[key]) {
+    // Unknown key -> clear
+    documentModel.value.data.meta = null;
   }
-
-  // Old format -> attempt to map to preset by iconClass, else drop.
-  const legacyIcon = (meta?.iconClass ?? "").toString().trim();
-  if (legacyIcon) {
-    const preset = (metaIconOptions || []).find(
-      (o) => o.iconClass === legacyIcon,
-    );
-    if (preset) {
-      documentModel.value.data.meta = {
-        label: preset.label,
-        iconClass: preset.iconClass,
-      };
-      selectedMetaIconClass.value = preset.iconClass;
-      return;
-    }
-  }
-
-  delete documentModel.value.data.meta;
-  selectedMetaIconClass.value = "";
 }
 
 defineExpose({
@@ -1037,21 +994,21 @@ const formFields = computed(() => {
       help: "Required. Used for sorting + timeline grouping.",
     },
     {
-      key: "eyebrow",
+      key: "companyName",
       colSpan: "md:col-span-1",
       type: "input",
       label: "Company Name",
       placeholder: "Company",
-      model: toRef(data, "eyebrow"),
+      model: toRef(data, "companyName"),
       required: true,
     },
     {
-      key: "title",
+      key: "projectName",
       colSpan: "md:col-span-1",
       type: "input",
       label: "Project Name",
       placeholder: "Project",
-      model: toRef(data, "title"),
+      model: toRef(data, "projectName"),
       required: true,
     },
     {
@@ -1101,7 +1058,6 @@ const formFields = computed(() => {
 
 const submit = async () => {
   if (isSubmitting.value) return;
-
   if (!validateBeforeSubmit()) return;
 
   isSubmitting.value = true;
@@ -1195,11 +1151,8 @@ const submit = async () => {
 
     // Normalize meta (preset-only)
     normalizeMetaInPlace();
-    if (
-      !documentModel.value.data.meta?.label ||
-      !documentModel.value.data.meta?.iconClass
-    ) {
-      delete documentModel.value.data.meta;
+    if (!documentModel.value.data.meta) {
+      documentModel.value.data.meta = null;
     }
 
     // Persist
@@ -1229,8 +1182,7 @@ const submit = async () => {
     notificationStore.addNotification({
       variant: "success",
       title: isEdit.value ? "Project updated" : "Project created",
-      message:
-        documentModel.value.data.title || documentModel.value.id || "Saved",
+      message: documentModel.value.data.projectName || documentModel.value.id || "Saved",
       duration: 4,
     });
 
@@ -1263,5 +1215,9 @@ function removePendingFile(index) {
   }
 
   pendingFiles.value.splice(index, 1);
+}
+
+function onMetaPresetChange() {
+  applyMetaKey(selectedMetaKey.value);
 }
 </script>

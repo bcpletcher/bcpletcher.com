@@ -83,12 +83,12 @@
       </ul>
 
       <div
-        v-if="meta?.label"
+        v-if="metaDisplay?.label"
         class="mt-3 flex items-center gap-2 text-xs text-font-primary/60"
       >
-        <i v-if="meta?.iconClass" :class="meta.iconClass" aria-hidden="true" />
+        <i v-if="metaDisplay?.iconClass" :class="metaDisplay.iconClass" aria-hidden="true" />
         <i v-else class="fa-light fa-star" aria-hidden="true" />
-        {{ meta.label }}
+        {{ metaDisplay.label }}
       </div>
     </div>
   </CardWrapper>
@@ -98,6 +98,7 @@
 import CardWrapper from "@/components/home/content/card-wrapper.vue";
 import { computed } from "vue";
 import { buildResponsiveImageSourcesFromImageValue } from "@/utils/firebaseStorageImages.js";
+import { PROJECT_META_OPTIONS } from "@/constants/projectMetaIconOptions.js";
 
 const emit = defineEmits(["open-gallery"]);
 
@@ -109,11 +110,18 @@ const props = defineProps({
   technology: { type: Array, default: () => [] },
   ariaLabel: { type: String, default: "Project (opens in a new tab)" },
   imageAlt: { type: String, default: "Project screenshot" },
-  meta: { type: Object, default: null },
+  // Canonical: Firestore stores `meta` as a preset key string.
+  meta: { type: [String, null], default: null },
   isLast: { type: Boolean, default: false },
 
   // Needed to open the modal when there is no external URL
   images: { type: Array, default: () => [] },
+});
+
+const metaDisplay = computed(() => {
+  const key = (props.meta ?? "").toString().trim();
+  if (!key) return null;
+  return PROJECT_META_OPTIONS?.[key] || null;
 });
 
 function onOpenGallery(index = 0) {
