@@ -2,7 +2,7 @@
   <li class="overflow-visible mb-10">
     <article
       v-gsap-reveal="{ once: true, start: 'top 92%' }"
-      class="relative grid overflow-visible pb-1  md:grid-cols-12 md:items-center md:gap-8"
+      class="relative grid overflow-visible pb-1 md:grid-cols-12 md:items-center md:gap-8"
     >
       <!-- Hidden stripe overlay (admin visual only) -->
       <div
@@ -28,14 +28,14 @@
       />
 
       <CardContent
-        :title="title"
+        :project-name="projectName"
         :summary="summary"
         :date="date"
         :href="href"
         :technology="technology"
         :featured="featured"
         :meta="meta"
-        :show-title="showTitle"
+        :show-project-name="showProjectName"
         :show-date="showDate"
         :show-link="showLink"
         :show-summary="showSummary"
@@ -47,7 +47,7 @@
       />
 
       <CardImage
-        :title="title"
+        :project-name="projectName"
         :images="images"
         :is-hidden="isHidden"
         @open-gallery="emitOpenGallery"
@@ -66,7 +66,7 @@ const emit = defineEmits(["open-gallery"]);
 const props = defineProps({
   projectId: { type: String, required: true },
 
-  title: { type: String, required: true },
+  projectName: { type: String, required: true },
   summary: { type: String, default: "" },
   date: { type: String, default: null },
 
@@ -76,10 +76,10 @@ const props = defineProps({
   technology: { type: Array, default: () => [] },
 
   featured: { type: Boolean, default: false },
-  meta: { type: Object, default: null },
+  meta: { type: [String, null], default: null },
 
   // Visibility controls
-  showTitle: { type: Boolean, default: true },
+  showProjectName: { type: Boolean, default: true },
   showDate: { type: Boolean, default: true },
   showLink: { type: Boolean, default: true },
   showSummary: { type: Boolean, default: true },
@@ -96,12 +96,12 @@ const props = defineProps({
 });
 
 function emitOpenGallery(index) {
-  const imgs = Array.isArray(props.images) ? props.images : [];
-  const list = imgs.filter(Boolean);
+  const images = Array.isArray(props.images) ? props.images : [];
+  const list = images.filter(Boolean);
   if (!list?.length) return;
 
   emit("open-gallery", {
-    title: props.title,
+    title: props.projectName,
     images: list,
     index: Number.isFinite(index) ? index : 0,
   });

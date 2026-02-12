@@ -61,13 +61,14 @@
                 v-for="(project, idx) in projectsByYear[y]"
                 :key="project.id || `${y}-${idx}`"
                 :project-id="project.id"
-                :title="project.projectName"
+                :project-name="project.projectName"
                 :date="project.date"
                 :summary="project.description"
                 :images="project.images"
                 :href="project.url"
                 :technology="project.technology"
                 :featured="project.featured"
+                :meta="project.meta"
                 :show-date="false"
                 :show-featured="false"
                 :show-admin-controls="isAdmin"
@@ -102,7 +103,10 @@ import ProjectsCard from "@/components/projects/card/card.vue";
 import ProjectsGalleryModal from "@/components/projects/projects-gallery-modal.vue";
 import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
 import { useSettingsStore } from "@/stores/settings.js";
-import { getYearFromProjectDate, normalizeProjectDate } from "@/utils/projectDate.js";
+import {
+  getYearFromProjectDate,
+  normalizeProjectDate,
+} from "@/utils/projectDate.js";
 
 const settingsStore = useSettingsStore();
 
@@ -121,7 +125,6 @@ function openEditById(projectId) {
   });
 }
 
-
 const projects = computed(() => {
   const all = settingsStore.projects;
   if (!all) return [];
@@ -139,7 +142,7 @@ const projects = computed(() => {
       const normalizedDate = normalizeProjectDate(item.date);
       const yearFromDate = getYearFromProjectDate(normalizedDate);
 
-      const projectName = item.projectName || item.title || "Untitled";
+      const projectName = item.projectName || "Untitled";
 
       return {
         id: item.entryId,
@@ -155,7 +158,9 @@ const projects = computed(() => {
         meta: item.meta,
       };
     })
-    .filter((p) => typeof p.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.date))
+    .filter(
+      (p) => typeof p.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.date),
+    )
     .sort((a, b) => {
       const ad = a.date || "";
       const bd = b.date || "";

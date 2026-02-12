@@ -26,7 +26,7 @@
         <h3
           class="font-medium leading-snug text-slate-200 transition-colors lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300"
         >
-          {{ title }}
+          {{ projectName }}
         </h3>
 
         <!-- If there is an external url, show the "open in new" icon. -->
@@ -86,7 +86,11 @@
         v-if="metaDisplay?.label"
         class="mt-3 flex items-center gap-2 text-xs text-font-primary/60"
       >
-        <i v-if="metaDisplay?.iconClass" :class="metaDisplay.iconClass" aria-hidden="true" />
+        <i
+          v-if="metaDisplay?.iconClass"
+          :class="metaDisplay.iconClass"
+          aria-hidden="true"
+        />
         <i v-else class="fa-light fa-star" aria-hidden="true" />
         {{ metaDisplay.label }}
       </div>
@@ -103,7 +107,7 @@ import { PROJECT_META_OPTIONS } from "@/constants/projectMetaIconOptions.js";
 const emit = defineEmits(["open-gallery"]);
 
 const props = defineProps({
-  title: { type: String, required: true },
+  projectName: { type: String, required: true },
   summary: { type: String, default: "" },
   hero: { type: [String, Object], required: true },
   href: { type: String, default: null },

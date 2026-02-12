@@ -1,6 +1,6 @@
 <template>
   <div
-    class="hidden relative md:z-10 z-0 md:mb-2 transition-standard md:col-span-5 md:order-2 md:flex md:items-center"
+    class="hidden relative md:z-10 z-0 -mt-8 transition-standard md:col-span-5 md:order-2 md:flex md:items-center"
     :class="[
       isHidden ? 'opacity-40' : 'opacity-25 md:opacity-100',
       isHidden ? 'pointer-events-none select-none' : '',
@@ -64,7 +64,7 @@
               :src="responsiveFor(src).src"
               :srcset="responsiveFor(src).srcset || undefined"
               sizes="(min-width: 768px) 40vw, 100vw"
-              :alt="`${title} screenshot`"
+              :alt="`${projectName} screenshot`"
               width="1280"
               height="720"
               loading="lazy"
@@ -95,7 +95,7 @@ import gsap from "gsap";
 import { buildResponsiveImageSourcesFromImageValue } from "@/utils/firebaseStorageImages.js";
 
 const props = defineProps({
-  title: { type: String, required: true },
+  projectName: { type: String, required: true },
   images: { type: Array, required: true },
   isHidden: { type: Boolean, default: false },
 });
