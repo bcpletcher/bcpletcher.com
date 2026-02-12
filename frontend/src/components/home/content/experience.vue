@@ -9,7 +9,7 @@
         :company="job.company"
         :href="job.href"
         :description="job.description"
-        :tech="job.tech"
+        :technology="job.technology"
         :is-last="idx === jobs.length - 1"
       />
     </ol>
@@ -28,7 +28,7 @@ const jobs = [
     subtitles: [],
     description:
       "Lead frontend and full-stack development for enterprise-scale CMS and SPA projects, collaborating with designers, strategists, and engineers to deliver high-quality digital experiences for national and global clients.",
-    tech: ["TypeScript", "Vue", "React", "Tailwind", "CMS", ".NET"],
+    technology: ["TypeScript", "Vue", "React", "Tailwind", "CMS", ".NET"],
   },
   {
     rangeLabel: "2019 — 2021",
@@ -38,7 +38,7 @@ const jobs = [
     subtitles: [],
     description:
       "Designed and developed sites and applications for enterprise clients, owning UX/UI execution while contributing to full-stack delivery across CMS and SPA builds in varied tech environments.",
-    tech: ["Vue", "Blazor", "JavaScript", ".NET"],
+    technology: ["Vue", "Blazor", "JavaScript", ".NET"],
   },
   {
     rangeLabel: "2014 — 2019",
@@ -48,7 +48,7 @@ const jobs = [
     subtitles: [],
     description:
       "Started as a front-end developer and grew into lead UX/UI, setting design direction, improving site theming and structure, and helping build a Vue.js SPA for the commercial media industry.",
-    tech: ["Vue", "JavaScript", "MSSQL", "Crystal Reports"],
+    technology: ["Vue", "JavaScript", "MSSQL", "Crystal Reports"],
   },
   {
     rangeLabel: "2012 — 2014",
@@ -58,7 +58,7 @@ const jobs = [
     subtitles: [],
     description:
       "Built and maintained internal web and desktop tools, including a replacement for legacy .NET apps, plus data-driven reporting and order/shipment tracking systems backed by MSSQL.",
-    tech: ["C#", ".NET", "MSSQL", "WPF"],
+    technology: ["C#", ".NET", "MSSQL", "WPF"],
   },
 ];
 </script>

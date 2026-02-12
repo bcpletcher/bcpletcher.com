@@ -1,0 +1,16 @@
+/*
+  Font Awesome safelist
+  ---------------------
+  These selectors exist to ensure commonly-used FA icon class combinations are
+  present in the production CSS output, even when the class strings are passed
+  via bindings (e.g. :class="meta.iconClass").
+
+  Keep in sync with `src/constants/projectMetaIconOptions.js`.
+*/
+
+.fa-light.fa-award {}
+.fa-light.fa-file-lines {}
+.fa-brands.fa-github {}
+.fa-light.fa-newspaper {}
+.fa-light.fa-heart {}
+

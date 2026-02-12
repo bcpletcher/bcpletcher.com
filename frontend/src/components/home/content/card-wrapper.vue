@@ -29,6 +29,9 @@
         class="card-interactive-bg absolute -inset-x-4 -inset-y-4 z-0 hidden rounded-md transition motion-reduce:transition-none lg:-inset-y-4 lg:-inset-x-6 lg:block lg:group-hover:bg-slate-800/50 lg:group-hover:shadow-[inset_0_1px_0_0_rgba(148,163,184,0.1)] lg:group-hover:drop-shadow-lg"
       />
 
+      <!-- Screen-reader only label for the full-card action -->
+      <span class="sr-only">{{ ariaLabel }}</span>
+
       <slot />
     </div>
   </li>
@@ -48,15 +51,11 @@ const props = defineProps({
   },
 });
 
-defineEmits(["open-gallery"]);
-
-// Rough mapping: IntersectionObserver threshold -> ScrollTrigger start.
-// Higher threshold means "wait until more of it is visible" => start lower in viewport.
 const gsapStart = computed(() => {
   const t = Math.min(1, Math.max(0, Number(props.threshold) || 0.45));
-  // Reveal sooner:
-  // 0.0 => top 99%, 1.0 => top 72%
   const pct = Math.round(99 - t * 27);
   return `top ${pct}%`;
 });
+
+defineEmits(["open-gallery"]);
 </script>
