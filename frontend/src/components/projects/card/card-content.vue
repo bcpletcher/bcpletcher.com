@@ -8,7 +8,10 @@
     :aria-disabled="isHidden || undefined"
   >
     <div class="flex flex-col justify-center">
-      <div v-if="showTitle" class="flex items-start justify-between gap-4">
+      <div
+        v-if="showProjectName"
+        class="flex items-start justify-between gap-4"
+      >
         <div class="min-w-0 flex-1">
           <a
             v-if="href && showLink"
@@ -19,10 +22,10 @@
             rel="noreferrer noopener"
             class="kbd-focus group/title inline-flex min-w-0 items-start gap-2 text-slate-200 transition-colors motion-reduce:transition-none hover:text-sky-300 focus-visible:text-sky-300"
             :class="isHidden ? 'cursor-default' : ''"
-            :aria-label="`${title} (opens in a new tab)`"
+            :aria-label="`${projectName} (opens in a new tab)`"
           >
             <h3 class="min-w-0 font-medium leading-snug wrap-break-word">
-              {{ title }}
+              {{ projectName }}
             </h3>
             <i
               class="fa-light fa-arrow-up-right mt-0.5 inline-block h-4 w-4 shrink-0 text-current transition-transform motion-reduce:transition-none group-hover/title:-translate-y-0.5 group-hover/title:translate-x-0.5 group-focus-visible/title:-translate-y-0.5 group-focus-visible/title:translate-x-0.5"
@@ -34,7 +37,7 @@
             v-else
             class="min-w-0 font-medium leading-snug text-slate-200 wrap-break-word"
           >
-            {{ title }}
+            {{ projectName }}
           </h3>
         </div>
 
@@ -79,12 +82,16 @@
       </template>
 
       <div
-        v-if="showMeta && meta?.label"
+        v-if="showMeta && metaDisplay?.label"
         class="mt-3 flex items-center gap-2 text-xs text-slate-400"
       >
-        <i v-if="meta?.iconClass" :class="meta.iconClass" aria-hidden="true" />
+        <i
+          v-if="metaDisplay?.iconClass"
+          :class="metaDisplay.iconClass"
+          aria-hidden="true"
+        />
         <span v-else class="sr-only">Meta</span>
-        <span>{{ meta.label }}</span>
+        <span>{{ metaDisplay.label }}</span>
       </div>
 
       <div v-if="isHidden" class="mt-4 flex items-center gap-3">
@@ -104,19 +111,19 @@
 
 <script setup>
 import { computed } from "vue";
+import { PROJECT_META_OPTIONS } from "@/constants/projectMetaIconOptions.js";
 
 const props = defineProps({
-  title: { type: String, required: true },
+  projectName: { type: String, required: true },
   summary: { type: String, default: "" },
   date: { type: String, default: null },
-
   href: { type: String, default: null },
   technology: { type: Array, default: () => [] },
   featured: { type: Boolean, default: false },
-  meta: { type: Object, default: null },
+  meta: { type: [String, null], default: null },
 
   // Visibility controls
-  showTitle: { type: Boolean, default: true },
+  showProjectName: { type: Boolean, default: true },
   showDate: { type: Boolean, default: true },
   showLink: { type: Boolean, default: true },
   showSummary: { type: Boolean, default: true },
@@ -128,6 +135,12 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["open-gallery"]);
+
+const metaDisplay = computed(() => {
+  const key = (props.meta ?? "").toString().trim();
+  if (!key) return null;
+  return PROJECT_META_OPTIONS?.[key] || null;
+});
 
 const sortedTechnology = computed(() => {
   const arr = Array.isArray(props.technology) ? props.technology : [];
