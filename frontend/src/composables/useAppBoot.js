@@ -98,6 +98,19 @@ export function useAppBoot() {
         let cacheIsFresh = false;
         try {
           const cached = await loadProjectsFromCache();
+
+          // If deploy cache epoch changed, wipe the old cache now.
+          // Only do this when a deploy epoch is configured (i.e., not localhost/dev).
+          const deployEpochConfigured = Boolean(import.meta.env.VITE_CACHE_EPOCH);
+          if (deployEpochConfigured && cached?.reason === "epoch-mismatch") {
+            try {
+              await clearProjectsCache();
+              console.log("[boot] projects cache cleared (epoch mismatch)");
+            } catch (e) {
+              console.warn("[boot] failed to clear projects cache (epoch mismatch)", e);
+            }
+          }
+
           const ageMs = cached?.updatedAt
             ? Date.now() - cached.updatedAt
             : Infinity;

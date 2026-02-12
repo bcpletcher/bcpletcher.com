@@ -17,7 +17,13 @@ const STORES = {
 const KEYS = {
   projectsAll: "projects:all",
   projectsUpdatedAt: "projects:updatedAt",
+  cacheEpoch: "cache:epoch",
 };
+
+// Deploy-controlled cache buster.
+// Set this in your build env (e.g., CI) to a new value on each deploy.
+// Example: VITE_CACHE_EPOCH=2026-02-11T1200Z
+export const CACHE_EPOCH = (import.meta.env.VITE_CACHE_EPOCH || "").toString();
 
 async function getDb() {
   return openDB(DB_NAME, DB_VERSION, {
@@ -38,14 +44,26 @@ async function getDb() {
 // -----------------------
 export async function loadProjectsFromCache() {
   const db = await getDb();
-  const [all, updatedAt] = await Promise.all([
+  const [all, updatedAt, storedEpoch] = await Promise.all([
     db.get(STORES.data, KEYS.projectsAll),
     db.get(STORES.meta, KEYS.projectsUpdatedAt),
+    db.get(STORES.meta, KEYS.cacheEpoch),
   ]);
+
+  // If the deploy epoch changed, treat cache as invalid.
+  // This lets you force a refresh even while TTL is still valid.
+  if (CACHE_EPOCH && storedEpoch !== CACHE_EPOCH) {
+    return {
+      all: null,
+      updatedAt: null,
+      reason: "epoch-mismatch",
+    };
+  }
 
   return {
     all: all || null,
     updatedAt: typeof updatedAt === "number" ? updatedAt : null,
+    reason: null,
   };
 }
 
@@ -62,6 +80,10 @@ export async function saveProjectsToCache(allProjects) {
   await Promise.all([
     tx.objectStore(STORES.data).put(plainAll, KEYS.projectsAll),
     tx.objectStore(STORES.meta).put(now, KEYS.projectsUpdatedAt),
+    // Persist the current deploy epoch (if any) so we can compare on next boot.
+    ...(CACHE_EPOCH
+      ? [tx.objectStore(STORES.meta).put(CACHE_EPOCH, KEYS.cacheEpoch)]
+      : []),
     tx.done,
   ]);
 
@@ -75,6 +97,7 @@ export async function clearProjectsCache() {
   await Promise.all([
     tx.objectStore(STORES.data).delete(KEYS.projectsAll),
     tx.objectStore(STORES.meta).delete(KEYS.projectsUpdatedAt),
+    tx.objectStore(STORES.meta).delete(KEYS.cacheEpoch),
     tx.done,
   ]);
 }
