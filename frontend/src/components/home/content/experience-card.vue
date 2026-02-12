@@ -32,16 +32,16 @@
         {{ company }}
       </p>
 
-      <p v-if="description" class="mt-2 text-sm leading-normal">
+      <p v-if="description" class="mt-2 text-sm leading-normal text-slate-400">
         {{ description }}
       </p>
 
       <ul
-        v-if="tech?.length"
+        v-if="sortedTechnology?.length"
         class="mt-2 flex flex-wrap"
         aria-label="Technologies used"
       >
-        <li v-for="item in tech" :key="item" class="mr-1.5 mt-2">
+        <li v-for="item in sortedTechnology" :key="item" class="mr-1.5 mt-2">
           <div
             class="flex items-center rounded-full bg-sky-300/10 px-3 py-1 text-xs font-medium leading-5 text-sky-300"
           >
@@ -55,14 +55,24 @@
 
 <script setup>
 import CardWrapper from "@/components/home/content/card-wrapper.vue";
+import { computed } from "vue";
 
-defineProps({
+const props = defineProps({
   rangeLabel: { type: String, required: true },
   title: { type: String, required: true },
   company: { type: String, required: true },
   href: { type: String, default: null },
   description: { type: String, default: "" },
-  tech: { type: Array, default: () => [] },
+  technology: { type: Array, default: () => [] },
   isLast: { type: Boolean, default: false },
+});
+
+const sortedTechnology = computed(() => {
+  const arr = Array.isArray(props.technology) ? props.technology : [];
+
+  return arr
+    .filter((t) => (t ?? "").toString().trim())
+    .map((t) => (t ?? "").toString().trim())
+    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 });
 </script>

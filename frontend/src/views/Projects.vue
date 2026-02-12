@@ -151,8 +151,11 @@ const projects = computed(() => {
         technology: item.technology || [],
         featured: Boolean(item.featured),
         hidden: Boolean(item.hidden),
+        meta: item.meta,
       };
     })
+    // Date is required (prevents NaN years / weird sorting / timeline gaps)
+    .filter((p) => typeof p.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.date))
     .sort((a, b) => {
       // Primary sort: canonical date (newest first). ISO date strings are safe to compare.
       const ad = a.date || "";

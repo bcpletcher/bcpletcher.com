@@ -8,7 +8,7 @@
       <p
         v-for="(item, index) in content.paragraphs"
         :key="index"
-        class="leading-relaxed"
+        class="leading-relaxed text-slate-400"
       >
         {{ item }}
       </p>

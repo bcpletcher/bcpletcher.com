@@ -10,6 +10,7 @@
         :href="item.url"
         :technology="item.technology"
         :images="item.images"
+        :meta="item.meta"
         :aria-label="
           item.url
             ? `${item.title} (opens in a new tab)`
@@ -45,6 +46,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { useSettingsStore } from "@/stores/settings.js";
+import { normalizeProjectDate } from "@/utils/projectDate.js";
 
 import ProjectsCard from "@/components/home/content/projects-card.vue";
 import ProjectsGalleryModal from "@/components/projects/projects-gallery-modal.vue";
@@ -71,7 +73,6 @@ const items = computed(() => {
   return Object.values(all)
     .filter((p) => !p?.hidden)
     .filter((p) => !!p?.featured)
-    .sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
     .map((p) => {
       const images = Array.isArray(p?.images) ? p.images.filter(Boolean) : [];
       return {
@@ -79,9 +80,18 @@ const items = computed(() => {
         images,
         title: p?.title || "Untitled",
         summary: p?.summary || "",
-        technology: Array.isArray(p?.technology) ? p.technology : [],
+        technology: p?.technology || [],
         url: p?.url || null,
+        date: normalizeProjectDate(p?.date) || null,
+        meta: p.meta,
       };
+    })
+    // Date is required, but keep a safe fallback so the section doesn't explode on legacy entries.
+    .sort((a, b) => {
+      const ad = a.date || "";
+      const bd = b.date || "";
+      if (ad !== bd) return bd.localeCompare(ad);
+      return (a.title || "").localeCompare(b.title || "");
     })
     .filter((p) => Boolean(p.hero));
 });

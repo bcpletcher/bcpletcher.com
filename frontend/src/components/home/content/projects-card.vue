@@ -64,16 +64,16 @@
         </button>
       </div>
 
-      <p v-if="summary" class="mt-2 text-sm leading-normal">
+      <p v-if="summary" class="mt-2 text-sm leading-normal text-slate-400">
         {{ summary }}
       </p>
 
       <ul
-        v-if="technology?.length"
+        v-if="sortedTechnology?.length"
         class="mt-3 flex flex-wrap"
         aria-label="Technologies used"
       >
-        <li v-for="tag in technology" :key="tag" class="mr-1.5 mt-2">
+        <li v-for="tag in sortedTechnology" :key="tag" class="mr-1.5 mt-2">
           <div
             class="flex items-center rounded-full bg-sky-300/10 px-3 py-1 text-xs font-medium leading-5 text-sky-300"
           >
@@ -83,11 +83,12 @@
       </ul>
 
       <div
-        v-if="metaText"
+        v-if="meta?.label"
         class="mt-3 flex items-center gap-2 text-xs text-font-primary/60"
       >
-        <i class="fa-light fa-star" aria-hidden="true" />
-        {{ metaText }}
+        <i v-if="meta?.iconClass" :class="meta.iconClass" aria-hidden="true" />
+        <i v-else class="fa-light fa-star" aria-hidden="true" />
+        {{ meta.label }}
       </div>
     </div>
   </CardWrapper>
@@ -108,7 +109,7 @@ const props = defineProps({
   technology: { type: Array, default: () => [] },
   ariaLabel: { type: String, default: "Project (opens in a new tab)" },
   imageAlt: { type: String, default: "Project screenshot" },
-  metaText: { type: String, default: "" },
+  meta: { type: Object, default: null },
   isLast: { type: Boolean, default: false },
 
   // Needed to open the modal when there is no external URL
@@ -126,11 +127,20 @@ function onOpenGallery(index = 0) {
   });
 }
 
+const sortedTechnology = computed(() => {
+  const arr = Array.isArray(props.technology) ? props.technology : [];
+
+  return arr
+    .filter((t) => (t ?? "").toString().trim())
+    .map((t) => (t ?? "").toString().trim())
+    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+});
+
 const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
 const img = computed(() =>
   buildResponsiveImageSourcesFromImageValue(props.hero, {
     bucket: storageBucket,
     widths: [480, 720, 1080],
-  })
+  }),
 );
 </script>

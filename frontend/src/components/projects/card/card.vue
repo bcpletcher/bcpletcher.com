@@ -34,13 +34,14 @@
         :href="href"
         :technology="technology"
         :featured="featured"
+        :meta="meta"
         :show-title="showTitle"
         :show-date="showDate"
         :show-link="showLink"
-        :show-link-arrow="showLinkArrow"
         :show-summary="showSummary"
         :show-technology="showTechnology"
         :show-featured="showFeatured"
+        :show-meta="showMeta"
         :is-hidden="isHidden"
         @open-gallery="(idx) => emitOpenGallery(idx)"
       />
@@ -75,15 +76,16 @@ const props = defineProps({
   technology: { type: Array, default: () => [] },
 
   featured: { type: Boolean, default: false },
+  meta: { type: Object, default: null },
 
   // Visibility controls
   showTitle: { type: Boolean, default: true },
   showDate: { type: Boolean, default: true },
   showLink: { type: Boolean, default: true },
-  showLinkArrow: { type: Boolean, default: true },
   showSummary: { type: Boolean, default: true },
   showTechnology: { type: Boolean, default: true },
   showFeatured: { type: Boolean, default: true },
+  showMeta: { type: Boolean, default: true },
 
   // Admin-only controls
   showAdminControls: { type: Boolean, default: false },
