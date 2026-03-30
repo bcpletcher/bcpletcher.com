@@ -95,11 +95,11 @@
 import { computed, ref, watch } from "vue";
 
 import ModalWrapper from "@/components/shared/modal-wrapper.vue";
-import { useFirebaseStore } from "@/stores/firebase.js";
+import { useCloudflareStore } from "@/stores/cloudflare.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { useNotificationStore } from "@/stores/notification.js";
 
-const firebaseStore = useFirebaseStore();
+const cloudflareStore = useCloudflareStore();
 const settingsStore = useSettingsStore();
 const notificationStore = useNotificationStore();
 
@@ -172,7 +172,7 @@ const signIn = () => {
 
   isLoading.value = true;
 
-  firebaseStore
+  cloudflareStore
     .adminSignIn(email, password)
     .then(() => {
       // Auth state is synced globally in app boot.

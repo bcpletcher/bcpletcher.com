@@ -37,7 +37,7 @@
 
 <script setup>
 import { computed } from "vue";
-import { useFirebaseStore } from "@/stores/firebase.js";
+import { useCloudflareStore } from "@/stores/cloudflare.js";
 import { useNotificationStore } from "@/stores/notification.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { saveProjectsToCache } from "@/utils/cache.js";
@@ -57,7 +57,7 @@ const props = defineProps({
 });
 
 const settingsStore = useSettingsStore();
-const firebaseStore = useFirebaseStore();
+const cloudflareStore = useCloudflareStore();
 const notificationStore = useNotificationStore();
 
 const isAdmin = computed(() => settingsStore.isAdminView);
@@ -93,7 +93,7 @@ async function handleToggleHidden() {
   };
 
   try {
-    await firebaseStore.dataUpdateProjectDocument(payload);
+    await cloudflareStore.dataUpdateProjectDocument(payload);
 
     settingsStore.projects = {
       ...(settingsStore.projects || {}),

@@ -1,6 +1,6 @@
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
-import { useFirebaseStore } from "@/stores/firebase.js";
+import { useCloudflareStore } from "@/stores/cloudflare.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import {
   computeLoaderMinMs,
@@ -23,7 +23,7 @@ import { withTimeout } from "@/utils/asyncTimeout.js";
  * - Exposes state to drive the fullscreen loader.
  */
 export function useAppBoot() {
-  const firebaseStore = useFirebaseStore();
+  const cloudflareStore = useCloudflareStore();
   const settingsStore = useSettingsStore();
 
   const isBootLoading = ref(true);
@@ -139,7 +139,7 @@ export function useAppBoot() {
       showLoader.value = true;
 
       // 2) Full fetch (fatal if fails)
-      const projectsFresh = await firebaseStore.dataGetProjectsCollection();
+      const projectsFresh = await cloudflareStore.dataGetProjectsCollection();
       console.log("[boot] projects API resolved", {
         keys: projectsFresh ? Object.keys(projectsFresh).length : 0,
       });
@@ -199,7 +199,7 @@ export function useAppBoot() {
 
     // Keep global auth state in sync so admin login persists across refresh
     // until explicit sign out or Firebase invalidation.
-    firebaseStore.auth.onAuthStateChanged((user) => {
+    cloudflareStore.auth.onAuthStateChanged((user) => {
       settingsStore.user = user || {};
     });
   });

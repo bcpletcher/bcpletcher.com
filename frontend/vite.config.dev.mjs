@@ -11,9 +11,8 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:5001", // Replace with your Firebase Functions emulator URL
+        target: "http://localhost:8787", // Cloudflare Worker local dev (wrangler dev)
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },

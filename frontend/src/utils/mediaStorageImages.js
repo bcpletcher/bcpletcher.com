@@ -12,7 +12,7 @@
 // - Originals are uploaded under:   Projects/<entryId>/<file>
 // - Resized outputs are written to: Projects/<entryId>/resized/<file> (same filename)
 // - Resized filename convention (Firebase Resize Images extension): append `_{width}x{height}` before extension
-//   e.g. `foo.webp` -> `foo_720x9999.webp`
+//   e.g. `foo.webp` -> `foo_960x9999.webp`
 
 // Resize Images extension setting: "Cloud Storage path for resized images".
 // This is a *relative* folder created under the original image's folder.
@@ -60,12 +60,38 @@ function encodeStoragePathForUrl(path) {
   return encodeURIComponent(path);
 }
 
+function encodePathSegments(path) {
+  return String(path)
+    .split("/")
+    .filter((segment) => segment.length > 0)
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+}
+
+function buildMediaBaseUrlUrl(storagePath) {
+  const explicitMediaBase = import.meta.env.VITE_MEDIA_BASE_URL;
+  const apiBase = import.meta.env.VITE_API_BASE_URL;
+  const apiFallbackBase = import.meta.env.VITE_API_BASE_URL_FALLBACK;
+
+  const base =
+    (explicitMediaBase && String(explicitMediaBase).replace(/\/+$/, "")) ||
+    (apiBase && `${String(apiBase).replace(/\/+$/, "")}/api/media`) ||
+    (apiFallbackBase && `${String(apiFallbackBase).replace(/\/+$/, "")}/api/media`) ||
+    "/api/media";
+
+  return `${base}/${encodePathSegments(storagePath)}`;
+}
+
 /**
  * Construct a public download URL for a storage object path.
  * NOTE: this uses `alt=media` and relies on public read access (recommended for portfolios).
  */
 export function buildAltMediaUrl(bucket, storagePath) {
-  if (!bucket || !storagePath) return null;
+  if (!storagePath) return null;
+  const mediaBaseUrlUrl = buildMediaBaseUrlUrl(storagePath);
+  if (mediaBaseUrlUrl) return mediaBaseUrlUrl;
+  if (!bucket) return null;
+
   return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeStoragePathForUrl(
     storagePath
   )}?alt=media`;
@@ -76,10 +102,9 @@ export function buildAltMediaUrl(bucket, storagePath) {
  */
 export function buildResponsiveImageSourcesFromPath(originalStoragePath, {
   bucket,
-  widths = [480, 720, 1080],
+  widths = [480, 960],
   height = 9999,
   resizedSubfolder = DEFAULT_RESIZED_SUBFOLDER,
-  preferWidth = null,
 } = {}) {
   if (!originalStoragePath || typeof originalStoragePath !== "string") {
     return {
@@ -100,32 +125,19 @@ export function buildResponsiveImageSourcesFromPath(originalStoragePath, {
     )
     .filter(Boolean);
 
-  const src =
-    bucket && resizedPaths.length
-      ? buildAltMediaUrl(
-          bucket,
-          (() => {
-            if (preferWidth && widths.includes(preferWidth)) {
-              const idx = widths.indexOf(preferWidth);
-              return resizedPaths[idx] || resizedPaths[resizedPaths.length - 1];
-            }
-            // Default: a middle-sized src to balance quality/bytes.
-            return resizedPaths[Math.floor(widths.length / 2)] || resizedPaths[0];
-          })()
-        )
-      : bucket
-        ? buildAltMediaUrl(bucket, originalStoragePath)
-        : "";
-
-  const srcset = bucket
+  const src = buildAltMediaUrl(bucket, originalStoragePath) || "";
+  const enableResponsiveSrcset = import.meta.env.VITE_ENABLE_RESPONSIVE_SRCSET === "true";
+  const srcset = enableResponsiveSrcset
     ? resizedPaths
-        .map((p) => {
-          const w = Number((p.match(/_(\d+)x(\d+)(\.|$)/) || [])[1]);
-          if (!w) return null;
-          return `${buildAltMediaUrl(bucket, p)} ${w}w`;
-        })
-        .filter(Boolean)
-        .join(", ")
+      .map((p) => {
+        const w = Number((p.match(/_(\d+)x(\d+)(\.|$)/) || [])[1]);
+        if (!w) return null;
+        const u = buildAltMediaUrl(bucket, p);
+        if (!u) return null;
+        return `${u} ${w}w`;
+      })
+      .filter(Boolean)
+      .join(", ")
     : "";
 
   return { src, srcset, originalPath: originalStoragePath, resizedPaths };

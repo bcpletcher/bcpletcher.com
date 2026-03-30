@@ -30,11 +30,11 @@ import Notifications from "@/components/shared/notifications.vue";
 import MouseGlowOverlay from "@/components/shared/mouse-glow-overlay.vue";
 import AdminBanner from "@/components/admin/admin-banner.vue";
 import AdminAdminLoginModal from "@/components/admin/admin-login-modal.vue";
-import { useFirebaseStore } from "@/stores/firebase.js";
+import { useCloudflareStore } from "@/stores/cloudflare.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { useAppBoot } from "@/composables/useAppBoot.js";
 
-useFirebaseStore();
+useCloudflareStore();
 useSettingsStore();
 
 const { showLoader, isBootLoading, bootError, onLoaderDone, didDecideBoot } =
