@@ -1,0 +1,903 @@
+{
+  "result": {
+    "ads": {
+      "summary": "Ignition interlock provider helping DUI-offense compliance across many states by preventing vehicle ignition when alcohol is detected and enabling monitoring/reporting.",
+      "featured": false,
+      "description": "National provider of court-mandated ignition interlock solutions that help reduce impaired driving by requiring a breath sample before a vehicle can start. The experience supports users, service locations, and monitoring needs with clear onboarding, device guidance, appointment/location flows, compliance education, and secure reporting tools for agencies—optimized for fast access on mobile and desktop.",
+      "technology": [
+        "Kentico",
+        ".Net Framework",
+        "Vue.js"
+      ],
+      "url": "https://www.adsinterlock.com",
+      "hidden": false,
+      "date": "2023-01-01",
+      "images": [
+        {
+          "path": "Projects/ads/ads_001.webp"
+        },
+        {
+          "path": "Projects/ads/ads_002.webp"
+        },
+        {
+          "path": "Projects/ads/ads_003.webp"
+        },
+        {
+          "path": "Projects/ads/ads_004.webp"
+        }
+      ],
+      "companyName": "BlueModus",
+      "projectName": "Alcohol Detection Systems"
+    },
+    "alzheimers-association": {
+      "date": "2025-01-01",
+      "summary": "Nonprofit Alzheimer’s and dementia education and support hub offering resources for patients, caregivers, professionals, research updates, advocacy, and community programs.",
+      "description": "Comprehensive nonprofit health resource dedicated to Alzheimer’s disease and related dementias, providing in-depth information on symptoms, causes, diagnosis, care, treatment options, research progress, risk reduction, and support services. The site also connects visitors with local chapters, caregiver resources, 24/7 helpline support, educational programs, advocacy initiatives, and opportunities to participate in events and fundraising campaigns that advance care and research globally.",
+      "featured": false,
+      "images": [
+        {
+          "path": "Projects/alzheimers-association/895a0762-50d9-4a5b-9758-868191960e74.webp"
+        },
+        {
+          "path": "Projects/alzheimers-association/4d86a27c-6a2c-4df0-840f-738e2e4bfb65.webp"
+        },
+        {
+          "path": "Projects/alzheimers-association/03fbbe00-981d-47eb-9f1f-4bfcda80cc53.webp"
+        }
+      ],
+      "technology": [
+        "ASP.NET",
+        "jQuery",
+        "Bootstrap"
+      ],
+      "url": "https://www.alz.org",
+      "hidden": false,
+      "companyName": "BlueModus",
+      "projectName": "Alzheimer's Association"
+    },
+    "americanhealthlaw": {
+      "date": "2025-01-01",
+      "summary": "Association site delivering education, news, resources, and networking for health law professionals representing hospitals, insurers, providers, and regulatory stakeholders.",
+      "description": "Professional association hub for health law attorneys and related professionals across the health care sector. The site provides authoritative educational resources, practice-group content, legal analysis, policy updates, event details, publications, networking tools, career support, and member services designed to help legal and regulatory practitioners navigate complex health law issues including compliance, litigation, policy, and governance.",
+      "featured": false,
+      "images": [
+        {
+          "path": "Projects/americanhealthlaw/7b312841-ee26-4126-ac2b-42e9a4f94b8c.webp"
+        },
+        {
+          "path": "Projects/americanhealthlaw/239e557e-e780-4cbe-a10e-1b9b08951c38.webp"
+        },
+        {
+          "path": "Projects/americanhealthlaw/6a5fa189-265a-4f1d-90d4-847d409fa4d9.webp"
+        }
+      ],
+      "technology": [
+        "Kentico",
+        ".Net Framework",
+        "Bootstrap"
+      ],
+      "url": "https://www.americanhealthlaw.org/",
+      "hidden": false,
+      "companyName": "BlueModus",
+      "projectName": "American Health Law Association"
+    },
+    "arthritis-foundation": {
+      "date": "2024-01-01",
+      "summary": "Health nonprofit hub providing arthritis education, support tools, research info, patient resources, and community programs to improve care and awareness.",
+      "description": "National nonprofit website focused on arthritis education, support, and research, offering comprehensive content on types of arthritis, symptoms, treatments, pain management, lifestyle tools, and clinical trials. The platform provides resources for patients, caregivers, and health professionals including guides, expert articles, risk assessments, community programs, events, fundraising initiatives, advocacy opportunities, and connections to local support networks to help improve quality of life ",
+      "featured": false,
+      "images": [
+        {
+          "path": "Projects/arthritis-foundation/03ed2e06-33a4-47d9-b570-81750069f711.webp"
+        },
+        {
+          "path": "Projects/arthritis-foundation/f69eb941-7cdd-4243-bda1-5f03086c64b1.webp"
+        },
+        {
+          "path": "Projects/arthritis-foundation/c6ed30bb-70a0-4bb4-9f6b-558f68b0809f.webp"
+        }
+      ],
+      "technology": [
+        "Kentico",
+        "Drupal",
+        "Vue.js"
+      ],
+      "url": "https://www.arthritis.org/",
+      "hidden": false,
+      "companyName": "BlueModus",
+      "projectName": "Arthritis Foundation"
+    },
+    "ball": {
+      "summary": "Global aluminum packaging manufacturer producing recyclable beverage cans and containers, emphasizing sustainability, innovation, and circular-economy goals.",
+      "featured": true,
+      "description": "Enterprise marketing experience for a global manufacturer focused on sustainable aluminum packaging. The site highlights innovation, recyclability, and environmental commitments through immersive storytelling, motion-driven product and sustainability content, and investor/corporate communications. Structured navigation and rich editorial layouts help audiences explore packaging capabilities, markets served, careers, and long-term ESG goals across a large international footprint.",
+      "technology": [
+        "Kentico Experience",
+        "GSAP",
+        "Angular"
+      ],
+      "url": "http://www.ball.com",
+      "hidden": false,
+      "date": "2021-01-01",
+      "images": [
+        {
+          "path": "Projects/ball/98cdcd66-66e1-413b-9b57-4e9fec95a219.webp"
+        },
+        {
+          "path": "Projects/ball/527ac53e-4add-49a1-80b6-b32ef658c7b2.webp"
+        },
+        {
+          "path": "Projects/ball/52d7ed65-45eb-44da-893d-721f20f56346.webp"
+        },
+        {
+          "path": "Projects/ball/c266b037-4d88-46a7-8bd9-53dd997e9536.webp"
+        }
+      ],
+      "companyName": "BlueModus",
+      "projectName": "Ball"
+    },
+    "bluemodus": {
+      "summary": "Full-service digital agency delivering strategy, UX/design, and enterprise web development—often centered on CMS platforms, integrations, and long-term support.",
+      "featured": true,
+      "description": "Agency website showcasing strategy, design, and enterprise technology services for complex digital platforms. The experience balances thought leadership with clear service positioning, case studies, and capability storytelling—supporting lead generation while communicating expertise across CMS implementations, custom development, UX, and ongoing optimization. Content architecture and performance focus help convey credibility, culture, and partnership-driven delivery.",
+      "technology": [
+        "Kentico",
+        "GSAP",
+        "ASP.Net"
+      ],
+      "url": "https://bluemodus.com/",
+      "hidden": false,
+      "date": "2023-01-01",
+      "images": [
+        {
+          "path": "Projects/bluemodus/f38edc5e-e1ac-4533-909f-fd88aab80a1c.webp"
+        },
+        {
+          "path": "Projects/bluemodus/fad18e3c-5625-424b-b6bc-5411a9fff9f6.webp"
+        },
+        {
+          "path": "Projects/bluemodus/e3654755-1562-43e4-92cf-8cc444393255.webp"
+        },
+        {
+          "path": "Projects/bluemodus/7d3610da-e177-4fa6-9968-26d0e86c26d6.webp"
+        }
+      ],
+      "companyName": "BlueModus",
+      "projectName": "BlueModus"
+    },
+    "broan": {
+      "summary": "High-performance kitchen ventilation brand offering range hoods across styles and sizes, combining effective air capture with design-forward materials and finishes.",
+      "featured": false,
+      "description": "Product-forward experience for premium kitchen ventilation, designed to help homeowners and designers choose the right hood by style, size, and performance. The site emphasizes strong visuals, comparison-ready product detail pages, specs and installation resources, and inspiration content that bridges function and aesthetics. Modern front-end interactions support browsing, filtering, and exploration across collections and finishes.",
+      "technology": [
+        "Umbraco",
+        "Next.js",
+        "React",
+        "Swiper"
+      ],
+      "url": "https://bestrangehoods.com/",
+      "hidden": false,
+      "date": "2021-01-01",
+      "images": [
+        {
+          "path": "Projects/broan/aff07253-81db-4fac-90d1-10caa7abc8d4.webp"
+        },
+        {
+          "path": "Projects/broan/f8e49ab5-8e4e-48f8-879d-dab3589e3726.webp"
+        },
+        {
+          "path": "Projects/broan/fb0413fb-805e-499a-8e5a-4e2e69aab5fe.webp"
+        },
+        {
+          "path": "Projects/broan/5f60c1d6-777f-41c7-8147-77684665a52e.webp"
+        }
+      ],
+      "companyName": "BlueModus",
+      "projectName": "Broan Best Range Hoods"
+    },
+    "communityTransit": {
+      "summary": "Regional transit provider offering bus and rapid services plus vanpool and paratransit, with tools for trip planning, fares, schedules, maps, and alerts.",
+      "description": "Public transit experience focused on fast trip planning and rider self-service across local, express, and rapid lines. The site brings together real-time service alerts, schedules, route maps, fare information, and accessibility resources with clear IA and search. Riders can plan trips, review station/stop details, and explore options like vanpools, on-demand shuttles, and paratransit—optimized for mobile use on the go.",
+      "url": "https://www.communitytransit.org/",
+      "hidden": false,
+      "images": [
+        {
+          "path": "Projects/communityTransit/bbbd52fc-303c-4eff-a437-e8dc332cfe11.webp"
+        },
+        {
+          "path": "Projects/communityTransit/bc61472e-8007-400b-b2be-a15027f2e41f.webp"
+        },
+        {
+          "path": "Projects/communityTransit/8dbd9366-e49d-43e9-ac33-779b8d3caaf1.webp"
+        },
+        {
+          "path": "Projects/communityTransit/031d20ec-0d51-4f30-95b6-4398b873f7c8.webp"
+        }
+      ],
+      "date": "2026-01-02",
+      "technology": [
+        "OpenTripPlanner",
+        "React",
+        "Sitefinity"
+      ],
+      "companyName": "BlueModus",
+      "projectName": "Community Transit",
+      "featured": true,
+      "meta": null
+    },
+    "coverlabs": {
+      "summary": "Custom poster design platform offering powerful creative tools, community discovery, and personal libraries to create, save, and download unique poster designs.",
+      "featured": true,
+      "description": "Poster creation platform that lets users design fully custom, high-quality posters through an intuitive web-based designer. The experience supports thousands of layout, font, color, and background combinations, along with custom titles, credits, and image uploads. Community-driven discovery allows users to browse, save, edit, and download posters created by others, while a personalized library keeps favorites and works-in-progress organized for easy access and iteration.",
+      "url": "https://www.coverlabs.studio",
+      "hidden": false,
+      "images": [
+        {
+          "path": "Projects/coverlabs/c469df17-6c65-49ef-b8b1-36340debf118.webp"
+        },
+        {
+          "path": "Projects/coverlabs/5efc1535-6881-4c35-bb7a-e9fc67f47bc3.webp"
+        },
+        {
+          "path": "Projects/coverlabs/1e47617d-5036-4731-a43a-e186c10a6362.webp"
+        },
+        {
+          "path": "Projects/coverlabs/e3e07639-9e84-440c-988f-fca1ad093e1d.webp"
+        }
+      ],
+      "date": "2026-01-01",
+      "technology": [
+        "Firebase",
+        "Tailwind CSS",
+        "Vuejs"
+      ],
+      "companyName": "Personal",
+      "projectName": "Coverlabs",
+      "meta": "personal"
+    },
+    "flow": {
+      "summary": "Industrial waterjet cutting manufacturer delivering ultrahigh-pressure systems for precise, cold cutting of metals, stone, glass, composites, and more.",
+      "featured": false,
+      "description": "Manufacturer site presenting ultrahigh-pressure abrasive waterjet cutting systems for industrial applications. The experience explains technology benefits—precision cutting without heat distortion—while guiding visitors through machines, materials, industries served, and support resources. Strong editorial structure and product storytelling help engineers and buyers evaluate capabilities, configurations, and service options, supported by clear calls to request demos and quotes.",
+      "technology": [
+        "Kentico",
+        "jQuery",
+        "Swiper",
+        "Azure"
+      ],
+      "url": "https://www.flowwaterjet.com/",
+      "hidden": false,
+      "date": "2023-01-01",
+      "images": [
+        {
+          "path": "Projects/flow/a27bfcba-5291-4e0e-8339-9ba368cb8dac.webp"
+        },
+        {
+          "path": "Projects/flow/e8219c6d-b901-4a9a-9311-79f9623c3379.webp"
+        },
+        {
+          "path": "Projects/flow/58da7d64-8050-47f7-a5ab-315c45ea0220.webp"
+        },
+        {
+          "path": "Projects/flow/b8ec6e44-b248-46e8-b41a-f96bc20d8f8d.webp"
+        }
+      ],
+      "companyName": "BlueModus",
+      "projectName": "Flow"
+    },
+    "harbor": {
+      "summary": "Restricted-action factory app for capturing real-time production/task updates from the floor, designed for quick use, low error rates, and flexible deployment.",
+      "featured": false,
+      "description": "Factory-floor companion app built for minimal interaction and controlled access, allowing line leaders and employees to submit real-time task updates without exposing unnecessary functions. The UI restricts actions to permitted workflows, reducing mistakes and speeding adoption on the floor. Designed to deploy multiple variations from a single codebase, it pairs with a broader operations suite to keep production status visible and current.",
+      "technology": [
+        "C#",
+        "WPF Forms",
+        "MSSQL",
+        "Crystal Reports"
+      ],
+      "url": "",
+      "hidden": false,
+      "date": "2017-01-01",
+      "images": [
+        {
+          "path": "Projects/harbor/62af946d-4979-41d7-b2c0-521cead21d82.webp"
+        },
+        {
+          "path": "Projects/harbor/84ca3acb-0645-4c5d-b3ce-1e8e2b4e7f22.webp"
+        },
+        {
+          "path": "Projects/harbor/6c05ab5e-004b-4753-a410-29da0d8799c2.webp"
+        },
+        {
+          "path": "Projects/harbor/34202375-1a6c-4b1a-93a0-c1a6644f89f9.webp"
+        },
+        {
+          "path": "Projects/harbor/ada65b05-eb44-43f2-916a-dda1b10bdf33.webp"
+        },
+        {
+          "path": "Projects/harbor/745fc9cb-64ea-42c6-80b0-c9285a2f3616.webp"
+        },
+        {
+          "path": "Projects/harbor/45aea322-493a-40c7-adad-a80470f8867e.webp"
+        },
+        {
+          "path": "Projects/harbor/64378e41-d449-4874-a00b-b86f337ba7a2.webp"
+        },
+        {
+          "path": "Projects/harbor/c586609d-d9d7-4e4d-a192-12327ee108ff.webp"
+        }
+      ],
+      "companyName": "Hemisphere Design Works",
+      "projectName": "Harbor"
+    },
+    "iada": {
+      "summary": "Trade association site advocating for Illinois franchised auto dealers with resources, legislative advocacy, licensing guidance, and industry support.",
+      "featured": false,
+      "description": "Statewide association site representing franchised automobile dealers in Illinois, offering advocacy, resources, and member services to support the retail auto industry. The platform provides legislative updates, dealer licensing info, regulatory guidance, downloadable forms, and industry publications, helping dealerships navigate compliance, title and registration requirements, advertising and tax procedures, and other operational challenges while promoting a favorable business climate.",
+      "technology": [
+        "Wordpress",
+        "PHP",
+        "GravityForms"
+      ],
+      "url": "https://www.illinoisdealers.com/",
+      "hidden": false,
+      "date": "2024-01-01",
+      "images": [
+        {
+          "path": "Projects/iada/141cdc31-040f-46c3-8771-125d5d73212e.webp"
+        },
+        {
+          "path": "Projects/iada/7b0c6588-f7ba-47ec-9c27-0b0df500a357.webp"
+        },
+        {
+          "path": "Projects/iada/d96bb5fe-c463-43e9-b9fd-cff0b94b66fc.webp"
+        },
+        {
+          "path": "Projects/iada/43d82b3f-07af-4166-8946-48ace0d67ff2.webp"
+        }
+      ],
+      "companyName": "Third Coast Creative",
+      "projectName": "Illinois Automobile Dealers Association"
+    },
+    "innovage": {
+      "summary": "Senior care provider focused on integrated PACE services that enable frail adults to remain in their homes with coordinated medical, social, and supportive care across several U.S. states.",
+      "description": "Comprehensive senior care organization dedicated to helping older adults live independently through the Program of All-inclusive Care for the Elderly (PACE). The site offers detailed information about healthcare services, eligibility, and centers across multiple states, including primary and specialty care, coordinated care teams, transportation, meals, therapy services, and social support — all designed to support aging in place with dignity, connection, and predictable healthcare costs.",
+      "featured": false,
+      "images": [
+        {
+          "path": "Projects/innovage/c98816a0-3435-42b9-96f9-861629a02403.webp"
+        },
+        {
+          "path": "Projects/innovage/2e611f1b-d7c2-4a8b-a595-de6841b1a4ef.webp"
+        },
+        {
+          "path": "Projects/innovage/a5b05054-3597-4faa-8af3-f014b570a106.webp"
+        }
+      ],
+      "technology": [
+        "ASP.NET",
+        "jQuery",
+        "Kentico"
+      ],
+      "url": "https://www.innovage.com/",
+      "hidden": false,
+      "date": "2024-01-01",
+      "companyName": "BlueModus",
+      "projectName": "InnovAge"
+    },
+    "johnstonboilercomapny": {
+      "summary": "Desktop sales assistant that turns Excel pricing data into guided, error-resistant quote generation with dynamic option filtering and consistent outputs.",
+      "featured": false,
+      "description": "Desktop quoting tool that integrates with Excel-based price books to generate accurate quotes for specialized orders. The application uses dynamic filtering so only valid options appear based on prior selections, reducing errors and speeding the sales workflow. Built to support repeatable quote creation, consistent formatting, and easier maintenance of pricing logic while keeping the interface efficient for daily use by sales staff.",
+      "technology": [
+        "C#",
+        "WPF Forms",
+        "Excel"
+      ],
+      "url": "",
+      "hidden": false,
+      "date": "2014-01-01",
+      "images": [
+        {
+          "path": "Projects/johnstonboilercomapny/b33f5c7c-4f0a-4213-a716-cfaad33f36ff.webp"
+        },
+        {
+          "path": "Projects/johnstonboilercomapny/ca5bd3a6-ec2e-451a-8206-803fd60d60d2.webp"
+        },
+        {
+          "path": "Projects/johnstonboilercomapny/6459f4bc-53ab-4118-aba9-f31026967947.webp"
+        }
+      ],
+      "companyName": "Johnston Boiler Company",
+      "projectName": "Sales Assistant"
+    },
+    "lexitaslegal": {
+      "summary": "Legal support services provider offering nationwide solutions for law firms—helping manage workflows and deliver reliable operational support across cases and practices.",
+      "featured": false,
+      "description": "Professional services website for legal support offerings, designed to help firms quickly understand capabilities and request help. The experience focuses on clarity and credibility, organizing services, coverage, and differentiators into scannable pages supported by streamlined conversion paths. Content structure supports multiple audiences—attorneys, operations teams, and partners—while reinforcing reliability, responsiveness, and nationwide service delivery across litigation support needs.",
+      "technology": [
+        "Kentico",
+        ".Net Framework"
+      ],
+      "url": "https://www.lexitaslegal.com/",
+      "hidden": false,
+      "date": "2022-01-01",
+      "images": [
+        {
+          "path": "Projects/lexitaslegal/18e9b38c-210f-4d3f-8428-41382d536182.webp"
+        },
+        {
+          "path": "Projects/lexitaslegal/97a6da90-00a8-4690-9176-c46a18c5c814.webp"
+        },
+        {
+          "path": "Projects/lexitaslegal/aadc782c-bc39-4b8d-b38d-967bf3b147fb.webp"
+        },
+        {
+          "path": "Projects/lexitaslegal/bf7c18f8-6510-4929-9b2f-bf9dc3e51613.webp"
+        }
+      ],
+      "companyName": "BlueModus",
+      "projectName": "Lexitas Legal"
+    },
+    "lhfs": {
+      "summary": "Mortgage lending service providing tailored home loans, refinancing options, and expert guidance with nationwide coverage and community-focused support.",
+      "featured": false,
+      "description": "Nationwide mortgage lender offering personalized home financing solutions across a broad range of loan types, including conventional, FHA, VA, USDA, and manufactured home programs. The platform guides borrowers with transparent communication, expert loan advice, and tailored lending options through every stage of buying, refinancing, or building a home. Resources include a knowledge center, payment tools, and community-focused lending programs that support first-time buyers, down payment assista",
+      "technology": [
+        "Blazor",
+        "Tailwind CSS",
+        ".Net"
+      ],
+      "url": "https://www.lhfs.com/",
+      "hidden": false,
+      "date": "2025-01-01",
+      "images": [
+        {
+          "path": "Projects/lhfs/7eb28ae6-e188-4c8e-a25c-53539c71fad2.webp"
+        },
+        {
+          "path": "Projects/lhfs/c3a3bdad-d015-4c6b-af89-dfce0a0ef7b5.webp"
+        },
+        {
+          "path": "Projects/lhfs/376fe160-c3a3-4512-b8b4-2ec0e339ec7a.webp"
+        }
+      ],
+      "companyName": "Third Coast Creative",
+      "projectName": "Land Home Financial Services"
+    },
+    "lighthouse": {
+      "summary": "Permission-based utility app that streamlines day-to-day workflows for individuals, designed to scale through modular sections while keeping access tightly controlled.",
+      "featured": false,
+      "description": "Personal utility application built to simplify daily procedures and speed up recurring tasks for individual users. The platform supports ongoing expansion, with features organized into sections that are permission-gated so people only see what’s relevant. A focus on straightforward navigation, quick actions, and scalable structure makes it easy to add new modules over time while maintaining security, role clarity, and a consistent user experience.",
+      "technology": [
+        "C#",
+        "WPF Forms",
+        "MSSQL",
+        "Crystal Reports"
+      ],
+      "url": "",
+      "hidden": false,
+      "date": "2018-01-01",
+      "images": [
+        {
+          "path": "Projects/lighthouse/85a5c81c-f683-4f3b-92e4-c09855c4f767.webp"
+        },
+        {
+          "path": "Projects/lighthouse/70630129-eb57-4546-9251-719dae52f14a.webp"
+        },
+        {
+          "path": "Projects/lighthouse/71942279-edf1-4e78-8809-e47d60019199.webp"
+        },
+        {
+          "path": "Projects/lighthouse/d7b25cba-b03a-420a-97ab-ff0b97fb2efe.webp"
+        },
+        {
+          "path": "Projects/lighthouse/660c46d4-abe6-4cc4-aae6-c5eb35ec9362.webp"
+        },
+        {
+          "path": "Projects/lighthouse/b11bf76d-bded-4e56-8a7d-d6b4f5825dcf.webp"
+        },
+        {
+          "path": "Projects/lighthouse/2b993f8e-3d91-4e0e-9157-f45510b84d75.webp"
+        },
+        {
+          "path": "Projects/lighthouse/7f896343-31b3-4745-b431-42008d22e702.webp"
+        },
+        {
+          "path": "Projects/lighthouse/3be88064-54e4-45e4-bf22-2501700792a5.webp"
+        }
+      ],
+      "companyName": "Hemisphere Design Works",
+      "projectName": "Lighthouse"
+    },
+    "livanova": {
+      "date": "2023-01-11",
+      "summary": "Medical device and health-tech organization delivering cardiopulmonary and neuromodulation products and therapies that improve lives globally.",
+      "description": "Global medical technology company focused on creating life-changing medical devices and therapies for serious conditions affecting the head and heart. The site presents cardiopulmonary solutions such as heart-lung machines and perfusion systems, neuromodulation therapies including VNS systems for drug-resistant epilepsy and difficult-to-treat depression, and educational resources for clinicians and patients alike. Content covers product portfolios, therapeutic areas, clinical evidence, global op",
+      "featured": false,
+      "images": [
+        {
+          "path": "Projects/livanova/0ea65c6e-e17d-429f-8848-a6275e2844d2.webp"
+        },
+        {
+          "path": "Projects/livanova/8dc47fc2-b88c-4267-a84e-0aef77b55c13.webp"
+        },
+        {
+          "path": "Projects/livanova/2a328acc-313c-4438-ab18-bf645e3122ed.webp"
+        }
+      ],
+      "technology": [
+        "AWS",
+        "Kentico",
+        "jQuery"
+      ],
+      "url": "https://www.livanova.com/en-us",
+      "hidden": false,
+      "companyName": "BlueModus",
+      "projectName": "LivaNova"
+    },
+    "mainfreight": {
+      "summary": "Worldwide logistics and supply chain company delivering freight transport, warehousing, and distribution solutions with global reach and service excellence.",
+      "description": "Global logistics and supply chain provider offering comprehensive freight, warehousing, and distribution services across air, ocean, and ground transportation networks. The site highlights tailored solutions for international and local shippers, including customs clearance, inventory management, e-commerce support, and real-time tracking tools. It also features industry insights, customer resources, service locations, sustainability initiatives, and careers that emphasize reliability",
+      "featured": false,
+      "technology": [
+        "Umbraco",
+        ".Net Framework",
+        "Vue.js"
+      ],
+      "url": "https://www.mainfreight.com/",
+      "hidden": false,
+      "date": "2023-01-01",
+      "images": [
+        {
+          "path": "Projects/mainfreight/697683f0-a3a2-4d5f-a6f5-7a9997ca6e66.webp"
+        },
+        {
+          "path": "Projects/mainfreight/07e28445-9461-40ca-a39d-6560ce65ddd0.webp"
+        },
+        {
+          "path": "Projects/mainfreight/c279dd1a-44e0-4069-ad04-4e4dbfb17e91.webp"
+        }
+      ],
+      "companyName": "BlueModus",
+      "projectName": "Mainfreight"
+    },
+    "opsdt": {
+      "summary": "Independent tribunal that adjudicates physician discipline matters, publishing processes and decisions to support transparency, fairness, and public access to outcomes.",
+      "featured": false,
+      "description": "Public-facing information hub for an independent discipline tribunal, designed to support transparency and access to proceedings. The experience organizes mandates, processes, hearing information, decisions, and resources in a clear, trial-like framework while remaining approachable for the public. Strong IA and searchability help users find governance details, procedures, and published outcomes, reinforcing impartiality and trust in adjudication.",
+      "technology": [
+        "Kentico",
+        "jQuery"
+      ],
+      "url": "https://opsdt.ca/",
+      "hidden": false,
+      "date": "2021-01-01",
+      "images": [
+        {
+          "path": "Projects/opsdt/fb072a9a-03e1-400f-8b58-f05a7baf7f3b.webp"
+        },
+        {
+          "path": "Projects/opsdt/dce759af-77aa-4c80-bd17-f5d12edd5865.webp"
+        },
+        {
+          "path": "Projects/opsdt/da067124-7db9-4448-9c0e-ae5e8e7427c5.webp"
+        }
+      ],
+      "companyName": "BlueModus",
+      "projectName": "OPSDT"
+    },
+    "premiummedia360": {
+      "summary": "Automation platform that streamlines PO-to-invoice reconciliation and data sharing for media/tech partners, reducing manual work, errors, and operational waste.",
+      "featured": false,
+      "description": "Web experience for a plug-and-play reconciliation platform that automates data sharing from purchase order through invoice for media and technology partners. The product messaging emphasizes removing manual spreadsheet work, reducing discrepancies, and improving operational efficiency through standardized workflows and automated matching. Built to communicate value quickly, the site supports understanding of capabilities, integrations, and outcomes for finance and operations teams.",
+      "technology": [
+        "Vue.js",
+        "DevExtreme",
+        "ASP.NET",
+        "MSSQL"
+      ],
+      "url": "https://www.premiumdata360.com/",
+      "hidden": false,
+      "date": "2020-01-01",
+      "images": [
+        {
+          "path": "Projects/premiummedia360/36bef4cc-8a66-4803-a1af-188a1bd150e9.webp"
+        },
+        {
+          "path": "Projects/premiummedia360/e6c47fe5-de22-4e4d-8c5f-d43ad69a0919.webp"
+        },
+        {
+          "path": "Projects/premiummedia360/3b64e18d-45a7-4235-9d2a-6ad61d6bbb35.webp"
+        },
+        {
+          "path": "Projects/premiummedia360/65e6a7aa-8bb3-484b-86c6-837f1257e2fd.webp"
+        },
+        {
+          "path": "Projects/premiummedia360/b92aea38-dfb6-4add-8e59-4e3556459796.webp"
+        },
+        {
+          "path": "Projects/premiummedia360/82c558fe-b5ef-4fb0-98a1-576f4922b0b2.webp"
+        }
+      ],
+      "companyName": "Premium Data 360",
+      "projectName": "GIACloud"
+    },
+    "rasi": {
+      "summary": "Registered agent and corporate compliance provider with nationwide coverage, helping businesses manage statutory representation, filings, and ongoing compliance needs.",
+      "featured": false,
+      "description": "Service site for a nationwide registered agent and corporate compliance provider, built to communicate coverage, reliability, and technology-enabled workflows. The experience supports businesses that need statutory representation and document handling across jurisdictions, presenting offerings like registered agent service, compliance tools, and entity support. Clear navigation and conversion flows help organizations evaluate services, request help, and manage ongoing obligations efficiently.",
+      "url": "https://www.rasi.com/",
+      "hidden": false,
+      "date": "2024-01-01",
+      "images": [
+        {
+          "path": "Projects/rasi/4ba282bc-1043-4e20-a3b0-1534a56a3dfb.webp"
+        },
+        {
+          "path": "Projects/rasi/6ca5458a-821b-4ec9-9539-9942b16926e4.webp"
+        },
+        {
+          "path": "Projects/rasi/098a1915-20c1-4c34-a3d5-200db6cc6676.webp"
+        },
+        {
+          "path": "Projects/rasi/cd588400-946e-401a-bdb0-a65466e7208d.webp"
+        }
+      ],
+      "technology": [
+        "Kentico",
+        "Vue.js",
+        ".Net Framework"
+      ],
+      "companyName": "BlueModus",
+      "projectName": "Registered Agent Solutions, Inc"
+    },
+    "sandbar": {
+      "summary": "Modular internal web app suite that improved operational efficiency and sales via multiple interconnected tools, with full-stack buildout, UX, data design, and maintenance.",
+      "featured": true,
+      "description": "Modular internal web application suite built to improve productivity and sales through purpose-driven tools. The system combines front-end and back-end development with UX/UI design, database structure, and server setup, supporting multiple apps under one cohesive platform. Contributions spanned conception, wireframes, branding, data modeling, and ongoing enhancements enabling teams to track work, manage operations, and streamline workflows over time.",
+      "technology": [
+        "SPA",
+        "Vue.js",
+        "Socket.io",
+        "Ubuntu",
+        "MSSQL",
+        "Crystal Reports"
+      ],
+      "url": "",
+      "hidden": false,
+      "date": "2019-01-01",
+      "images": [
+        {
+          "path": "Projects/sandbar/a77b91b7-ea91-40a5-a008-520c86f54764.webp"
+        },
+        {
+          "path": "Projects/sandbar/5900db9a-b383-43b6-83f1-35cc0e10174e.webp"
+        },
+        {
+          "path": "Projects/sandbar/f5049b9c-d98d-4340-aa8a-903ac94d3fa4.webp"
+        },
+        {
+          "path": "Projects/sandbar/97f36e46-55ad-4c07-a055-0c9b532b07af.webp"
+        },
+        {
+          "path": "Projects/sandbar/f025fe53-3150-4a6e-b506-85f98d55b81e.webp"
+        },
+        {
+          "path": "Projects/sandbar/bbc42c6d-a763-4b7f-bfe7-248d7782d663.webp"
+        },
+        {
+          "path": "Projects/sandbar/b736b5d7-fba3-4b3a-abdf-3b2a7f2539b4.webp"
+        },
+        {
+          "path": "Projects/sandbar/f7707e81-7b79-466b-8d4b-67bd3552726d.webp"
+        },
+        {
+          "path": "Projects/sandbar/13a6af2c-07ef-4962-8cbe-2dbc71211a5a.webp"
+        },
+        {
+          "path": "Projects/sandbar/e742b33f-b129-4f33-bfe4-682d965452b0.webp"
+        },
+        {
+          "path": "Projects/sandbar/eb4d4304-010d-4b71-ac78-e2974a1bf4e6.webp"
+        },
+        {
+          "path": "Projects/sandbar/e0214d68-1c6e-41cb-8e05-de07036fa0d2.webp"
+        },
+        {
+          "path": "Projects/sandbar/be7a7911-cde2-42a2-a1b7-6855ceaf17a0.webp"
+        },
+        {
+          "path": "Projects/sandbar/e3050540-6f94-4be1-8020-88aeab0f4c10.webp"
+        },
+        {
+          "path": "Projects/sandbar/da1c4047-cd63-4e08-b5d4-5abbaf205f9d.webp"
+        },
+        {
+          "path": "Projects/sandbar/80999313-6905-47fd-97e7-9d063f4a40e7.webp"
+        },
+        {
+          "path": "Projects/sandbar/8045e18b-69da-4cf4-b609-0f2e793a129c.webp"
+        },
+        {
+          "path": "Projects/sandbar/bc39ec73-b2ba-43be-8cf9-3660f66ee93c.webp"
+        },
+        {
+          "path": "Projects/sandbar/4f7c259f-8ed1-4be1-a724-85d9232393e5.webp"
+        },
+        {
+          "path": "Projects/sandbar/926dae35-40c4-4176-88a4-ff2377344a71.webp"
+        },
+        {
+          "path": "Projects/sandbar/6251e1a1-a3d7-4649-be0c-da6ab21235f3.webp"
+        },
+        {
+          "path": "Projects/sandbar/706f2102-d0cb-49f6-99b0-4dd2b9357e07.webp"
+        },
+        {
+          "path": "Projects/sandbar/f495bc7e-f0c1-4a64-bfb0-b1eae16b04ec.webp"
+        },
+        {
+          "path": "Projects/sandbar/54fdeac2-4dda-462b-a053-1f1b3f070ac2.webp"
+        },
+        {
+          "path": "Projects/sandbar/1a511963-4ab3-4185-ba3e-606153fc3b94.webp"
+        },
+        {
+          "path": "Projects/sandbar/8ad6bfac-f946-472a-852b-3d036f6c4fc8.webp"
+        },
+        {
+          "path": "Projects/sandbar/e1828ce9-cbc7-4020-a8b7-6a7a39165c67.webp"
+        },
+        {
+          "path": "Projects/sandbar/7adb09b8-cffe-4878-9f08-403151bf1b7c.webp"
+        },
+        {
+          "path": "Projects/sandbar/32a75cf8-2267-4ad1-916d-86b19cec9443.webp"
+        },
+        {
+          "path": "Projects/sandbar/98e26515-d360-4502-8c9e-aad5e1b21f73.webp"
+        },
+        {
+          "path": "Projects/sandbar/0c4a4663-8799-4697-8bd3-becadd26d379.webp"
+        },
+        {
+          "path": "Projects/sandbar/53db328c-c1c1-4171-8aab-43ab4a8e66e4.webp"
+        },
+        {
+          "path": "Projects/sandbar/ec854d5a-98f4-4828-86f9-dcafeb9460ac.webp"
+        },
+        {
+          "path": "Projects/sandbar/82b72aa6-9535-45e4-8389-23704b21d695.webp"
+        },
+        {
+          "path": "Projects/sandbar/c96e7b68-8249-4974-b4b4-9e29940333bc.webp"
+        },
+        {
+          "path": "Projects/sandbar/c9bbf17c-0956-4d6e-8136-ccc6478dabb1.webp"
+        },
+        {
+          "path": "Projects/sandbar/5cf8cbfd-8626-4945-854a-56b296262c79.webp"
+        },
+        {
+          "path": "Projects/sandbar/4073458c-4812-489b-b8ed-cf386fbd7afa.webp"
+        },
+        {
+          "path": "Projects/sandbar/06dcb2cb-2cda-44a1-996c-4d2adcb9c52c.webp"
+        },
+        {
+          "path": "Projects/sandbar/53978d33-9530-4d65-80ab-06ed1058f0e6.webp"
+        },
+        {
+          "path": "Projects/sandbar/393c7dcf-4907-4a0a-9ffc-ef2191722f91.webp"
+        },
+        {
+          "path": "Projects/sandbar/b85f22b6-142d-415f-9e0f-b21dd5be8fdd.webp"
+        },
+        {
+          "path": "Projects/sandbar/0106365a-8557-417e-80b3-372417db0cb1.webp"
+        },
+        {
+          "path": "Projects/sandbar/f6c8a133-b670-4651-9906-8a50da05c6d3.webp"
+        },
+        {
+          "path": "Projects/sandbar/ea8e1bee-5fb6-4773-82c6-550ee5ee1a51.webp"
+        },
+        {
+          "path": "Projects/sandbar/713cab9c-fe6f-495e-bb56-dc42ea08b202.webp"
+        },
+        {
+          "path": "Projects/sandbar/b19af5ef-f313-4e57-ac9d-c264909610e7.webp"
+        },
+        {
+          "path": "Projects/sandbar/124f9980-3ae8-42fe-a268-99816d1f68e8.webp"
+        },
+        {
+          "path": "Projects/sandbar/131ad2f5-deb8-4124-badd-d640a6fc672d.webp"
+        },
+        {
+          "path": "Projects/sandbar/4d51967f-8425-46b7-be68-74432282e4ea.webp"
+        },
+        {
+          "path": "Projects/sandbar/7ff54268-873a-4d7a-926b-356fcfb058cc.webp"
+        },
+        {
+          "path": "Projects/sandbar/6eee3249-baff-4912-9655-bf89908b2f8d.webp"
+        },
+        {
+          "path": "Projects/sandbar/b8619ed4-9cfc-4148-963b-8e6623d92007.webp"
+        },
+        {
+          "path": "Projects/sandbar/12623e2f-27f9-4448-8588-da45e58cb51d.webp"
+        },
+        {
+          "path": "Projects/sandbar/1a7b7d06-0066-44ac-ab03-340cf1c6ec83.webp"
+        },
+        {
+          "path": "Projects/sandbar/edd30784-16a8-4e31-8b29-8556539c934c.webp"
+        },
+        {
+          "path": "Projects/sandbar/43619626-f081-4aa6-bb3a-938799d060cb.webp"
+        },
+        {
+          "path": "Projects/sandbar/13526103-4c58-429f-a04f-089b75eed7a6.webp"
+        },
+        {
+          "path": "Projects/sandbar/b071847d-a8a9-4fb0-bbe0-b46da7b2a1b4.webp"
+        },
+        {
+          "path": "Projects/sandbar/8fbe593c-23b8-4b2f-b411-1a28314c7483.webp"
+        },
+        {
+          "path": "Projects/sandbar/6b3f365d-f6c8-476c-aba9-80eb0a79c0e1.webp"
+        },
+        {
+          "path": "Projects/sandbar/7f7ffb96-4c2c-4249-898a-b5f5f36a1164.webp"
+        },
+        {
+          "path": "Projects/sandbar/a741d921-a9ac-42d8-a60d-adbab3ac030c.webp"
+        },
+        {
+          "path": "Projects/sandbar/d83b5d1b-9cb7-41af-b1ef-acc52046bdfe.webp"
+        },
+        {
+          "path": "Projects/sandbar/c2537fd4-99d0-4db6-862e-1c2aa7edf846.webp"
+        },
+        {
+          "path": "Projects/sandbar/d0e8b7b0-4741-4f3d-a398-2e01cea94224.webp"
+        },
+        {
+          "path": "Projects/sandbar/9d0b2266-d411-4fdf-961d-990bf7205b14.webp"
+        }
+      ],
+      "companyName": "Hemisphere Design Works",
+      "projectName": "Sandbar"
+    },
+    "union-heritage-credit-union": {
+      "date": "2022-01-01",
+      "summary": "Credit union website providing banking products, loans, online/mobile banking, and member resources with a local, personalized service focus in Central Texas.",
+      "description": "Member-focused credit union site offering a full range of financial services including personal and business banking, savings and checking accounts, loans, credit cards, online and mobile banking, and member resources tailored to community needs in Central Texas. The platform provides tools for account management, fraud protection guidance, branch/ATM locations, financial education, and application access, emphasizing local service, personalized support, and secure digital banking options for me",
+      "featured": false,
+      "images": [
+        {
+          "path": "Projects/union-heritage-credit-union/993f57a9-e259-4285-b51a-ff963c9ca7b7.webp"
+        },
+        {
+          "path": "Projects/union-heritage-credit-union/ab5ab7e4-c043-4621-84c4-16335a59efb3.webp"
+        },
+        {
+          "path": "Projects/union-heritage-credit-union/61f3402f-3e9b-4b49-8c91-07d0116f593c.webp"
+        }
+      ],
+      "technology": [
+        ".Net Framework",
+        "Kentico",
+        "Vue.js"
+      ],
+      "url": "https://www.uhcu.org/",
+      "hidden": false,
+      "companyName": "BlueModus",
+      "projectName": "United Heritage Credit Union"
+    }
+  }
+}

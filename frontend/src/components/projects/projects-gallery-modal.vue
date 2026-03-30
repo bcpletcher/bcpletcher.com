@@ -131,7 +131,11 @@ import { Keyboard } from "swiper/modules";
 
 import "swiper/css";
 import ModalWrapper from "@/components/shared/modal-wrapper.vue";
-import { buildResponsiveImageSourcesFromImageValue } from "@/utils/firebaseStorageImages.js";
+import {
+  buildResponsiveImageSourcesFromImageValue,
+  getStoragePathFromImageValue,
+  buildAltMediaUrl,
+} from "@/utils/mediaStorageImages.js";
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -150,13 +154,18 @@ const activeIndex = ref(0);
 
 const modules = [Keyboard];
 
-const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
-const responsiveFor = (img) =>
-  buildResponsiveImageSourcesFromImageValue(img, {
-    bucket: storageBucket,
-    widths: [480, 720, 1080],
-    preferWidth: 1080,
+const responsiveFor = (img) => {
+  const responsive = buildResponsiveImageSourcesFromImageValue(img, {
+    widths: [480, 960],
+    preferWidth: 960,
   });
+  const originalPath = getStoragePathFromImageValue(img);
+  const originalUrl = originalPath ? buildAltMediaUrl("", originalPath) : "";
+  return {
+    ...responsive,
+    src: originalUrl || responsive.src,
+  };
+};
 
 function getImageKey(img, index) {
   if (!img) return `img-${index}`;

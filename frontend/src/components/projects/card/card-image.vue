@@ -92,7 +92,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import gsap from "gsap";
-import { buildResponsiveImageSourcesFromImageValue } from "@/utils/firebaseStorageImages.js";
+import { buildResponsiveImageSourcesFromImageValue } from "@/utils/mediaStorageImages.js";
 
 const props = defineProps({
   projectName: { type: String, required: true },
@@ -110,11 +110,9 @@ const previewImages = computed(() => {
   return (props.images || []).filter(Boolean).slice(0, 3);
 });
 
-const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
 const responsiveFor = (img) =>
   buildResponsiveImageSourcesFromImageValue(img, {
-    bucket: storageBucket,
-    widths: [480, 720, 1080],
+    widths: [480, 960],
   });
 
 const isMdUp = ref(true);

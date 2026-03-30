@@ -1,0 +1,26 @@
+name = "bcpletcher-api"
+main = "src/index.js"
+compatibility_date = "2026-03-29"
+workers_dev = true
+routes = [
+  { pattern = "www.bcpletcher.com/api/*", zone_name = "bcpletcher.com" },
+  { pattern = "bcpletcher.com/api/*", zone_name = "bcpletcher.com" },
+  { pattern = "next.bcpletcher.com/api/*", zone_name = "bcpletcher.com" },
+]
+
+[vars]
+# Set these in Cloudflare dashboard / wrangler secrets for production:
+# ADMIN_EMAIL
+# ADMIN_PASSWORD
+# ADMIN_SESSION_SECRET
+# MEDIA_BASE_URL
+# ALLOWED_ORIGIN
+
+[[d1_databases]]
+binding = "DB"
+database_name = "bcpletcher-db"
+database_id = "da5c3c6d-2054-4c88-9acf-638483886009"
+
+[[r2_buckets]]
+binding = "ARTWORK"
+bucket_name = "bcpletcher-artwork"

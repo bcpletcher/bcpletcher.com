@@ -80,15 +80,14 @@
 
 <script setup>
 import { computed, useTemplateRef } from "vue";
-import { signOut } from "firebase/auth";
 
 import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
-import { useFirebaseStore } from "@/stores/firebase.js";
+import { useCloudflareStore } from "@/stores/cloudflare.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { clearProjectsCache } from "@/utils/cache.js";
 import { useNotificationStore } from "@/stores/notification.js";
 
-const firebaseStore = useFirebaseStore();
+const cloudflareStore = useCloudflareStore();
 const settingsStore = useSettingsStore();
 const notificationStore = useNotificationStore();
 
@@ -136,8 +135,7 @@ function toggleImpersonate() {
 }
 
 const logout = async () => {
-  await signOut(firebaseStore.auth);
-  // Defensive: ensure UI updates even if auth listener is elsewhere.
+  await cloudflareStore.adminSignOut();
   settingsStore.user = {};
   settingsStore.impersonateUser = false;
 };

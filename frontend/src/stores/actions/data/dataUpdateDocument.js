@@ -1,10 +1,15 @@
-import { httpsCallable } from "firebase/functions";
+import { apiFetch } from "@/utils/cloudflareApi.js";
 
 export async function dataUpdateDocument(functions, functionName, document) {
   try {
-    const updateFunction = httpsCallable(functions, functionName);
-    const result = await updateFunction({ document });
-    return result.data;
+    if (functionName !== "updateProjectDocument") {
+      throw new Error(`Unsupported update function: ${functionName}`);
+    }
+    return apiFetch("/api/admin/projects/upsert", {
+      method: "POST",
+      auth: true,
+      body: { mode: "update", document },
+    });
   } catch (error) {
     console.error(`Error updating ${functionName}:`, error);
     throw error;

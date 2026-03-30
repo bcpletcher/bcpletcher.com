@@ -101,7 +101,7 @@
 <script setup>
 import CardWrapper from "@/components/home/content/card-wrapper.vue";
 import { computed } from "vue";
-import { buildResponsiveImageSourcesFromImageValue } from "@/utils/firebaseStorageImages.js";
+import { buildResponsiveImageSourcesFromImageValue } from "@/utils/mediaStorageImages.js";
 import { PROJECT_META_OPTIONS } from "@/constants/projectMetaIconOptions.js";
 
 const emit = defineEmits(["open-gallery"]);
@@ -148,11 +148,9 @@ const sortedTechnology = computed(() => {
     .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 });
 
-const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
 const img = computed(() =>
   buildResponsiveImageSourcesFromImageValue(props.hero, {
-    bucket: storageBucket,
-    widths: [480, 720, 1080],
+    widths: [480, 960],
   }),
 );
 </script>

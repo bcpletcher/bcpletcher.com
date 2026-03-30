@@ -510,11 +510,12 @@
 import { computed, onBeforeUnmount, ref, watch, toRef } from "vue";
 import { VueDraggableNext } from "vue-draggable-next";
 
-import { useFirebaseStore } from "@/stores/firebase.js";
+import { useCloudflareStore } from "@/stores/cloudflare.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { useNotificationStore } from "@/stores/notification.js";
 import { saveProjectsToCache } from "@/utils/cache.js";
 import { normalizeProjectDate } from "@/utils/projectDate.js";
+import { buildAltMediaUrl } from "@/utils/mediaStorageImages.js";
 import {
   PROJECT_META_OPTIONS,
   PROJECT_META_KEYS,
@@ -522,7 +523,7 @@ import {
 import ModalWrapper from "@/components/shared/modal-wrapper.vue";
 
 const settingsStore = useSettingsStore();
-const firebaseStore = useFirebaseStore();
+const cloudflareStore = useCloudflareStore();
 const notificationStore = useNotificationStore();
 const visible = ref(false);
 const isEdit = ref(false);
@@ -611,8 +612,7 @@ function getImagePreviewUrl(item) {
   if (typeof item === "object" && item.url) return item.url;
   // If url isn't stored, derive it from path (public alt=media)
   if (typeof item === "object" && item.path) {
-    const bucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
-    return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(item.path)}?alt=media`;
+    return buildAltMediaUrl("", item.path) || "";
   }
   return "";
 }
@@ -1076,7 +1076,7 @@ const submit = async () => {
       try {
         await Promise.all(
           pendingRemovals.value.images.map((img) =>
-            firebaseStore.deleteProjectImage(img),
+            cloudflareStore.deleteProjectImage(img),
           ),
         );
       } catch (e) {
@@ -1113,7 +1113,7 @@ const submit = async () => {
 
       try {
         const files = pendingFiles.value.map((p) => p.file);
-        const uploaded = await firebaseStore.uploadProjectImages(
+        const uploaded = await cloudflareStore.uploadProjectImages(
           entryId,
           files,
         );
@@ -1157,9 +1157,9 @@ const submit = async () => {
 
     // Persist
     if (isEdit.value) {
-      await firebaseStore.dataUpdateProjectDocument(documentModel.value);
+      await cloudflareStore.dataUpdateProjectDocument(documentModel.value);
     } else {
-      await firebaseStore.dataCreateProjectDocument(documentModel.value);
+      await cloudflareStore.dataCreateProjectDocument(documentModel.value);
     }
 
     // Update local projects cache
