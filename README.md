@@ -125,6 +125,7 @@ npm run cloudflare:migrate:apply   # upload to R2 + apply D1 SQL
 ### Cloudflare Worker API (`cloudflare/worker/`)
 ```bash
 cd cloudflare/worker
+npm test                # local Worker routing/auth/CORS/data/media checks
 npx wrangler dev         # local API at http://localhost:8787
 npx wrangler deploy      # deploy API
 ```
@@ -135,7 +136,11 @@ Set these for the Cloudflare Worker API:
 - `ADMIN_PASSWORD`
 - `ADMIN_SESSION_SECRET`
 - `MEDIA_BASE_URL` (public R2/CDN base)
-- `ALLOWED_ORIGIN` (your frontend origin)
+- `ALLOWED_ORIGIN` (comma-separated exact origins; never use `*`)
+
+Production `ALLOWED_ORIGIN` values are:
+`https://www.bcpletcher.com`, `https://bcpletcher.com`, and `https://next.bcpletcher.com`.
+For local development, add the configured dev origin (for example `http://localhost:5173`) to the comma-separated value; do not add it to production unless intentionally needed.
 
 ## Security / maintenance notes
 - Cloud Functions runtime is set to **Node 22** via `firebase/functions/package.json` (`engines.node`).
@@ -189,6 +194,110 @@ npx wrangler deploy
 Recommended production setup:
 - Connect repo to Cloudflare Pages (Git integration) so merges to `main` auto-deploy from Cloudflare.
 - Keep Worker routes for `bcpletcher.com/api/*`, `www.bcpletcher.com/api/*`, and `next.bcpletcher.com/api/*`.
+
+## Release hardening and cutover checklist
+
+Complete this checklist in order. Values for secrets are entered through Cloudflare and are never committed or printed in logs.
+
+### 1. Preflight and Cloudflare access
+
+- Confirm the release candidate is the reviewed commit and that `git status --short` contains no generated state, secrets, or private data.
+- Authenticate Wrangler interactively and verify the account before any deploy:
+
+  ```bash
+  npx wrangler login
+  npx wrangler whoami
+  ```
+
+- In the Worker environment, configure these names only: `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `MEDIA_BASE_URL`, and `ALLOWED_ORIGIN`. Use the exact production origins above; use a separate non-production value that also includes `http://localhost:5173` for local QA.
+- Confirm the Wrangler configuration still binds D1 database `bcpletcher-db` as `DB` and R2 bucket `bcpletcher-artwork` as `ARTWORK`.
+
+### 2. Local validation and data/media verification
+
+- Run the dependency-free Worker checks:
+
+  ```bash
+  cd cloudflare/worker
+  npm test
+  npx wrangler deploy --dry-run --config wrangler.toml
+  ```
+
+- Verify D1 counts without changing data:
+
+  ```bash
+  npx wrangler d1 execute bcpletcher-db --remote --command "SELECT COUNT(*) AS project_count FROM projects;"
+  npx wrangler d1 execute bcpletcher-db --remote --command "SELECT COUNT(*) AS image_count FROM project_images;"
+  ```
+
+- Verify the `bcpletcher-artwork` bucket exists and contains the expected `Projects/` objects in the Cloudflare R2 dashboard, then fetch one known canonical object without writing it:
+
+  ```bash
+  npx wrangler r2 bucket list
+  npx wrangler r2 object get bcpletcher-artwork/Projects/<known-project>/<known-image>.webp --file=/tmp/bcpletcher-r2-check.webp
+  ```
+
+  Remove the temporary `/tmp` file after inspection; do not delete the R2 object.
+
+### 3. Pages and Worker production configuration
+
+- In Cloudflare Pages, set the production branch to `main`, the project root to `frontend`, the build command to `npm ci && npm run build`, and the output directory to `dist`.
+- Build the production frontend with the reviewed environment values and confirm `frontend/dist` contains no unintended Firebase SDK/import/URL references:
+
+  ```bash
+  cd frontend
+  npm ci
+  npm run lint
+  npm run build
+  ```
+
+- Deploy the Worker only after the Pages preview and local checks pass. Confirm these routes are present and point to the Worker: `/api/projects`, `/api/admin/login`, `/api/admin/session`, `/api/admin/projects/upsert`, `/api/admin/images/upload`, `/api/admin/images/delete`, and `/api/media/*`.
+
+### 4. Admin protection and reversible fixture test
+
+- Before production traffic, create the Cloudflare rate-limit rule in the next section and verify it in a staging/preview hostname.
+- Use a pre-existing hidden staging project as the fixture. Save its exact JSON, add a temporary marker through the admin UI/API, verify it through `GET /api/projects`, then restore the saved JSON immediately. Do not create a new project unless an approved delete/restore path exists.
+- Exercise login with a temporary staging fixture account. Capture the returned token only in a shell variable; verify `/api/admin/session` returns the expected user, and verify invalid credentials return `401` without returning a token or secret. Rotate or remove the temporary staging secret values after the test.
+- Do not run fixture writes against production D1 until the rollback owner has confirmed the saved payload and restoration path.
+
+### 5. DNS cutover and live verification
+
+- Record the current `www`/apex DNS targets and the last known-good Firebase/Pages deployment before changing anything.
+- Confirm the Pages custom domains and the Worker routes are ready. Then change only the approved DNS records to the Cloudflare Pages targets, keep them proxied as required, and leave the Worker `/api/*` routes enabled.
+- Verify each production host and the CORS policy:
+
+  ```bash
+  curl -fsS https://www.bcpletcher.com/api/projects | jq '.result | length'
+  curl -fsS https://bcpletcher.com/api/projects | jq '.result | length'
+  curl -fsS https://next.bcpletcher.com/api/projects | jq '.result | length'
+  curl -i -X OPTIONS https://next.bcpletcher.com/api/projects \
+    -H 'Origin: https://www.bcpletcher.com' \
+    -H 'Access-Control-Request-Method: GET'
+  curl -i -X OPTIONS https://next.bcpletcher.com/api/projects \
+    -H 'Origin: https://not-allowed.example' \
+    -H 'Access-Control-Request-Method: GET'
+  ```
+
+  The allowed preflight must return `204` with the requesting allowed origin. The disallowed preflight must not return `Access-Control-Allow-Origin` and must be rejected. Check one known media URL for `200`, one missing key for `404`, `/api/admin/session` without a token for `401`, and the browser admin login/upload flow.
+
+### 6. Rollback and Firebase hold
+
+- If live verification fails, restore the recorded DNS targets or the previous Pages deployment, then disable/revert only the new Worker route/configuration as needed. Restore the previous frontend environment values and invalidate any temporary fixture session.
+- Keep D1/R2 data intact during rollback. Do not delete or overwrite the known-good release artifacts until the incident is understood.
+- Explicit hold: do not delete the Firebase project, Firestore data, Firebase Storage objects, Functions, Hosting configuration, rules, exports, or migration backups. Firebase remains the reversible rollback/archive source until a separately approved retirement decision.
+
+### Admin login rate-limit configuration and verification
+
+This Worker has no durable rate-limit binding, so brute-force protection must be configured at the Cloudflare zone edge. In the Cloudflare dashboard, open **Security rules → Create rule → Rate limiting rules** and create:
+
+- Rule name: `bcpletcher-admin-login-bruteforce`
+- Expression: `http.request.uri.path eq "/api/admin/login"`
+- Counting characteristic: `IP`
+- Threshold: `5` requests in `1 minute`
+- Action: `Block`
+- Mitigation duration: `600` seconds (`10 minutes`)
+- Disable applying the rule to cached assets; the login endpoint must reach the Worker.
+
+Verify the rule on the staging/preview hostname from a test IP with six invalid POSTs. The first five should be Worker `401` responses; the next request should be blocked by Cloudflare (normally `429` or the custom block response). Remove the staging test lockout or wait the 10-minute mitigation period, then repeat one valid login to confirm the rule does not weaken or bypass authentication. Record the Cloudflare rule ID and verification timestamp in the release record. The rule must be enabled before DNS cutover and remain enabled after release.
 
 ## Firebase -> Cloudflare migration (D1 + R2)
 Use this when moving project data/images from Firestore + Firebase Storage to Cloudflare D1 + R2.

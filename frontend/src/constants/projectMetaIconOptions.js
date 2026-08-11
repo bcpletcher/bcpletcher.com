@@ -11,7 +11,6 @@ export const PROJECT_META_OPTIONS = {
   personal: { label: "Personal Project", iconClass: "fa-solid fa-heart" },
 };
 
-// `meta` is stored in Firestore as one of these keys (string).
+// `meta` is stored in project data as one of these keys (string).
 // UI derives label/icon from PROJECT_META_OPTIONS[meta].
 export const PROJECT_META_KEYS = Object.keys(PROJECT_META_OPTIONS);
-

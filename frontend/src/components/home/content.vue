@@ -66,61 +66,25 @@
         />
       </button>
       <p class="my-auto">
-        Designed and coded in
-        <a
-          class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
-          href="https://www.jetbrains.com"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          JetBrains
-        </a>
-        by myself. Built with
+        Designed and developed by myself. Built with
         <a
           class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://vuejs.org"
           target="_blank"
           rel="noopener noreferrer"
-        >
-          Vue.js
-        </a>
-        ,
+        >Vue.js</a>,
         <a
           class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://tailwindcss.com"
           target="_blank"
           rel="noopener noreferrer"
-        >
-          Tailwind CSS
-        </a>
-        and
+        >Tailwind CSS</a>, and
         <a
           class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
           href="https://gsap.com/"
           target="_blank"
           rel="noopener noreferrer"
-        >
-          GSAP
-        </a>
-        . Deployed with
-        <a
-          class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
-          href="https://firebase.google.com/products/hosting"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Firebase
-        </a>
-        and
-        <a
-          class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
-          href="https://github.com/bcpletcher"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          GitHub
-        </a>
-        .
+        >GSAP</a>.
       </p>
     </div>
   </main>

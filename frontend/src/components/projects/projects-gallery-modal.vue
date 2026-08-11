@@ -134,7 +134,7 @@ import ModalWrapper from "@/components/shared/modal-wrapper.vue";
 import {
   buildResponsiveImageSourcesFromImageValue,
   getStoragePathFromImageValue,
-  buildAltMediaUrl,
+  buildMediaUrl,
 } from "@/utils/mediaStorageImages.js";
 
 const props = defineProps({
@@ -160,7 +160,7 @@ const responsiveFor = (img) => {
     preferWidth: 960,
   });
   const originalPath = getStoragePathFromImageValue(img);
-  const originalUrl = originalPath ? buildAltMediaUrl("", originalPath) : "";
+  const originalUrl = originalPath ? buildMediaUrl(originalPath) : "";
   return {
     ...responsive,
     src: originalUrl || responsive.src,
@@ -169,9 +169,7 @@ const responsiveFor = (img) => {
 
 function getImageKey(img, index) {
   if (!img) return `img-${index}`;
-  if (typeof img === "string") return `img-url-${img}`;
   if (typeof img === "object" && img.path) return `img-path-${img.path}`;
-  if (typeof img === "object" && img.url) return `img-url-${img.url}`;
   return `img-${index}`;
 }
 

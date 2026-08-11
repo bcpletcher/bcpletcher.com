@@ -95,3 +95,9 @@ firebase/.databases/
 # Local backups (generated)
 # =====================
 .backups/
+
+# =====================
+# Cloudflare Wrangler local state
+# =====================
+.wrangler/
+**/.wrangler/

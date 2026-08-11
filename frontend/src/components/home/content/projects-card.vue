@@ -114,7 +114,7 @@ const props = defineProps({
   technology: { type: Array, default: () => [] },
   ariaLabel: { type: String, default: "Project (opens in a new tab)" },
   imageAlt: { type: String, default: "Project screenshot" },
-  // Canonical: Firestore stores `meta` as a preset key string.
+  // Canonical project data stores `meta` as a preset key string.
   meta: { type: [String, null], default: null },
   isLast: { type: Boolean, default: false },
 
