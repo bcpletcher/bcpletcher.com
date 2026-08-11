@@ -516,6 +516,7 @@ import { useNotificationStore } from "@/stores/notification.js";
 import { saveProjectsToCache } from "@/utils/cache.js";
 import { normalizeProjectDate } from "@/utils/projectDate.js";
 import { buildMediaUrl } from "@/utils/mediaStorageImages.js";
+import { coordinateProjectMediaSave } from "@/utils/adminMediaCoordination.js";
 import {
   PROJECT_META_OPTIONS,
   PROJECT_META_KEYS,
@@ -1039,11 +1040,44 @@ const formFields = computed(() => {
   ];
 });
 
+function releasePendingFilePreviews() {
+  pendingFiles.value.forEach(({ previewUrl }) => {
+    try {
+      URL.revokeObjectURL(previewUrl);
+    } catch {
+      // no-op
+    }
+  });
+  pendingFiles.value = [];
+}
+
+function normalizeImagesForPersistence() {
+  documentModel.value.data.images = (documentModel.value.data.images || [])
+    .filter(Boolean)
+    .map((image) =>
+      image && typeof image === "object" && image.path ? { path: image.path } : null,
+    )
+    .filter(Boolean);
+}
+
+function removeUploadedImagesFromDocument(uploadedMedia) {
+  const uploadedPaths = new Set(
+    (uploadedMedia || []).map((image) => image?.path).filter(Boolean),
+  );
+  if (!uploadedPaths.size) return;
+
+  documentModel.value.data.images = (documentModel.value.data.images || []).filter(
+    (image) => !uploadedPaths.has(image?.path),
+  );
+}
+
 const submit = async () => {
   if (isSubmitting.value) return;
   if (!validateBeforeSubmit()) return;
 
   isSubmitting.value = true;
+  const removedMedia = [...pendingRemovals.value.images];
+  let uploadedThisAttempt = [];
 
   try {
     // Ensure technology is consistently normalized/sorted before persisting.
@@ -1054,96 +1088,57 @@ const submit = async () => {
       documentModel.value.data.date,
     );
 
-    // Delete removed images first.
-    if (pendingRemovals.value.images.length) {
-      try {
-        await Promise.all(
-          pendingRemovals.value.images.map((img) =>
-            cloudflareStore.deleteProjectImage(img),
-          ),
-        );
-      } catch (e) {
-        console.error("Failed to delete removed images", e);
-        notificationStore.addNotification({
-          variant: "danger",
-          title: "Image delete failed",
-          message:
-            "Failed to delete one or more removed images. Please try again.",
-          duration: 6,
-        });
-        return;
-      } finally {
-        pendingRemovals.value.images = [];
-      }
+    if (pendingFiles.value.length && !(documentModel.value.id ?? "").toString().trim()) {
+      errors.value = {
+        ...(errors.value || {}),
+        id: "Project Id is required.",
+      };
+      notificationStore.addNotification({
+        variant: "danger",
+        title: "Missing Project Id",
+        message: "Set a Project Id before uploading images.",
+        duration: 6,
+      });
+      return;
     }
 
-    // Upload pending files (requires id)
-    if (pendingFiles.value.length) {
-      const entryId = (documentModel.value.id ?? "").toString().trim();
-      if (!entryId) {
-        errors.value = {
-          ...(errors.value || {}),
-          id: "Project Id is required.",
-        };
-        notificationStore.addNotification({
-          variant: "danger",
-          title: "Missing Project Id",
-          message: "Set a Project Id before uploading images.",
-          duration: 6,
-        });
-        return;
-      }
+    const result = await coordinateProjectMediaSave({
+      uploadNewMedia: async () => {
+        if (!pendingFiles.value.length) return [];
 
-      try {
-        const files = pendingFiles.value.map((p) => p.file);
-        const uploaded = await cloudflareStore.uploadProjectImages(
-          entryId,
-          files,
-        );
+        const entryId = (documentModel.value.id ?? "").toString().trim();
+        if (!entryId) {
+          errors.value = {
+            ...(errors.value || {}),
+            id: "Project Id is required.",
+          };
+          throw new Error("Project Id is required before uploading images");
+        }
+
+        const files = pendingFiles.value.map((pending) => pending.file);
+        const uploaded = await cloudflareStore.uploadProjectImages(entryId, files);
+        uploadedThisAttempt = uploaded;
         documentModel.value.data.images.push(
-          ...uploaded.map((u) => ({ path: u.path })),
+          ...uploaded.map((image) => ({ path: image.path })),
         );
+        releasePendingFilePreviews();
+        return uploaded;
+      },
+      persistProject: async () => {
+        normalizeImagesForPersistence();
+        normalizeMetaInPlace();
+        if (!documentModel.value.data.meta) documentModel.value.data.meta = null;
 
-        pendingFiles.value.forEach(({ previewUrl }) => {
-          try {
-            URL.revokeObjectURL(previewUrl);
-          } catch {
-            // no-op
-          }
-        });
-        pendingFiles.value = [];
-      } catch (e) {
-        console.error("Upload failed", e);
-        notificationStore.addNotification({
-          variant: "danger",
-          title: "Upload failed",
-          message: "Failed to upload one or more images. Please try again.",
-          duration: 6,
-        });
-        return;
-      }
-    }
-
-    // Canonical images: path-only objects
-    documentModel.value.data.images = (documentModel.value.data.images || [])
-      .filter(Boolean)
-      .map((img) =>
-        img && typeof img === "object" && img.path ? { path: img.path } : null,
-      )
-      .filter(Boolean);
-
-    // Normalize meta (preset-only)
-    normalizeMetaInPlace();
-    if (!documentModel.value.data.meta) {
-      documentModel.value.data.meta = null;
-    }
-
-    // Persist
-    if (isEdit.value) {
-      await cloudflareStore.dataUpdateProjectDocument(documentModel.value);
-    } else {
-      await cloudflareStore.dataCreateProjectDocument(documentModel.value);
-    }
+        if (isEdit.value) {
+          await cloudflareStore.dataUpdateProjectDocument(documentModel.value);
+        } else {
+          await cloudflareStore.dataCreateProjectDocument(documentModel.value);
+        }
+      },
+      removedMedia,
+      deleteRemovedMedia: (image) => cloudflareStore.deleteProjectImage(image),
+      cleanupUploadedMedia: (image) => cloudflareStore.deleteProjectImage(image),
+    });
 
     // Update local projects cache
     if (documentModel.value.id) {
@@ -1162,6 +1157,18 @@ const submit = async () => {
       }
     }
 
+    pendingRemovals.value.images = result.cleanupFailures.map(({ item }) => item);
+    if (result.cleanupFailures.length) {
+      notificationStore.addNotification({
+        variant: "danger",
+        title: "Project saved; image cleanup incomplete",
+        message:
+          "The project is saved, but one or more removed images could not be deleted. Retry cleanup before closing this form.",
+        duration: 8,
+      });
+      return;
+    }
+
     notificationStore.addNotification({
       variant: "success",
       title: isEdit.value ? "Project updated" : "Project created",
@@ -1172,11 +1179,16 @@ const submit = async () => {
     cancel();
   } catch (e) {
     console.error("Submit error:", e);
+    const uploadedMedia = e?.uploadedMedia || uploadedThisAttempt;
+    removeUploadedImagesFromDocument(uploadedMedia);
+    const cleanupIncomplete = Boolean(e?.cleanupFailures?.length || e?.cleanup === "incomplete");
     notificationStore.addNotification({
       variant: "danger",
-      title: "Save failed",
-      message: "An error occurred while saving. Please try again.",
-      duration: 6,
+      title: cleanupIncomplete ? "Save failed; media cleanup incomplete" : "Save failed",
+      message: cleanupIncomplete
+        ? "The project was not saved and some newly uploaded media could not be cleaned up. Do not retry until the cleanup is reviewed."
+        : "An error occurred while saving. Please try again.",
+      duration: cleanupIncomplete ? 8 : 6,
     });
   } finally {
     isSubmitting.value = false;

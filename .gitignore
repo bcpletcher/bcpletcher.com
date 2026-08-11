@@ -66,7 +66,7 @@ coverage/
 # =====================
 .env*
 !.env.example
-**/.env.example
+!**/.env.example
 
 # =====================
 # Firebase (local artifacts / secrets)

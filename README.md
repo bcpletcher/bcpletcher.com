@@ -96,9 +96,8 @@ Then fill in the runtime values.
 | `VITE_CACHE_ENABLED` | boolean | `true` | Enables client caching (IndexedDB via `idb`). |
 | `VITE_CACHE_TTL_MINUTES` | number | `60` | Cache freshness window before refetch. |
 | `VITE_SIMULATE_BOOT_ERROR` | boolean | `false` | Forces the boot overlay into error mode (dev only). |
-| `VITE_CLOUDFLARE_PROJECTS_API_URL` | string | empty | Optional direct projects JSON URL (otherwise app uses `/api/projects`). |
 | `VITE_MEDIA_BASE_URL` | string | empty | Public base URL for image paths (e.g. R2 custom domain). |
-| `VITE_API_BASE_URL_FALLBACK` | string | empty | Optional fallback API origin (recommended: Worker `workers.dev` URL during route/DNS cutover). |
+| `VITE_ENABLE_RESPONSIVE_SRCSET` | boolean | `false` | Keep disabled until resized R2 variants are seeded and verified. Originals remain the source of truth. |
 
 ## Common scripts
 ### Frontend (`frontend/`)
@@ -107,6 +106,7 @@ npm run serve    # dev server (vite.config.dev.mjs)
 npm run build    # production build (vite.config.prod.mjs)
 npm run preview  # preview the build
 npm run lint     # eslint
+npm run test:coordination # upload/persist/delete ordering and cleanup checks
 ```
 
 ### Functions (`firebase/functions/`)
@@ -180,10 +180,12 @@ That command:
 ```bash
 cd frontend
 npm run build
-
-cd ../cloudflare/worker
-npx wrangler pages deploy ../../frontend/dist --project-name bcpletcher-com-staging --branch codex/firebase-to-cloudflare-migration
 ```
+
+Cloudflare Pages must use the reviewed production branch (`main`), project root
+`frontend`, build command `npm ci && npm run build`, and output directory `dist`.
+This repository does not have an isolated staging D1/R2 environment; do not call
+the `next.bcpletcher.com` binding a staging binding.
 
 ### API hosting (Cloudflare Worker)
 ```bash
@@ -194,6 +196,7 @@ npx wrangler deploy
 Recommended production setup:
 - Connect repo to Cloudflare Pages (Git integration) so merges to `main` auto-deploy from Cloudflare.
 - Keep Worker routes for `bcpletcher.com/api/*`, `www.bcpletcher.com/api/*`, and `next.bcpletcher.com/api/*`.
+- Keep the Worker on custom zone routes with `workers_dev = false`; the frontend uses same-origin `/api` in production and the Vite proxy for local development.
 
 ## Release hardening and cutover checklist
 
@@ -241,23 +244,27 @@ Complete this checklist in order. Values for secrets are entered through Cloudfl
 ### 3. Pages and Worker production configuration
 
 - In Cloudflare Pages, set the production branch to `main`, the project root to `frontend`, the build command to `npm ci && npm run build`, and the output directory to `dist`.
+- There is no isolated staging D1/R2 binding in this release. `next.bcpletcher.com`, `www.bcpletcher.com`, and `bcpletcher.com` use the configured production D1/R2 bindings. Do not run write-based fixture tests on those surfaces until a separately provisioned environment exists.
+- The future named-environment gate is: provision distinct D1 and R2 resources, add a `[env.<name>]` Worker configuration with distinct `database_id` and `bucket_name`, add matching Pages preview/environment configuration, deploy the named environment, and independently verify its bindings before any fixture write.
 - Build the production frontend with the reviewed environment values and confirm `frontend/dist` contains no unintended Firebase SDK/import/URL references:
 
   ```bash
   cd frontend
   npm ci
+  npm run test:coordination
   npm run lint
   npm run build
   ```
 
 - Deploy the Worker only after the Pages preview and local checks pass. Confirm these routes are present and point to the Worker: `/api/projects`, `/api/admin/login`, `/api/admin/session`, `/api/admin/projects/upsert`, `/api/admin/images/upload`, `/api/admin/images/delete`, and `/api/media/*`.
+- Confirm `workers.dev` is disabled and no frontend environment value points at a public Worker fallback; local development must use the Vite proxy and custom hosts must use same-origin `/api`.
 
 ### 4. Admin protection and reversible fixture test
 
-- Before production traffic, create the Cloudflare rate-limit rule in the next section and verify it in a staging/preview hostname.
-- Use a pre-existing hidden staging project as the fixture. Save its exact JSON, add a temporary marker through the admin UI/API, verify it through `GET /api/projects`, then restore the saved JSON immediately. Do not create a new project unless an approved delete/restore path exists.
-- Exercise login with a temporary staging fixture account. Capture the returned token only in a shell variable; verify `/api/admin/session` returns the expected user, and verify invalid credentials return `401` without returning a token or secret. Rotate or remove the temporary staging secret values after the test.
-- Do not run fixture writes against production D1 until the rollback owner has confirmed the saved payload and restoration path.
+- Before production traffic, create the Cloudflare rate-limit rule in the next section and record its actual plan-supported capabilities and evidence.
+- This release has no staging fixture surface. Keep all write-based remote fixture tests blocked on `next`, `www`, and apex until a separately provisioned named environment passes the binding gate above.
+- If a production-binding mutation test is separately authorized, first export and checksum the exact project and image rows, record the R2 objects involved, use a reversible marker-only payload, verify through `GET /api/projects`, restore the saved D1 payload and R2 state, and re-query both. Without explicit backup/restore authority, leave this gate blocked.
+- For a read-only/auth smoke test, verify `/api/admin/session` without a token returns `401`; only use configured credentials for a controlled login test and keep tokens in a shell variable. Never print or commit secrets.
 
 ### 5. DNS cutover and live verification
 
@@ -287,17 +294,18 @@ Complete this checklist in order. Values for secrets are entered through Cloudfl
 
 ### Admin login rate-limit configuration and verification
 
-This Worker has no durable rate-limit binding, so brute-force protection must be configured at the Cloudflare zone edge. In the Cloudflare dashboard, open **Security rules → Create rule → Rate limiting rules** and create:
+This Worker has no durable rate-limit binding, so brute-force protection must be configured at the Cloudflare zone edge. In the Cloudflare dashboard, open **Security rules → Create rule → Rate limiting rules** and create the strongest expression supported by the account plan:
 
 - Rule name: `bcpletcher-admin-login-bruteforce`
-- Expression: `http.request.uri.path eq "/api/admin/login"`
+- Preferred expression when method and host fields are available: `http.request.method eq "POST" and http.host in {"www.bcpletcher.com" "bcpletcher.com" "next.bcpletcher.com"} and http.request.uri.path eq "/api/admin/login"`
+- If the plan does not expose method and host fields, use the path-only expression `http.request.uri.path eq "/api/admin/login"` and record that plan limitation; do not claim method/host scoping.
 - Counting characteristic: `IP`
 - Threshold: `5` requests in `1 minute`
 - Action: `Block`
-- Mitigation duration: `600` seconds (`10 minutes`)
-- Disable applying the rule to cached assets; the login endpoint must reach the Worker.
+- Mitigation duration: `600` seconds (`10 minutes`) only if the plan exposes that control; otherwise record the actual plan default.
+- Cache exclusions or cache behavior: configure only if the plan exposes the control, and record the actual setting. The Worker login/session responses are `Cache-Control: no-store`.
 
-Verify the rule on the staging/preview hostname from a test IP with six invalid POSTs. The first five should be Worker `401` responses; the next request should be blocked by Cloudflare (normally `429` or the custom block response). Remove the staging test lockout or wait the 10-minute mitigation period, then repeat one valid login to confirm the rule does not weaken or bypass authentication. Record the Cloudflare rule ID and verification timestamp in the release record. The rule must be enabled before DNS cutover and remain enabled after release.
+Record the account plan, exact expression, supported fields, rule ID/export or screenshot, and verification timestamp in the release record. Verify from an approved production-binding test surface only after the backup/restore gate above is satisfied: send six invalid `POST` requests to each intended production host from a controlled test IP. The first five should reach the Worker as `401`; the next should be blocked by Cloudflare (often `429` or the configured block response). Do not use a claimed staging hostname. The rule must be enabled before DNS cutover and remain enabled after release.
 
 ## Firebase -> Cloudflare migration (D1 + R2)
 Use this when moving project data/images from Firestore + Firebase Storage to Cloudflare D1 + R2.
@@ -389,14 +397,15 @@ Outputs are written to `.backups/cloudflare-migration/<timestamp>/`:
 
 Admin image behavior after cutover:
 - Uploads originate from admin UI directly to Cloudflare API (`/api/admin/images/upload`).
-- API stores canonical image + resized variants (`480/960`) in R2.
-- Cards/first paint use resized variants; modal view prefers original full-size image path.
+- Uploads may include canonical image + resized variants (`480/960`) in R2.
+- Cards, first paint, and modal view use the canonical original while responsive `srcset` is disabled.
+- Responsive `srcset` remains disabled unless resized variants are separately seeded and verified; existing canonical originals must continue to work.
 
 ### Zero-downtime rollout notes
 - Deploy Worker API first (`/api/projects`, `/api/admin/*`).
-- Set `VITE_API_BASE_URL` and `VITE_MEDIA_BASE_URL` in frontend env.
-- During route cutover, set `VITE_API_BASE_URL_FALLBACK=https://bcpletcher-api.bcpletcher.workers.dev`.
-- Keep `VITE_CLOUDFLARE_PROJECTS_API_URL` empty unless you intentionally want static JSON override.
+- Leave `VITE_API_BASE_URL` empty for production same-origin `/api` unless a separately reviewed custom API origin is required; local development uses the Vite proxy.
+- Set `VITE_MEDIA_BASE_URL` only when a reviewed public R2/CDN custom domain is available.
+- Keep `VITE_ENABLE_RESPONSIVE_SRCSET=false` until resized variants are seeded and verified.
 
 ## Troubleshooting
 ### Boot loader shows maintenance message

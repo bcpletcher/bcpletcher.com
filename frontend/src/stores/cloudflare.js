@@ -234,21 +234,59 @@ export const useCloudflareStore = defineStore("cloudflare", {
       if (!entryId) throw new Error("uploadProjectImages requires a valid entryId");
 
       const uploaded = [];
+      let currentCanonicalPath = "";
 
-      for (const file of files) {
-        const { canonicalPath, objects } = await buildUploadObjects(entryId, file);
+      try {
+        for (const file of files) {
+          const { canonicalPath, objects } = await buildUploadObjects(entryId, file);
+          currentCanonicalPath = canonicalPath;
 
-        const response = await apiFetch("/api/admin/images/upload", {
-          method: "POST",
-          auth: true,
-          body: { objects },
-        });
+          let response;
+          try {
+            response = await apiFetch("/api/admin/images/upload", {
+              method: "POST",
+              auth: true,
+              body: { objects },
+            });
+          } catch (error) {
+            // The Worker reports incomplete cleanup when a partial R2 upload
+            // could not remove every object from this attempt.
+            if (error?.cleanup === "incomplete") {
+              uploaded.push({ path: canonicalPath });
+            }
+            throw error;
+          }
 
-        const url = response?.canonicalUrl || buildMediaUrl(canonicalPath) || "";
-        uploaded.push({ path: canonicalPath, url });
+          const url = response?.canonicalUrl || buildMediaUrl(canonicalPath) || "";
+          uploaded.push({ path: canonicalPath, url });
+          currentCanonicalPath = "";
+        }
+
+        return uploaded;
+      } catch (error) {
+        const cleanupTargets = uploaded.filter(
+          (item, index, items) => items.findIndex((candidate) => candidate.path === item.path) === index,
+        );
+        if (currentCanonicalPath && !cleanupTargets.some((item) => item.path === currentCanonicalPath)) {
+          cleanupTargets.push({ path: currentCanonicalPath });
+        }
+
+        if (cleanupTargets.length) {
+          const cleanupResults = await Promise.allSettled(
+            cleanupTargets.map((item) => this.deleteProjectImage(item)),
+          );
+          const cleanupFailures = cleanupResults
+            .map((result, index) =>
+              result.status === "rejected"
+                ? { item: cleanupTargets[index], error: result.reason }
+                : null,
+            )
+            .filter(Boolean);
+          error.uploadedMedia = cleanupTargets;
+          error.cleanupFailures = cleanupFailures;
+        }
+        throw error;
       }
-
-      return uploaded;
     },
 
     async deleteProjectImageByPath(storagePath) {
