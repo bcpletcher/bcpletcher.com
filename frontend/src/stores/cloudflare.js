@@ -4,7 +4,7 @@ import { dataGetCollection } from "./actions/data/dataGetCollection";
 import { dataCreateDocument } from "@/stores/actions/data/dataCreateDocument.js";
 import { dataUpdateDocument } from "@/stores/actions/data/dataUpdateDocument.js";
 import {
-  buildAltMediaUrl,
+  buildMediaUrl,
   buildResizedStoragePath,
 } from "@/utils/mediaStorageImages.js";
 import {
@@ -157,11 +157,11 @@ async function buildUploadObjects(entryId, file) {
   return { canonicalPath, objects };
 }
 
-function createAuthAdapter(getUserRef) {
+function createSessionAdapter(getUserRef) {
   const listeners = new Set();
 
   return {
-    onAuthStateChanged(callback) {
+    onSessionChanged(callback) {
       if (typeof callback !== "function") return () => {};
       listeners.add(callback);
       callback(getUserRef());
@@ -183,13 +183,13 @@ function createAuthAdapter(getUserRef) {
 export const useCloudflareStore = defineStore("cloudflare", {
   state: () => {
     const initialUser = getStoredAdminUser();
-    const auth = createAuthAdapter(() => {
+    const session = createSessionAdapter(() => {
       const user = getStoredAdminUser();
       return user && Object.keys(user).length ? user : null;
     });
 
     return {
-      auth,
+      session,
       user: initialUser,
     };
   },
@@ -208,33 +208,32 @@ export const useCloudflareStore = defineStore("cloudflare", {
 
       setStoredAdminSession({ token, user });
       this.user = user;
-      this.auth._notify();
+      this.session._notify();
       return user;
     },
 
     async adminSignOut() {
       clearStoredAdminSession();
       this.user = {};
-      this.auth._notify();
+      this.session._notify();
     },
 
     dataGetProjectsCollection() {
-      return dataGetCollection(null, "getProjectsCollection", "projectsCache");
+      return dataGetCollection("getProjectsCollection");
     },
 
     dataCreateProjectDocument(document) {
-      return dataCreateDocument(null, "createProjectDocument", document);
+      return dataCreateDocument("createProjectDocument", document);
     },
 
     dataUpdateProjectDocument(document) {
-      return dataUpdateDocument(null, "updateProjectDocument", document);
+      return dataUpdateDocument("updateProjectDocument", document);
     },
 
     async uploadProjectImages(entryId, files) {
       if (!entryId) throw new Error("uploadProjectImages requires a valid entryId");
 
       const uploaded = [];
-      const mediaBaseUrl = import.meta.env.VITE_MEDIA_BASE_URL || "";
 
       for (const file of files) {
         const { canonicalPath, objects } = await buildUploadObjects(entryId, file);
@@ -245,8 +244,7 @@ export const useCloudflareStore = defineStore("cloudflare", {
           body: { objects },
         });
 
-        const remoteUrl = response?.canonicalUrl || buildAltMediaUrl("", canonicalPath);
-        const url = remoteUrl || (mediaBaseUrl ? `${String(mediaBaseUrl).replace(/\/+$/, "")}/${canonicalPath}` : "");
+        const url = response?.canonicalUrl || buildMediaUrl(canonicalPath) || "";
         uploaded.push({ path: canonicalPath, url });
       }
 

@@ -1,3 +1,9 @@
+const DEFAULT_ALLOWED_ORIGINS = [
+  "https://www.bcpletcher.com",
+  "https://bcpletcher.com",
+  "https://next.bcpletcher.com",
+];
+
 function json(data, init = {}) {
   return new Response(JSON.stringify(data), {
     status: init.status || 200,
@@ -8,24 +14,36 @@ function json(data, init = {}) {
   });
 }
 
-function corsHeaders(origin = "*") {
-  return {
-    "access-control-allow-origin": origin,
+function corsHeaders(origin = null) {
+  const headers = {
     "access-control-allow-methods": "GET,POST,OPTIONS",
     "access-control-allow-headers": "content-type,authorization",
+    "vary": "Origin",
   };
+  if (origin) headers["access-control-allow-origin"] = origin;
+  return headers;
+}
+
+function getConfiguredOrigins(env) {
+  const configured = String(env.ALLOWED_ORIGIN || "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter((v) => /^https?:\/\/[^\s/]+(?::\d+)?$/.test(v));
+
+  return configured.length ? configured : DEFAULT_ALLOWED_ORIGINS;
 }
 
 function getAllowedOrigin(request, env) {
-  const configured = String(env.ALLOWED_ORIGIN || "*").trim();
-  if (!configured || configured === "*") return "*";
-  const requestOrigin = request.headers.get("origin") || "";
-  const allowlist = configured
-    .split(",")
-    .map((v) => v.trim())
-    .filter(Boolean);
-  if (!requestOrigin) return allowlist[0] || "*";
-  return allowlist.includes(requestOrigin) ? requestOrigin : allowlist[0] || "*";
+  const requestOrigin = (request.headers.get("origin") || "").trim();
+  if (!requestOrigin) return null;
+  return getConfiguredOrigins(env).includes(requestOrigin) ? requestOrigin : null;
+}
+
+function withCors(response, origin) {
+  const headers = new Headers(response.headers);
+  Object.entries(corsHeaders(origin)).forEach(([key, value]) => headers.set(key, value));
+  if (!origin) headers.delete("access-control-allow-origin");
+  return new Response(response.body, { status: response.status, headers });
 }
 
 function toBoolInt(value) {
@@ -117,25 +135,31 @@ async function createSessionToken(env, user) {
 }
 
 async function verifySessionToken(env, token) {
-  if (!token || typeof token !== "string") return null;
-  const [payloadB64, sigB64] = token.split(".");
-  if (!payloadB64 || !sigB64) return null;
+  try {
+    if (!token || typeof token !== "string") return null;
+    const parts = token.split(".");
+    if (parts.length !== 2) return null;
+    const [payloadB64, sigB64] = parts;
+    if (!payloadB64 || !sigB64) return null;
 
-  const expectedSig = await hmacSign(env.ADMIN_SESSION_SECRET, payloadB64);
-  const providedSig = base64UrlDecode(sigB64);
-  const expected = new Uint8Array(expectedSig);
-  if (providedSig.length !== expected.length) return null;
+    const expectedSig = await hmacSign(env.ADMIN_SESSION_SECRET, payloadB64);
+    const providedSig = base64UrlDecode(sigB64);
+    const expected = new Uint8Array(expectedSig);
+    if (providedSig.length !== expected.length) return null;
 
-  let diff = 0;
-  for (let i = 0; i < expected.length; i += 1) {
-    diff |= expected[i] ^ providedSig[i];
+    let diff = 0;
+    for (let i = 0; i < expected.length; i += 1) {
+      diff |= expected[i] ^ providedSig[i];
+    }
+    if (diff !== 0) return null;
+
+    const payloadJson = new TextDecoder().decode(base64UrlDecode(payloadB64));
+    const payload = JSON.parse(payloadJson);
+    if (!payload?.exp || payload.exp < Math.floor(Date.now() / 1000)) return null;
+    return payload;
+  } catch {
+    return null;
   }
-  if (diff !== 0) return null;
-
-  const payloadJson = new TextDecoder().decode(base64UrlDecode(payloadB64));
-  const payload = JSON.parse(payloadJson);
-  if (!payload?.exp || payload.exp < Math.floor(Date.now() / 1000)) return null;
-  return payload;
 }
 
 function requireEnvAuthConfig(env) {
@@ -177,12 +201,15 @@ async function handleLogin(request, env) {
   const password = (body?.password || "").toString();
 
   if (email !== String(env.ADMIN_EMAIL).trim().toLowerCase() || password !== String(env.ADMIN_PASSWORD)) {
-    return json({ error: "Invalid credentials" }, { status: 401 });
+    return json(
+      { error: "Invalid credentials" },
+      { status: 401, headers: { "cache-control": "no-store" } }
+    );
   }
 
   const user = { uid: "admin", email };
   const token = await createSessionToken(env, user);
-  return json({ token, user });
+  return json({ token, user }, { headers: { "cache-control": "no-store" } });
 }
 
 async function handleSession(request, env) {
@@ -290,7 +317,12 @@ async function handleImageGet(pathname, env) {
   const prefix = "/api/media/";
   if (!pathname.startsWith(prefix)) return json({ error: "Not found" }, { status: 404 });
   const rawPath = pathname.slice(prefix.length);
-  const key = decodeURIComponent(rawPath || "").replace(/^\/+/, "");
+  let key;
+  try {
+    key = decodeURIComponent(rawPath || "").replace(/^\/+/, "");
+  } catch {
+    return json({ error: "Invalid media path" }, { status: 400 });
+  }
   if (!key) return json({ error: "Missing media path" }, { status: 400 });
 
   const object = await env.ARTWORK.get(key);
@@ -306,6 +338,12 @@ export default {
   async fetch(request, env) {
     const origin = getAllowedOrigin(request, env);
     if (request.method === "OPTIONS") {
+      if (request.headers.get("origin") && !origin) {
+        return json(
+          { error: "Origin not allowed" },
+          { status: 403, headers: corsHeaders(null) }
+        );
+      }
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
@@ -332,14 +370,9 @@ export default {
         response = json({ error: "Not found" }, { status: 404 });
       }
 
-      const headers = new Headers(response.headers);
-      Object.entries(corsHeaders(origin)).forEach(([k, v]) => headers.set(k, v));
-      return new Response(response.body, { status: response.status, headers });
+      return withCors(response, origin);
     } catch (error) {
-      return json(
-        { error: error?.message || "Internal error" },
-        { status: 500, headers: corsHeaders(env.ALLOWED_ORIGIN || "*") }
-      );
+      return withCors(json({ error: "Internal error" }, { status: 500 }), origin);
     }
   },
 };

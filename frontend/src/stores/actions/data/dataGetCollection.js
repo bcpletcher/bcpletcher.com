@@ -37,10 +37,9 @@ async function fetchProjectsFromCloudflare() {
   throw new Error("Cloudflare projects payload must be a JSON object");
 }
 
-export async function dataGetCollection(functions, functionName, ..._ignored) { // eslint-disable-line no-unused-vars
-  // Cache has been intentionally disabled.
+export async function dataGetCollection(operation) {
   try {
-    if (functionName === "getProjectsCollection") {
+    if (operation === "getProjectsCollection") {
       const cloudflareData = await fetchProjectsFromCloudflare();
       if (cloudflareData) return normalizeCollectionPayload(cloudflareData);
     }
@@ -50,7 +49,7 @@ export async function dataGetCollection(functions, functionName, ..._ignored) { 
     }
     return normalizeCollectionPayload(fallback);
   } catch (error) {
-    console.error(`Error fetching ${functionName}:`, error);
+    console.error(`Error fetching ${operation}:`, error);
     throw error;
   }
 }

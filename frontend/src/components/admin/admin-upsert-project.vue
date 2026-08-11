@@ -333,7 +333,7 @@
                 </div>
 
                 <div v-if="!documentModel.data.technology.length" class="text-sm text-slate-500">
-                  Add technologies like Vue, Tailwind, Firebase
+                  Add technologies like Vue, Tailwind, or another stack
                 </div>
               </div>
             </div>
@@ -515,7 +515,7 @@ import { useSettingsStore } from "@/stores/settings.js";
 import { useNotificationStore } from "@/stores/notification.js";
 import { saveProjectsToCache } from "@/utils/cache.js";
 import { normalizeProjectDate } from "@/utils/projectDate.js";
-import { buildAltMediaUrl } from "@/utils/mediaStorageImages.js";
+import { buildMediaUrl } from "@/utils/mediaStorageImages.js";
 import {
   PROJECT_META_OPTIONS,
   PROJECT_META_KEYS,
@@ -607,39 +607,22 @@ const pendingFiles = ref([]); // { file: File, previewUrl: string }
 const fileInputRef = ref(null);
 
 function getImagePreviewUrl(item) {
-  if (!item) return "";
-  if (typeof item === "string") return item;
-  if (typeof item === "object" && item.url) return item.url;
-  // If url isn't stored, derive it from path (public alt=media)
-  if (typeof item === "object" && item.path) {
-    return buildAltMediaUrl("", item.path) || "";
-  }
-  return "";
+  if (!item || typeof item !== "object" || !item.path) return "";
+  return buildMediaUrl(item.path) || "";
 }
 
 function getImageKey(item, index) {
-  if (typeof item === "string") return `img-url-${item}`;
   if (item && typeof item === "object" && item.path)
     return `img-path-${item.path}`;
-  if (item && typeof item === "object" && item.url)
-    return `img-url-${item.url}`;
   return `img-${index}`;
 }
 
 function imagesEqual(a, b) {
   if (a === b) return true;
   if (!a || !b) return false;
-  if (typeof a === "string" && typeof b === "string") return a === b;
-
-  // Compare objects by path, then url.
   const aPath = typeof a === "object" ? a.path : null;
   const bPath = typeof b === "object" ? b.path : null;
   if (aPath && bPath) return aPath === bPath;
-
-  const aUrl = typeof a === "object" ? a.url : typeof a === "string" ? a : null;
-  const bUrl = typeof b === "object" ? b.url : typeof b === "string" ? b : null;
-  if (aUrl && bUrl) return aUrl === bUrl;
-
   return false;
 }
 

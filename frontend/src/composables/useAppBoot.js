@@ -197,9 +197,8 @@ export function useAppBoot() {
 
     boot();
 
-    // Keep global auth state in sync so admin login persists across refresh
-    // until explicit sign out or Firebase invalidation.
-    cloudflareStore.auth.onAuthStateChanged((user) => {
+    // Keep the local admin session state in sync across the app.
+    cloudflareStore.session.onSessionChanged((user) => {
       settingsStore.user = user || {};
     });
   });

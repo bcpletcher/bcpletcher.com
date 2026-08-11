@@ -188,9 +188,7 @@ function isDesktopLike() {
 
 function getImageKey(img, index) {
   if (!img) return `img-${index}`;
-  if (typeof img === "string") return `img-url-${img}`;
   if (typeof img === "object" && img.path) return `img-path-${img.path}`;
-  if (typeof img === "object" && img.url) return `img-url-${img.url}`;
   return `img-${index}`;
 }
 </script>
