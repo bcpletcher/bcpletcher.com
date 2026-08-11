@@ -55,12 +55,6 @@ function getMediaBaseUrl() {
   const apiBase = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
   if (apiBase) return `${apiBase}/api/media`;
 
-  const apiFallbackBase = String(import.meta.env.VITE_API_BASE_URL_FALLBACK || "").replace(
-    /\/+$/,
-    "",
-  );
-  if (apiFallbackBase) return `${apiFallbackBase}/api/media`;
-
   return "/api/media";
 }
 

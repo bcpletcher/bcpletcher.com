@@ -14,11 +14,6 @@ export function getApiBaseUrl() {
   return String(raw).replace(/\/+$/, "");
 }
 
-export function getApiFallbackBaseUrl() {
-  const raw = import.meta.env.VITE_API_BASE_URL_FALLBACK || "";
-  return String(raw).replace(/\/+$/, "");
-}
-
 export function toApiUrl(path) {
   const base = getApiBaseUrl();
   return `${base}${path}`;
@@ -78,7 +73,11 @@ export async function apiFetch(path, { method = "GET", body, auth = false } = {}
 
     if (!response.ok) {
       const message = json?.error || `Request failed: ${response.status} ${response.statusText}`;
-      throw new Error(message);
+      const error = new Error(message);
+      error.status = response.status;
+      error.payload = json;
+      error.cleanup = json?.cleanup;
+      throw error;
     }
     if (!contentType.includes("application/json")) {
       throw new Error("API did not return JSON");
@@ -89,13 +88,5 @@ export async function apiFetch(path, { method = "GET", body, auth = false } = {}
     return json;
   };
 
-  const primaryBase = getApiBaseUrl();
-  const fallbackBase = getApiFallbackBaseUrl();
-
-  try {
-    return await requestOnce(primaryBase);
-  } catch (error) {
-    if (!fallbackBase || fallbackBase === primaryBase) throw error;
-    return requestOnce(fallbackBase);
-  }
+  return requestOnce(getApiBaseUrl());
 }
