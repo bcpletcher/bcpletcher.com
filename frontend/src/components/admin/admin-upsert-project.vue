@@ -45,6 +45,15 @@
 
       <!-- Body -->
       <div class="px-4 pb-4 pt-4 md:px-6 md:pb-6">
+        <div
+          v-if="reconciliationRequired"
+          role="alert"
+          class="mb-4 rounded-xl border border-amber-300/30 bg-amber-300/10 px-4 py-3 text-sm text-amber-100"
+        >
+          <p class="font-semibold">{{ reconciliationTitle }}</p>
+          <p class="mt-1 text-xs text-amber-100/80">{{ reconciliationMessage }}</p>
+        </div>
+
         <div class="max-h-[70vh] overflow-y-auto pr-1">
           <!-- BASICS -->
           <div class="rounded-xl border border-white/10 bg-black/10 p-4 md:p-5">
@@ -492,7 +501,7 @@
           <button
             type="button"
             class="kbd-focus cursor-pointer rounded px-4 py-1 border border-gradient-start text-font-secondary font-bold text-sm hover:bg-gradient-start hover:text-font-tertiary transition-standard disabled:opacity-60 disabled:cursor-not-allowed"
-            :disabled="isSubmitting"
+            :disabled="isSubmitting || reconciliationRequired"
             @click="submit"
           >
             <span v-if="isSubmitting">
@@ -529,6 +538,9 @@ const notificationStore = useNotificationStore();
 const visible = ref(false);
 const isEdit = ref(false);
 const isSubmitting = ref(false);
+const reconciliationRequired = ref(false);
+const reconciliationTitle = ref("");
+const reconciliationMessage = ref("");
 
 const DESCRIPTION_MAX = 500;
 const SUMMARY_MAX = 200;
@@ -781,6 +793,9 @@ function resetState() {
 
   errors.value = {};
   isSubmitting.value = false;
+  reconciliationRequired.value = false;
+  reconciliationTitle.value = "";
+  reconciliationMessage.value = "";
 }
 
 const showModal = async (existingEntry) => {
@@ -1071,8 +1086,27 @@ function removeUploadedImagesFromDocument(uploadedMedia) {
   );
 }
 
+function retainUploadedImagesInDocument(uploadedMedia) {
+  const existingPaths = new Set(
+    (documentModel.value.data.images || []).map((image) => image?.path).filter(Boolean),
+  );
+  const reconciliationImages = (uploadedMedia || [])
+    .filter((image) => image?.path && !existingPaths.has(image.path))
+    .map((image) => ({ path: image.path }));
+  documentModel.value.data.images.push(...reconciliationImages);
+}
+
 const submit = async () => {
   if (isSubmitting.value) return;
+  if (reconciliationRequired.value) {
+    notificationStore.addNotification({
+      variant: "danger",
+      title: "Reconciliation required",
+      message: reconciliationMessage.value,
+      duration: 8,
+    });
+    return;
+  }
   if (!validateBeforeSubmit()) return;
 
   isSubmitting.value = true;
@@ -1180,15 +1214,39 @@ const submit = async () => {
   } catch (e) {
     console.error("Submit error:", e);
     const uploadedMedia = e?.uploadedMedia || uploadedThisAttempt;
-    removeUploadedImagesFromDocument(uploadedMedia);
+    const persistenceOutcome = e?.persistenceOutcome;
     const cleanupIncomplete = Boolean(e?.cleanupFailures?.length || e?.cleanup === "incomplete");
+    const outcomeUnknown = persistenceOutcome === "unknown";
+    const needsReconciliation = outcomeUnknown ||
+      (persistenceOutcome === "rejected" && cleanupIncomplete) ||
+      (!persistenceOutcome && e?.cleanup === "incomplete");
+
+    if (needsReconciliation) {
+      retainUploadedImagesInDocument(uploadedMedia);
+      reconciliationRequired.value = true;
+      reconciliationTitle.value = outcomeUnknown
+        ? "Save outcome unknown / reconciliation required"
+        : "Media cleanup incomplete / reconciliation required";
+      reconciliationMessage.value = outcomeUnknown
+        ? "The server response was inconclusive. New media paths are retained; do not retry until the project and R2 objects are reconciled."
+        : "The save was rejected, but newly uploaded media could not be fully cleaned up. Reconcile the retained media paths before retrying.";
+    } else {
+      removeUploadedImagesFromDocument(uploadedMedia);
+    }
+
     notificationStore.addNotification({
       variant: "danger",
-      title: cleanupIncomplete ? "Save failed; media cleanup incomplete" : "Save failed",
-      message: cleanupIncomplete
-        ? "The project was not saved and some newly uploaded media could not be cleaned up. Do not retry until the cleanup is reviewed."
-        : "An error occurred while saving. Please try again.",
-      duration: cleanupIncomplete ? 8 : 6,
+      title: outcomeUnknown
+        ? "Save outcome unknown / reconciliation required"
+        : cleanupIncomplete
+          ? "Save failed; media cleanup incomplete"
+          : "Save failed",
+      message: outcomeUnknown
+        ? reconciliationMessage.value
+        : cleanupIncomplete
+          ? reconciliationMessage.value
+          : "An error occurred while saving. Please try again.",
+      duration: outcomeUnknown || cleanupIncomplete ? 8 : 6,
     });
   } finally {
     isSubmitting.value = false;

@@ -8,6 +8,10 @@ function collectFailures(items, results) {
     .filter(Boolean);
 }
 
+export function hasDefiniteHttpRejection(error) {
+  return Number.isInteger(error?.status) && error.status >= 400 && error.status <= 599;
+}
+
 /**
  * Coordinate a project save so old media is deleted only after persistence.
  * New media is cleaned up when persistence fails; removed media is never part
@@ -25,13 +29,21 @@ export async function coordinateProjectMediaSave({
   try {
     await persistProject(uploadedMedia);
   } catch (error) {
-    const cleanupResults = await Promise.allSettled(
-      uploadedMedia.map((item) => cleanupUploadedMedia(item)),
-    );
-    const cleanupFailures = collectFailures(uploadedMedia, cleanupResults);
+    const persistenceOutcome = hasDefiniteHttpRejection(error)
+      ? "rejected"
+      : "unknown";
+    const cleanupResults = persistenceOutcome === "rejected"
+      ? await Promise.allSettled(
+        uploadedMedia.map((item) => cleanupUploadedMedia(item)),
+      )
+      : [];
+    const cleanupFailures = persistenceOutcome === "rejected"
+      ? collectFailures(uploadedMedia, cleanupResults)
+      : [];
     const wrapped = new Error("Project persistence failed", { cause: error });
     wrapped.uploadedMedia = uploadedMedia;
     wrapped.cleanupFailures = cleanupFailures;
+    wrapped.persistenceOutcome = persistenceOutcome;
     throw wrapped;
   }
 
@@ -42,5 +54,6 @@ export async function coordinateProjectMediaSave({
   return {
     uploadedMedia,
     cleanupFailures: collectFailures(removedMedia, deleteResults),
+    persistenceOutcome: "confirmed",
   };
 }

@@ -92,6 +92,15 @@ export function useAppBoot() {
         }
       }
 
+      // Validate a persisted admin session before cache-first early exit. A
+      // definite 401 clears the session; transient/status-less failures retain
+      // it and remain visible for later reconciliation instead of logging out.
+      try {
+        await cloudflareStore.validateAdminSession();
+      } catch (error) {
+        console.warn("[boot] admin session validation unavailable; retaining local session state", error);
+      }
+
       // 1) Cache-first: avoid unnecessary network calls within TTL.
       // Controlled via VITE_CACHE_ENABLED (default true).
       if (cacheEnabledThisBoot) {
