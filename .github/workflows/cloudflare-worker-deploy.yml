@@ -1,4 +1,4 @@
-name: Cloudflare Worker CD
+name: Cloudflare Production CD
 
 on:
   push:
@@ -10,15 +10,60 @@ permissions:
   contents: read
 
 concurrency:
-  group: cloudflare-worker-production
+  group: cloudflare-production
   cancel-in-progress: false
 
 jobs:
-  validate:
-    name: Validate Cloudflare Worker
+  validate-frontend:
+    name: Validate frontend
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Coordination, session, and API tests
+        working-directory: ./frontend
+        run: npm run test:coordination
+
+      - name: Lint (no warnings)
+        working-directory: ./frontend
+        run: npm run lint -- --max-warnings=0
+
+      - name: Production build
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Production dependency audit
+        working-directory: ./frontend
+        run: npm audit --omit=dev
+
+      - name: Preserve verified frontend dist
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: frontend-dist-${{ github.sha }}
+          path: frontend/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  validate-worker:
+    name: Validate Worker
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -43,12 +88,61 @@ jobs:
         working-directory: ./cloudflare/worker
         run: npx --yes wrangler@4.121.0 deploy --dry-run --config wrangler.toml --keep-vars
 
-  deploy:
-    name: Deploy Cloudflare Worker
+      - name: Production dependency audit
+        working-directory: ./cloudflare/worker
+        run: npm audit --omit=dev
+
+  deploy-pages:
+    name: Deploy Pages
     if: ${{ github.ref == 'refs/heads/main' }}
-    needs: validate
+    needs: [validate-frontend, validate-worker]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Download verified frontend dist
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: frontend-dist-${{ github.sha }}
+          path: frontend/dist
+
+      - name: Deploy existing Cloudflare Pages project
+        id: pages-deploy
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_PAGES_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: frontend
+          wranglerVersion: 4.121.0
+          command: pages deploy dist --project-name bcpletcher-com-staging --branch main --commit-hash ${{ github.sha }}
+
+      - name: Record Pages deployment
+        env:
+          PAGES_DEPLOYMENT_ID: ${{ steps.pages-deploy.outputs.pages-deployment-id }}
+          PAGES_DEPLOYMENT_URL: ${{ steps.pages-deploy.outputs.deployment-url }}
+          PAGES_ENVIRONMENT: ${{ steps.pages-deploy.outputs.pages-environment }}
+        run: |
+          {
+            echo "## Cloudflare Pages deployment"
+            echo "- Project: bcpletcher-com-staging"
+            echo "- Branch: main"
+            echo "- Commit: ${GITHUB_SHA}"
+            echo "- Deployment ID: ${PAGES_DEPLOYMENT_ID:-unreported}"
+            echo "- Environment: ${PAGES_ENVIRONMENT:-unreported}"
+            echo "- URL: ${PAGES_DEPLOYMENT_URL:-unreported}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+  deploy-worker:
+    name: Deploy Worker
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs: deploy-pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     environment:
       name: production
 
