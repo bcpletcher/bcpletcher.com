@@ -21,14 +21,6 @@ class ValidationError extends Error {
   }
 }
 
-class ProjectPersistenceRejectedError extends Error {
-  constructor(message, status = 500, cause) {
-    super(message, { cause });
-    this.name = "ProjectPersistenceRejectedError";
-    this.status = status;
-  }
-}
-
 function json(data, init = {}) {
   return new Response(JSON.stringify(data), {
     status: init.status || 200,
@@ -390,19 +382,16 @@ async function upsertProject(env, docId, data) {
     ),
   ];
 
-  // D1 batch statements are a transaction: any failure rolls back the full batch.
-  try {
-    await env.DB.batch(statements);
-  } catch (error) {
-    throw new ProjectPersistenceRejectedError("Project persistence rejected", 500, error);
-  }
+  // D1 batch statements are a transaction, but an exception leaves the commit
+  // outcome ambiguous to the caller and must use the generic admin 500 path.
+  await env.DB.batch(statements);
 }
 
 async function handleProjectUpsert(request, env) {
-  try {
-    const user = await requireAdmin(request, env);
-    if (!user) return projectPersistenceRejectedJson({ error: "Unauthorized" }, { status: 401 });
+  const user = await requireAdmin(request, env);
+  if (!user) return projectPersistenceRejectedJson({ error: "Unauthorized" }, { status: 401 });
 
+  try {
     const body = await readJsonBody(request);
     if (!isPlainObject(body) || !isPlainObject(body.document)) {
       throw new ValidationError("Missing document payload");
@@ -418,9 +407,8 @@ async function handleProjectUpsert(request, env) {
     await upsertProject(env, docId, data);
     return adminJson({ success: true, id: docId });
   } catch (error) {
-    if (error instanceof ProjectPersistenceRejectedError) throw error;
     if (error instanceof ValidationError) {
-      throw new ProjectPersistenceRejectedError(error.message, 400, error);
+      return projectPersistenceRejectedJson({ error: error.message }, { status: 400 });
     }
     throw error;
   }
@@ -629,15 +617,6 @@ export default {
 
       return withCors(response, origin);
     } catch (error) {
-      if (error instanceof ProjectPersistenceRejectedError) {
-        const rejectionBody = error.status === 400
-          ? { error: error.message }
-          : { error: "Internal error" };
-        return withCors(
-          projectPersistenceRejectedJson(rejectionBody, { status: error.status }),
-          origin,
-        );
-      }
       const status = error instanceof ValidationError ? 400 : 500;
       const body = status === 400 ? { error: error.message } : { error: "Internal error" };
       const init = { status };

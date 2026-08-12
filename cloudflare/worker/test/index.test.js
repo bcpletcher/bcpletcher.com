@@ -11,12 +11,13 @@ const PRODUCTION_ORIGIN = "https://next.bcpletcher.com";
 const LOCAL_ORIGIN = "http://localhost:5173";
 
 class StatefulD1 {
-  constructor({ projects = [], children = [], failAt = null } = {}) {
+  constructor({ projects = [], children = [], failAt = null, throwAfterCommit = false } = {}) {
     this.projects = new Map(projects.map((row) => [row.id, { ...row }]));
     this.children = new Map(
       children.map((row) => [`${row.project_id}:${row.image_index}`, { ...row }]),
     );
     this.failAt = failAt;
+    this.throwAfterCommit = throwAfterCommit;
     this.batchCalls = 0;
   }
 
@@ -85,6 +86,7 @@ class StatefulD1 {
 
     this.projects = nextProjects;
     this.children = nextChildren;
+    if (this.throwAfterCommit) throw new Error("Injected post-commit D1 failure");
     return statements.map(() => ({ success: true }));
   }
 }
@@ -542,10 +544,26 @@ test("D1 batch failure leaves the original project and child rows unchanged", as
   assert.equal(response.status, 500);
   assert.equal(response.headers.get("cache-control"), "no-store");
   assert.equal(response.headers.get("access-control-allow-origin"), PRODUCTION_ORIGIN);
-  assert.equal((await readJson(response)).persistenceOutcome, "rejected");
+  assert.equal((await readJson(response)).persistenceOutcome, undefined);
   assert.equal(db.batchCalls, 1);
   assert.equal(JSON.stringify(db.projects.get(id)), beforeProject);
   assert.equal(JSON.stringify([...db.children]), beforeChildren);
+});
+
+test("D1 commit-then-throw remains an unmarked generic failure", async () => {
+  const db = new StatefulD1({ throwAfterCommit: true });
+  const env = makeEnv({ DB: db });
+  const token = await login(env);
+  const response = await worker.fetch(
+    upsertRequest(token, { id: "demo", data: makeProjectData("demo") }),
+    env,
+  );
+
+  assert.equal(response.status, 500);
+  const payload = await readJson(response);
+  assert.equal(payload.persistenceOutcome, undefined);
+  assert.equal(db.projects.has("demo"), true);
+  assert.equal(db.children.size, 0);
 });
 
 test("invalid project ids, data, and image paths return 400 before D1 side effects", async () => {
