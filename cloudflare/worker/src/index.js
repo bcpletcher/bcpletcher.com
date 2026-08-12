@@ -267,8 +267,26 @@ async function verifySessionToken(env, token) {
     if (diff !== 0) return null;
 
     const payload = JSON.parse(new TextDecoder().decode(base64UrlDecode(payloadB64)));
-    if (!payload?.uid || !payload?.email || !payload?.exp) return null;
-    if (payload.exp < Math.floor(Date.now() / 1000)) return null;
+    const now = Math.floor(Date.now() / 1000);
+    if (
+      typeof payload?.uid !== "string" ||
+      !payload.uid.trim() ||
+      typeof payload?.email !== "string" ||
+      !payload.email.trim() ||
+      !Number.isSafeInteger(payload.exp) ||
+      payload.exp <= now
+    ) {
+      return null;
+    }
+    if (
+      payload.iat !== undefined &&
+      (!Number.isSafeInteger(payload.iat) ||
+        payload.iat <= 0 ||
+        payload.iat > now ||
+        payload.iat >= payload.exp)
+    ) {
+      return null;
+    }
     return payload;
   } catch {
     return null;
@@ -548,7 +566,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
-    const isAdminRequest = path.startsWith("/api/admin/");
+    const isAdminRequest = path === "/api/admin" || path.startsWith("/api/admin/");
     const origin = getAllowedOrigin(request, env);
 
     if (request.method === "OPTIONS") {

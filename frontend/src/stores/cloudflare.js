@@ -9,10 +9,12 @@ import {
 } from "@/utils/mediaStorageImages.js";
 import {
   apiFetch,
+  getStoredAdminToken,
   getStoredAdminUser,
   setStoredAdminSession,
   clearStoredAdminSession,
 } from "@/utils/cloudflareApi.js";
+import { validateStoredAdminSession } from "@/utils/adminSession.js";
 
 function generateUuid() {
   if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
@@ -216,6 +218,31 @@ export const useCloudflareStore = defineStore("cloudflare", {
       clearStoredAdminSession();
       this.user = {};
       this.session._notify();
+    },
+
+    async validateAdminSession() {
+      const token = getStoredAdminToken();
+      if (!token) {
+        if (Object.keys(this.user || {}).length) await this.adminSignOut();
+        return null;
+      }
+
+      const result = await validateStoredAdminSession({
+        requestSession: () => apiFetch("/api/admin/session", { auth: true }),
+        onAuthorized: (user) => {
+          setStoredAdminSession({ token, user });
+          this.user = user;
+          this.session._notify();
+        },
+        onUnauthorized: () => {
+          clearStoredAdminSession();
+          this.user = {};
+          this.session._notify();
+        },
+      });
+
+      if (result.status === "unknown") throw result.error;
+      return result.user || null;
     },
 
     dataGetProjectsCollection() {

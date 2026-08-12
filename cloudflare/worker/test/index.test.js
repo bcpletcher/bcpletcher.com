@@ -183,6 +183,32 @@ async function readJson(response) {
   return response.json();
 }
 
+function base64UrlEncodeForTest(bytes) {
+  return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+async function signTestToken(env, claims) {
+  const payloadB64 = base64UrlEncodeForTest(
+    new TextEncoder().encode(JSON.stringify(claims)),
+  );
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(env.ADMIN_SESSION_SECRET),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(payloadB64),
+  );
+  return `${payloadB64}.${base64UrlEncodeForTest(signature)}`;
+}
+
 async function login(env, origin = PRODUCTION_ORIGIN) {
   const response = await worker.fetch(
     makeRequest("/api/admin/login", {
@@ -336,6 +362,67 @@ test("configured auth has no-store login/session responses and does not expose s
   );
   assert.equal(malformedLoginResponse.status, 400);
   assert.equal(malformedLoginResponse.headers.get("cache-control"), "no-store");
+});
+
+test("session verification rejects malformed claim types and expired boundaries", async () => {
+  const env = makeEnv();
+  const now = Math.floor(Date.now() / 1000);
+  const validClaims = {
+    uid: "admin",
+    email: ADMIN_EMAIL,
+    iat: now - 10,
+    exp: now + 3600,
+  };
+  const invalidClaims = [
+    { ...validClaims, exp: String(validClaims.exp) },
+    { ...validClaims, exp: validClaims.exp + 0.5 },
+    { ...validClaims, exp: now },
+    { ...validClaims, uid: 7 },
+    { ...validClaims, email: 7 },
+    { ...validClaims, uid: "   " },
+    { ...validClaims, iat: now + 1 },
+    { ...validClaims, iat: now - 0.5 },
+  ];
+
+  for (const claims of invalidClaims) {
+    const token = await signTestToken(env, claims);
+    const response = await worker.fetch(
+      makeRequest("/api/admin/session", {
+        headers: {
+          Origin: PRODUCTION_ORIGIN,
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+      env,
+    );
+    assert.equal(response.status, 401);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+  }
+});
+
+test("exact /api/admin namespace is classified as admin for 404 and OPTIONS", async () => {
+  const env = makeEnv();
+  const notFound = await worker.fetch(
+    makeRequest("/api/admin", { headers: { Origin: PRODUCTION_ORIGIN } }),
+    env,
+  );
+  assert.equal(notFound.status, 404);
+  assert.equal(notFound.headers.get("cache-control"), "no-store");
+  assert.equal(notFound.headers.get("access-control-allow-origin"), PRODUCTION_ORIGIN);
+
+  const preflight = await worker.fetch(
+    makeRequest("/api/admin", {
+      method: "OPTIONS",
+      headers: {
+        Origin: PRODUCTION_ORIGIN,
+        "Access-Control-Request-Method": "GET",
+      },
+    }),
+    env,
+  );
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get("cache-control"), "no-store");
+  assert.equal(preflight.headers.get("access-control-allow-origin"), PRODUCTION_ORIGIN);
 });
 
 test("all known admin mutation/session routes reject unauthorized requests with no-store", async () => {
