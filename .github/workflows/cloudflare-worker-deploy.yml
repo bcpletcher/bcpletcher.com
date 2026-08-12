@@ -1,0 +1,77 @@
+name: Cloudflare Worker CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-worker-production
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate Cloudflare Worker
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: cloudflare/worker/package-lock.json
+
+      - name: Install Worker dependencies
+        working-directory: ./cloudflare/worker
+        run: npm ci
+
+      - name: Worker tests
+        working-directory: ./cloudflare/worker
+        run: npm test
+
+      - name: Wrangler dry-run
+        working-directory: ./cloudflare/worker
+        run: npx --yes wrangler@4.121.0 deploy --dry-run --config wrangler.toml --keep-vars
+
+  deploy:
+    name: Deploy Cloudflare Worker
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: cloudflare/worker/package-lock.json
+
+      - name: Install Worker dependencies
+        working-directory: ./cloudflare/worker
+        run: npm ci
+
+      - name: Deploy Worker and preserve dashboard-managed variables
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: cloudflare/worker
+          wranglerVersion: 4.121.0
+          command: deploy --config wrangler.toml --keep-vars

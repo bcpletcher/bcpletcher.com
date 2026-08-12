@@ -176,14 +176,49 @@ That command:
 
 
 ## Deployment
+
+### GitHub-to-Cloudflare Worker CD candidate (Phase 1)
+
+`.github/workflows/cloudflare-worker-deploy.yml` is a reviewed candidate and
+does not deploy until this PR is merged and the protected GitHub `production`
+environment is configured. A push to `main`, or a manual dispatch from `main`,
+runs Node 22 installation, Worker tests, and a Wrangler dry-run before the
+deployment job. Production concurrency is non-canceling so an in-progress
+deployment is not interrupted by a later run.
+
+The deployment job uses only these protected-environment secrets:
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Worker runtime values
+(`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `ALLOWED_ORIGIN`,
+and `MEDIA_BASE_URL`) remain Cloudflare Worker secrets/vars and are not GitHub
+workflow inputs. The live command uses Wrangler `--keep-vars`, so dashboard-
+managed Worker variables not represented in the repository configuration are
+retained. The workflow does not deploy Pages, change DNS, or mutate D1/R2 data.
+
 ### Frontend hosting (Cloudflare Pages)
 ```bash
 cd frontend
 npm run build
 ```
 
-Cloudflare Pages must use the reviewed production branch (`main`), project root
-`frontend`, build command `npm ci && npm run build`, and output directory `dist`.
+Cloudflare Pages Git integration is a Phase 2 operation and is not connected by
+this candidate. Before Phase 2, the dashboard reports **Connect** for the Git
+repository and the production branch is the stale
+`codex/firebase-to-cloudflare-migration`; do not claim that Pages automation is
+already active. When the protected `main` integration is configured, use these
+exact settings:
+
+- Repository: `bcpletcher/bcpletcher.com`
+- Production branch: `main`
+- Project root / root directory: `frontend`
+- Build command: `npm ci && npm run build`
+- Build output directory: `dist`
+
+Retain the current `bcpletcher-com-staging` Pages deployment
+`c3da5dd3-c56d-4fc8-af64-0568231f56f8` and rollback deployment `0163270f` until
+the new release is independently verified. Retain `next` deployments/previews
+for at least 30 days. Do not delete these artifacts during Phase 1 or as part
+of the Pages connection.
+
 This repository does not have an isolated staging D1/R2 environment; do not call
 the `next.bcpletcher.com` binding a staging binding.
 
@@ -289,6 +324,7 @@ Complete this checklist in order. Values for secrets are entered through Cloudfl
 ### 6. Rollback and Firebase hold
 
 - If live verification fails, restore the recorded DNS targets or the previous Pages deployment, then disable/revert only the new Worker route/configuration as needed. Restore the previous frontend environment values and invalidate any temporary fixture session.
+- Retain the current Pages deployment `c3da5dd3-c56d-4fc8-af64-0568231f56f8` and rollback `0163270f` for immediate reversal; retain `next` deployments/previews for at least 30 days. Do not delete either rollback artifact during incident response.
 - Keep D1/R2 data intact during rollback. Do not delete or overwrite the known-good release artifacts until the incident is understood.
 - Explicit hold: do not delete the Firebase project, Firestore data, Firebase Storage objects, Functions, Hosting configuration, rules, exports, or migration backups. Firebase remains the reversible rollback/archive source until a separately approved retirement decision.
 
