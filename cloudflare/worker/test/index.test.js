@@ -452,6 +452,12 @@ test("all known admin mutation/session routes reject unauthorized requests with 
       PRODUCTION_ORIGIN,
       path,
     );
+    const payload = await readJson(response);
+    if (path === "/api/admin/projects/upsert") {
+      assert.equal(payload.persistenceOutcome, "rejected");
+    } else {
+      assert.equal(payload.persistenceOutcome, undefined);
+    }
   }
 
   const malformedTokenResponse = await worker.fetch(
@@ -536,6 +542,7 @@ test("D1 batch failure leaves the original project and child rows unchanged", as
   assert.equal(response.status, 500);
   assert.equal(response.headers.get("cache-control"), "no-store");
   assert.equal(response.headers.get("access-control-allow-origin"), PRODUCTION_ORIGIN);
+  assert.equal((await readJson(response)).persistenceOutcome, "rejected");
   assert.equal(db.batchCalls, 1);
   assert.equal(JSON.stringify(db.projects.get(id)), beforeProject);
   assert.equal(JSON.stringify([...db.children]), beforeChildren);
@@ -561,8 +568,28 @@ test("invalid project ids, data, and image paths return 400 before D1 side effec
       env,
     );
     assert.equal(response.status, 400);
+    assert.equal((await readJson(response)).persistenceOutcome, "rejected");
     assert.equal(db.batchCalls, 0);
   }
+});
+
+test("generic project-upsert errors do not claim a rejected persistence outcome", async () => {
+  const env = makeEnv({
+    DB: {
+      prepare() {
+        throw new Error("Injected statement construction failure");
+      },
+    },
+  });
+  const token = await login(env);
+  const response = await worker.fetch(
+    upsertRequest(token, { id: "demo", data: makeProjectData("demo") }),
+    env,
+  );
+
+  assert.equal(response.status, 500);
+  const payload = await readJson(response);
+  assert.equal(payload.persistenceOutcome, undefined);
 });
 
 test("successful upload and delete cover canonical media, variants, and cache headers", async () => {
