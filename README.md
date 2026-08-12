@@ -177,14 +177,13 @@ That command:
 
 ## Deployment
 
-### GitHub-to-Cloudflare Worker CD candidate (Phase 1)
+### GitHub-to-Cloudflare Worker CD
 
-`.github/workflows/cloudflare-worker-deploy.yml` is a reviewed candidate and
-does not deploy until this PR is merged and the protected GitHub `production`
-environment is configured. A push to `main`, or a manual dispatch from `main`,
-runs Node 22 installation, Worker tests, and a Wrangler dry-run before the
-deployment job. Production concurrency is non-canceling so an in-progress
-deployment is not interrupted by a later run.
+Production deployment is permitted only from `main` after the protected GitHub
+`production` environment is configured. A push to `main`, or a manual dispatch
+from `main`, runs Node 22 installation, Worker tests, and a Wrangler dry-run
+before the deployment job. Production concurrency is non-canceling so an
+in-progress deployment is not interrupted by a later run.
 
 The deployment job uses only these protected-environment secrets:
 `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Worker runtime values
@@ -200,12 +199,9 @@ cd frontend
 npm run build
 ```
 
-Cloudflare Pages Git integration is a Phase 2 operation and is not connected by
-this candidate. Before Phase 2, the dashboard reports **Connect** for the Git
-repository and the production branch is the stale
-`codex/firebase-to-cloudflare-migration`; do not claim that Pages automation is
-already active. When the protected `main` integration is configured, use these
-exact settings:
+Cloudflare Pages Git integration is the frontend deployment control. Before
+relying on Pages automation, verify in the dashboard that the repository is
+connected and that a successful `main` deployment uses these exact settings:
 
 - Repository: `bcpletcher/bcpletcher.com`
 - Production branch: `main`
@@ -216,8 +212,8 @@ exact settings:
 Retain the current `bcpletcher-com-staging` Pages deployment
 `c3da5dd3-c56d-4fc8-af64-0568231f56f8` and rollback deployment `0163270f` until
 the new release is independently verified. Retain `next` deployments/previews
-for at least 30 days. Do not delete these artifacts during Phase 1 or as part
-of the Pages connection.
+for at least 30 days. Do not delete these artifacts during connection, release,
+or rollback work.
 
 This repository does not have an isolated staging D1/R2 environment; do not call
 the `next.bcpletcher.com` binding a staging binding.
@@ -239,7 +235,7 @@ Complete this checklist in order. Values for secrets are entered through Cloudfl
 
 ### 1. Preflight and Cloudflare access
 
-- Confirm the release candidate is the reviewed commit and that `git status --short` contains no generated state, secrets, or private data.
+- Confirm the reviewed release is the intended commit and that `git status --short` contains no generated state, secrets, or private data.
 - Authenticate Wrangler interactively and verify the account before any deploy:
 
   ```bash
