@@ -10,7 +10,7 @@ function safeJsonParse(value, fallback = null) {
 }
 
 export function getApiBaseUrl() {
-  const raw = import.meta.env.VITE_API_BASE_URL || "";
+  const raw = (import.meta.env || {}).VITE_API_BASE_URL || "";
   return String(raw).replace(/\/+$/, "");
 }
 
@@ -77,6 +77,7 @@ export async function apiFetch(path, { method = "GET", body, auth = false } = {}
       error.status = response.status;
       error.payload = json;
       error.cleanup = json?.cleanup;
+      error.persistenceOutcome = json?.persistenceOutcome;
       throw error;
     }
     if (!contentType.includes("application/json")) {

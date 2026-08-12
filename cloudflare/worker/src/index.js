@@ -21,6 +21,14 @@ class ValidationError extends Error {
   }
 }
 
+class ProjectPersistenceRejectedError extends Error {
+  constructor(message, status = 500, cause) {
+    super(message, { cause });
+    this.name = "ProjectPersistenceRejectedError";
+    this.status = status;
+  }
+}
+
 function json(data, init = {}) {
   return new Response(JSON.stringify(data), {
     status: init.status || 200,
@@ -39,6 +47,10 @@ function adminJson(data, init = {}) {
       ...NO_STORE_HEADERS,
     },
   });
+}
+
+function projectPersistenceRejectedJson(data, init = {}) {
+  return adminJson({ ...data, persistenceOutcome: "rejected" }, init);
 }
 
 function corsHeaders(origin = null) {
@@ -379,27 +391,39 @@ async function upsertProject(env, docId, data) {
   ];
 
   // D1 batch statements are a transaction: any failure rolls back the full batch.
-  await env.DB.batch(statements);
+  try {
+    await env.DB.batch(statements);
+  } catch (error) {
+    throw new ProjectPersistenceRejectedError("Project persistence rejected", 500, error);
+  }
 }
 
 async function handleProjectUpsert(request, env) {
-  const user = await requireAdmin(request, env);
-  if (!user) return adminJson({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const user = await requireAdmin(request, env);
+    if (!user) return projectPersistenceRejectedJson({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await readJsonBody(request);
-  if (!isPlainObject(body) || !isPlainObject(body.document)) {
-    throw new ValidationError("Missing document payload");
+    const body = await readJsonBody(request);
+    if (!isPlainObject(body) || !isPlainObject(body.document)) {
+      throw new ValidationError("Missing document payload");
+    }
+
+    const document = body.document;
+    const data = document.data;
+    const rawId = document.id ?? (isPlainObject(data) ? data.id : null);
+    const docId = typeof rawId === "string" ? rawId : "";
+    if (!isValidProjectId(docId)) throw new ValidationError("Project id is invalid");
+    if (data == null) throw new ValidationError("Missing project data");
+
+    await upsertProject(env, docId, data);
+    return adminJson({ success: true, id: docId });
+  } catch (error) {
+    if (error instanceof ProjectPersistenceRejectedError) throw error;
+    if (error instanceof ValidationError) {
+      throw new ProjectPersistenceRejectedError(error.message, 400, error);
+    }
+    throw error;
   }
-
-  const document = body.document;
-  const data = document.data;
-  const rawId = document.id ?? (isPlainObject(data) ? data.id : null);
-  const docId = typeof rawId === "string" ? rawId : "";
-  if (!isValidProjectId(docId)) throw new ValidationError("Project id is invalid");
-  if (data == null) throw new ValidationError("Missing project data");
-
-  await upsertProject(env, docId, data);
-  return adminJson({ success: true, id: docId });
 }
 
 function decodeBase64ToBytes(base64) {
@@ -605,6 +629,15 @@ export default {
 
       return withCors(response, origin);
     } catch (error) {
+      if (error instanceof ProjectPersistenceRejectedError) {
+        const rejectionBody = error.status === 400
+          ? { error: error.message }
+          : { error: "Internal error" };
+        return withCors(
+          projectPersistenceRejectedJson(rejectionBody, { status: error.status }),
+          origin,
+        );
+      }
       const status = error instanceof ValidationError ? 400 : 500;
       const body = status === 400 ? { error: error.message } : { error: "Internal error" };
       const init = { status };

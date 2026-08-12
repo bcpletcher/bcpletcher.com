@@ -8,14 +8,17 @@ function collectFailures(items, results) {
     .filter(Boolean);
 }
 
-export function hasDefiniteHttpRejection(error) {
-  return Number.isInteger(error?.status) && error.status >= 400 && error.status <= 599;
+export function hasMarkedProjectPersistenceRejection(error) {
+  return (
+    error?.persistenceOutcome === "rejected" &&
+    error?.payload?.persistenceOutcome === "rejected"
+  );
 }
 
 /**
  * Coordinate a project save so old media is deleted only after persistence.
- * New media is cleaned up when persistence fails; removed media is never part
- * of that failure cleanup set.
+ * New media is cleaned only when the Worker marks a definite rejected outcome;
+ * removed media is never part of that failure cleanup set.
  */
 export async function coordinateProjectMediaSave({
   uploadNewMedia,
@@ -29,7 +32,7 @@ export async function coordinateProjectMediaSave({
   try {
     await persistProject(uploadedMedia);
   } catch (error) {
-    const persistenceOutcome = hasDefiniteHttpRejection(error)
+    const persistenceOutcome = hasMarkedProjectPersistenceRejection(error)
       ? "rejected"
       : "unknown";
     const cleanupResults = persistenceOutcome === "rejected"
