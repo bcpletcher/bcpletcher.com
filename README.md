@@ -179,19 +179,27 @@ That command:
 
 ### GitHub-to-Cloudflare Worker CD
 
-Production deployment is permitted only from `main` after the protected GitHub
-`production` environment is configured. A push to `main`, or a manual dispatch
-from `main`, runs Node 22 installation, Worker tests, and a Wrangler dry-run
-before the deployment job. Production concurrency is non-canceling so an
-in-progress deployment is not interrupted by a later run.
+GitHub Actions is the production deployment control. A push to `main`, or a
+manual dispatch from `main`, runs both validation jobs before any production
+credential is used. The frontend job runs Node 22 installation, coordination
+tests, lint, build, and production audit, then preserves the verified `dist`
+directory as a short-lived artifact. The Worker job runs Node 22 installation,
+tests, Wrangler dry-run, and production audit.
 
-The deployment job uses only these protected-environment secrets:
-`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Worker runtime values
+Deployment is ordered: the existing Cloudflare Pages project
+`bcpletcher-com-staging` receives the verified frontend artifact first; only a
+successful Pages deployment permits the Worker deployment. Production
+concurrency is non-canceling so an in-progress release is not interrupted by a
+later run.
+
+The protected GitHub `production` environment uses only these deployment
+secrets: `CLOUDFLARE_PAGES_API_TOKEN`, `CLOUDFLARE_API_TOKEN`, and
+`CLOUDFLARE_ACCOUNT_ID`. Worker runtime values
 (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `ALLOWED_ORIGIN`,
 and `MEDIA_BASE_URL`) remain Cloudflare Worker secrets/vars and are not GitHub
-workflow inputs. The live command uses Wrangler `--keep-vars`, so dashboard-
-managed Worker variables not represented in the repository configuration are
-retained. The workflow does not deploy Pages, change DNS, or mutate D1/R2 data.
+workflow inputs. The Worker command uses Wrangler `--keep-vars`, so
+dashboard-managed Worker variables not represented in the repository
+configuration are retained. Neither job changes DNS, routes, or D1/R2 data.
 
 ### Frontend hosting (Cloudflare Pages)
 ```bash
@@ -199,9 +207,8 @@ cd frontend
 npm run build
 ```
 
-Cloudflare Pages Git integration is the frontend deployment control. Before
-relying on Pages automation, verify in the dashboard that the repository is
-connected and that a successful `main` deployment uses these exact settings:
+The GitHub Actions Pages deployment targets the existing project with these
+exact production settings:
 
 - Repository: `bcpletcher/bcpletcher.com`
 - Production branch: `main`
@@ -209,11 +216,18 @@ connected and that a successful `main` deployment uses these exact settings:
 - Build command: `npm ci && npm run build`
 - Build output directory: `dist`
 
+The Pages token should be a custom account-scoped token with only **Cloudflare
+Pages: Edit** for this account. The Worker token should have **Workers Scripts:
+Edit** for this account and only the `bcpletcher.com` **Workers Routes: Edit**
+permission plus the minimum zone-read permission Wrangler requires to resolve
+those routes. Do not grant Pages, DNS, D1, R2, account-admin, or global-key
+permissions to the Worker token. Never commit or print any token value.
+
 Retain the current `bcpletcher-com-staging` Pages deployment
 `c3da5dd3-c56d-4fc8-af64-0568231f56f8` and rollback deployment `0163270f` until
 the new release is independently verified. Retain `next` deployments/previews
-for at least 30 days. Do not delete these artifacts during connection, release,
-or rollback work.
+for at least 30 days. Do not delete these artifacts during release or rollback
+work.
 
 This repository does not have an isolated staging D1/R2 environment; do not call
 the `next.bcpletcher.com` binding a staging binding.
@@ -224,9 +238,10 @@ cd cloudflare/worker
 npx wrangler deploy
 ```
 
-Recommended production setup:
-- Connect repo to Cloudflare Pages (Git integration) so merges to `main` auto-deploy from Cloudflare.
-- Keep Worker routes for `bcpletcher.com/api/*`, `www.bcpletcher.com/api/*`, and `next.bcpletcher.com/api/*`.
+Production deployment is performed by the GitHub Actions workflow above. The
+manual command is for local or separately authorized operations only:
+
+- Keep the existing Worker routes for `bcpletcher.com/api/*`, `www.bcpletcher.com/api/*`, and `next.bcpletcher.com/api/*`.
 - Keep the Worker on custom zone routes with `workers_dev = false`; the frontend uses same-origin `/api` in production and the Vite proxy for local development.
 
 ## Release hardening and cutover checklist
@@ -274,7 +289,9 @@ Complete this checklist in order. Values for secrets are entered through Cloudfl
 
 ### 3. Pages and Worker production configuration
 
-- In Cloudflare Pages, set the production branch to `main`, the project root to `frontend`, the build command to `npm ci && npm run build`, and the output directory to `dist`.
+- Verify the existing Pages project is `bcpletcher-com-staging` and that the GitHub Actions deployment uses production branch `main`, project root `frontend`, build command `npm ci && npm run build`, and output directory `dist`.
+- Verify the protected GitHub environment is named `Production`/`production`, its deployment branch policy selects only `main`, and the repository `Protect Main` ruleset continues to require pull requests, linear history, and the two required CI checks without a self-review deadlock.
+- Verify the environment secret names are exactly `CLOUDFLARE_PAGES_API_TOKEN`, `CLOUDFLARE_API_TOKEN`, and `CLOUDFLARE_ACCOUNT_ID`; do not print or read back values.
 - There is no isolated staging D1/R2 binding in this release. `next.bcpletcher.com`, `www.bcpletcher.com`, and `bcpletcher.com` use the configured production D1/R2 bindings. Do not run write-based fixture tests on those surfaces until a separately provisioned environment exists.
 - The future named-environment gate is: provision distinct D1 and R2 resources, add a `[env.<name>]` Worker configuration with distinct `database_id` and `bucket_name`, add matching Pages preview/environment configuration, deploy the named environment, and independently verify its bindings before any fixture write.
 - Build the production frontend with the reviewed environment values and confirm `frontend/dist` contains no unintended Firebase SDK/import/URL references:
@@ -287,7 +304,7 @@ Complete this checklist in order. Values for secrets are entered through Cloudfl
   npm run build
   ```
 
-- Deploy the Worker only after the Pages preview and local checks pass. Confirm these routes are present and point to the Worker: `/api/projects`, `/api/admin/login`, `/api/admin/session`, `/api/admin/projects/upsert`, `/api/admin/images/upload`, `/api/admin/images/delete`, and `/api/media/*`.
+- Deploy the Worker only after the verified Pages deployment and local checks pass. Confirm these routes are present and point to the Worker: `/api/projects`, `/api/admin/login`, `/api/admin/session`, `/api/admin/projects/upsert`, `/api/admin/images/upload`, `/api/admin/images/delete`, and `/api/media/*`.
 - Confirm `workers.dev` is disabled and no frontend environment value points at a public Worker fallback; local development must use the Vite proxy and custom hosts must use same-origin `/api`.
 
 ### 4. Admin protection and reversible fixture test
