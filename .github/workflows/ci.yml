@@ -51,8 +51,8 @@ jobs:
         run: npm audit --omit=dev
 
   functions:
-    # Legacy required-check name retained for branch-protection compatibility;
-    # this job validates only the Cloudflare Worker and does not use Firebase.
+    # Check name retained because the "Protect Main" ruleset requires it;
+    # this job validates only the Cloudflare Worker (Firebase is retired).
     name: Firebase Functions (lint, audit)
     runs-on: ubuntu-latest
 
