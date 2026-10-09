@@ -115,6 +115,32 @@ function isValidStoragePath(value) {
   );
 }
 
+const ARCHIVE_MEDIA_PREFIX = "Archive/v1/Projects/";
+
+// Read-only historical media (the preserved v1 portfolio). Uploads and deletes
+// still go through isValidStoragePath, which only accepts "Projects/".
+function isValidArchiveMediaPath(value) {
+  if (
+    typeof value !== "string" ||
+    value.length > MAX_STORAGE_PATH_LENGTH ||
+    !value.startsWith(ARCHIVE_MEDIA_PREFIX)
+  ) {
+    return false;
+  }
+
+  const segments = value.split("/");
+  return (
+    segments.length >= 5 &&
+    segments.every(
+      (segment) =>
+        segment.length > 0 &&
+        segment !== "." &&
+        segment !== ".." &&
+        !/[\\\0-\x1f\x7f]/.test(segment),
+    )
+  );
+}
+
 function isResizedStoragePath(value) {
   return value.split("/").slice(2).includes("resized");
 }
@@ -328,6 +354,21 @@ async function handleProjects(env) {
       result[row.id] = JSON.parse(row.data_json);
     } catch {
       // Ignore malformed legacy rows so one bad row does not hide the collection.
+    }
+  });
+  return json({ result });
+}
+
+async function handleArchiveProjects(env) {
+  const rows = await env.DB.prepare(
+    "SELECT id, data_json FROM archive_projects WHERE archive = 'v1' ORDER BY sort_order, id",
+  ).all();
+  const result = [];
+  (rows?.results || []).forEach((row) => {
+    try {
+      result.push(JSON.parse(row.data_json));
+    } catch {
+      // Skip malformed rows so one bad record does not hide the archive.
     }
   });
   return json({ result });
@@ -563,7 +604,9 @@ async function handleImageGet(pathname, env) {
   } catch {
     throw new ValidationError("Invalid media path");
   }
-  if (!isValidStoragePath(key)) throw new ValidationError("Invalid media path");
+  if (!isValidStoragePath(key) && !isValidArchiveMediaPath(key)) {
+    throw new ValidationError("Invalid media path");
+  }
 
   const object = await env.ARTWORK.get(key);
   if (!object) return json({ error: "Not found" }, { status: 404 });
@@ -597,6 +640,8 @@ export default {
       let response;
       if (request.method === "GET" && path === "/api/projects") {
         response = await handleProjects(env);
+      } else if (request.method === "GET" && path === "/api/archive/v1/projects") {
+        response = await handleArchiveProjects(env);
       } else if (request.method === "POST" && path === "/api/admin/login") {
         response = await handleLogin(request, env);
       } else if (request.method === "GET" && path === "/api/admin/session") {
