@@ -51,9 +51,8 @@ jobs:
         run: npm audit --omit=dev
 
   functions:
-    # Check name retained because the "Protect Main" ruleset requires it;
-    # this job validates only the Cloudflare Worker (Firebase is retired).
-    name: Firebase Functions (lint, audit)
+    # The "Protect Main" ruleset requires this exact check name.
+    name: Cloudflare Worker (tests, audit)
     runs-on: ubuntu-latest
 
     steps:
