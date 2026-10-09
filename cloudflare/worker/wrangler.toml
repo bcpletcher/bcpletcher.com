@@ -6,6 +6,7 @@ routes = [
   { pattern = "www.bcpletcher.com/api/*", zone_name = "bcpletcher.com" },
   { pattern = "bcpletcher.com/api/*", zone_name = "bcpletcher.com" },
   { pattern = "next.bcpletcher.com/api/*", zone_name = "bcpletcher.com" },
+  { pattern = "v1.bcpletcher.com/api/*", zone_name = "bcpletcher.com" },
 ]
 
 [vars]
