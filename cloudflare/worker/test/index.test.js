@@ -795,3 +795,49 @@ test("media missing and unsafe paths return 404/400, while unexpected public err
   assert.equal(publicError.status, 500);
   assert.equal(publicError.headers.get("access-control-allow-origin"), PRODUCTION_ORIGIN);
 });
+
+test("archive v1 projects are served in order, and archive media is read-only", async () => {
+  const rows = [
+    { id: "b", data_json: JSON.stringify({ id: "b", order: 2 }) },
+    { id: "a", data_json: JSON.stringify({ id: "a", order: 1 }) },
+    { id: "bad", data_json: "{not json" },
+  ];
+  const queries = [];
+  const DB = {
+    prepare(sql) {
+      queries.push(sql);
+      return { all: async () => ({ results: rows }) };
+    },
+  };
+  const archiveKey = "Archive/v1/Projects/demo/image.webp";
+  const artwork = new StatefulR2({ objects: new Map([[archiveKey, { body: "old-image" }]]) });
+  const env = makeEnv({ DB, ARTWORK: artwork });
+
+  const response = await worker.fetch(
+    makeRequest("/api/archive/v1/projects", { headers: { Origin: PRODUCTION_ORIGIN } }),
+    env,
+  );
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("access-control-allow-origin"), PRODUCTION_ORIGIN);
+  assert.match(queries[0], /FROM archive_projects WHERE archive = 'v1' ORDER BY sort_order/);
+  assert.deepEqual((await readJson(response)).result.map((row) => row.id), ["b", "a"]);
+
+  const media = await worker.fetch(makeRequest(`/api/media/${archiveKey}`), env);
+  assert.equal(media.status, 200);
+  assert.equal(await media.text(), "old-image");
+
+  const traversal = await worker.fetch(
+    makeRequest("/api/media/Archive/v1/Projects/demo/%2e%2e/x.webp"),
+    env,
+  );
+  assert.equal(traversal.status, 400);
+  const otherArchive = await worker.fetch(makeRequest("/api/media/Archive/v2/Projects/demo/image.webp"), env);
+  assert.equal(otherArchive.status, 400);
+
+  const upload = await worker.fetch(
+    makeRequest("/api/admin/images/upload", { method: "POST", body: "{}" }),
+    env,
+  );
+  assert.equal(upload.status, 401);
+  assert.equal(artwork.objects.size, 1);
+});
