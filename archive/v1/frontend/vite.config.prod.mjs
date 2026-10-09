@@ -5,8 +5,8 @@ import vue from "@vitejs/plugin-vue";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  // Served from bcpletcher.com/v1/ (hash routing, so no server rewrites needed).
-  base: "/v1/",
+  // Served from the root of v1.bcpletcher.com (hash routing, no server rewrites).
+  base: "/",
   logLevel: "silent",
   plugins: [vue()],
   resolve: {
