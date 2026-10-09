@@ -26,8 +26,9 @@ Personal portfolio site powered by Vue 3 + Vite with Cloudflare-backed data/stor
 ## Repository structure
 - `frontend/`: Frontend application (Vite)
 - `cloudflare/worker/`: Cloudflare Worker API (admin auth + CRUD + image ops)
-- `firebase/functions/`: legacy migration/scripts workspace
-- `firebase.json`: Firebase Hosting configuration
+- `cloudflare/d1-schema.sql`: D1 schema (`projects`, `project_images`)
+- `cloudflare/scripts/`: D1 export helper
+- `archive/v1/`: frozen v1 portfolio (served at `v1.bcpletcher.com`, see below)
 
 ## Prerequisites
 - **Node.js 22** (standardized via `.nvmrc`)
@@ -109,17 +110,10 @@ npm run lint     # eslint
 npm run test:coordination # upload/persist/delete ordering and cleanup checks
 ```
 
-### Functions (`firebase/functions/`)
+### D1 export (`cloudflare/scripts/`)
 ```bash
-npm run serve            # firebase emulators:start --only functions,firestore
-npm run deploy:functions # deploy functions only
-npm run logs:functions   # view function logs
-npm run lint             # eslint
-npm run cloudflare:snapshot:callable # export projects JSON from prod callable
-npm run cloudflare:export:projects # export projects JSON from D1 -> frontend/public/projects.json
-npm run cloudflare:publish:projects # export projects JSON and upload to R2
-npm run cloudflare:migrate:prepare # generate manifest + D1 SQL (no writes)
-npm run cloudflare:migrate:apply   # upload to R2 + apply D1 SQL
+node cloudflare/scripts/export-projects-from-d1.mjs                 # D1 -> frontend/public/projects.json
+PUBLISH_R2=1 CLOUDFLARE_R2_BUCKET=<bucket> node cloudflare/scripts/export-projects-from-d1.mjs  # also upload to R2
 ```
 
 ### Cloudflare Worker API (`cloudflare/worker/`)
@@ -141,39 +135,6 @@ Set these for the Cloudflare Worker API:
 Production `ALLOWED_ORIGIN` values are:
 `https://www.bcpletcher.com`, `https://bcpletcher.com`, and `https://next.bcpletcher.com`.
 For local development, add the configured dev origin (for example `http://localhost:5173`) to the comma-separated value; do not add it to production unless intentionally needed.
-
-## Security / maintenance notes
-- Cloud Functions runtime is set to **Node 22** via `firebase/functions/package.json` (`engines.node`).
-- `firebase-tools` is pinned to a recent version in `firebase/functions` to keep `npm audit` clean.
-- Removed unused Functions dependencies (e.g. `username-generator`).
-
-## Functions emulator workflow (seeded with production data)
-When you run Firestore + Functions emulators, Firestore starts **empty** unless you import data.
-This repo supports seeding the Firestore emulator from a production Firestore export.
-
-### Export production Firestore (whenever you want fresh seed data)
-This is done with `gcloud` (not the Firebase CLI):
-
-```bash
-gcloud config set project pletcher-portfolio-app
-EXPORT_PATH="gs://pletcher-portfolio-app.firebasestorage.app/firestore-exports/$(date +%Y%m%d-%H%M%S)"
-gcloud firestore export "$EXPORT_PATH"
-```
-
-### One command you run every time (kill ports + refresh seed + start emulators)
-From `firebase/functions/`:
-
-```bash
-npm run serve:aio
-```
-
-That command:
-- kills any stuck emulator processes (fixes “port taken” issues)
-- downloads the latest Firestore export into `firebase/.databases/imports/firestore/` (keeps only one local copy)
-- starts Firestore + Functions emulators and imports that data
-
-> Local emulator DB data is stored under `firebase/.databases/` and ignored by git.
-
 
 ## Deployment
 
@@ -316,7 +277,7 @@ Complete this checklist in order. Values for secrets are entered through Cloudfl
 
 ### 5. DNS cutover and live verification
 
-- Record the current `www`/apex DNS targets and the last known-good Firebase/Pages deployment before changing anything.
+- Record the current `www`/apex DNS targets and the last known-good Pages deployment before changing anything.
 - Confirm the Pages custom domains and the Worker routes are ready. Then change only the approved DNS records to the Cloudflare Pages targets, keep them proxied as required, and leave the Worker `/api/*` routes enabled.
 - Verify each production host and the CORS policy:
 
@@ -334,12 +295,11 @@ Complete this checklist in order. Values for secrets are entered through Cloudfl
 
   The allowed preflight must return `204` with the requesting allowed origin. The disallowed preflight must not return `Access-Control-Allow-Origin` and must be rejected. Check one known media URL for `200`, one missing key for `404`, `/api/admin/session` without a token for `401`, and the browser admin login/upload flow.
 
-### 6. Rollback and Firebase hold
+### 6. Rollback
 
 - If live verification fails, restore the recorded DNS targets or the previous Pages deployment, then disable/revert only the new Worker route/configuration as needed. Restore the previous frontend environment values and invalidate any temporary fixture session.
 - Retain the current Pages deployment `c3da5dd3-c56d-4fc8-af64-0568231f56f8` and rollback `0163270f` for immediate reversal; retain `next` deployments/previews for at least 30 days. Do not delete either rollback artifact during incident response.
 - Keep D1/R2 data intact during rollback. Do not delete or overwrite the known-good release artifacts until the incident is understood.
-- Explicit hold: do not delete the Firebase project, Firestore data, Firebase Storage objects, Functions, Hosting configuration, rules, exports, or migration backups. Firebase remains the reversible rollback/archive source until a separately approved retirement decision.
 
 ### Admin login rate-limit configuration and verification
 
@@ -356,105 +316,18 @@ This Worker has no durable rate-limit binding, so brute-force protection must be
 
 Record the account plan, exact expression, supported fields, rule ID/export or screenshot, and verification timestamp in the release record. Verify from an approved production-binding test surface only after the backup/restore gate above is satisfied: send six invalid `POST` requests to each intended production host from a controlled test IP. The first five should reach the Worker as `401`; the next should be blocked by Cloudflare (often `429` or the configured block response). Do not use a claimed staging hostname. The rule must be enabled before DNS cutover and remain enabled after release.
 
-## Firebase -> Cloudflare migration (D1 + R2)
-Use this when moving project data/images from Firestore + Firebase Storage to Cloudflare D1 + R2.
-
-Script location:
-- `firebase/functions/scripts/migrate-firebase-to-cloudflare.mjs`
-
-D1 schema file:
-- `firebase/functions/scripts/cloudflare-d1-schema.sql`
-
-### Source modes
-`migrate-firebase-to-cloudflare.mjs` supports three source modes:
-- `SOURCE_MODE=firestore` (default): reads Firestore via Firebase Admin SDK.
-- `SOURCE_MODE=callable`: reads from public callable endpoint (`getProjectsCollection`).
-- `SOURCE_MODE=json`: reads from a local JSON snapshot file.
-
-For locked Google-account scenarios, use `SOURCE_MODE=callable` or `SOURCE_MODE=json`.
-
-### Required environment variables
-| Variable | Required | Description |
-|---|---:|---|
-| `FIREBASE_STORAGE_BUCKET` | no* | Firebase Storage bucket name (defaults to `pletcher-portfolio-app.firebasestorage.app`) |
-| `CLOUDFLARE_R2_BUCKET` | if uploading | R2 bucket name |
-| `CLOUDFLARE_D1_DATABASE` | if applying | D1 database name for `wrangler d1 execute --remote` (example: `bcpletcher-db`) |
-
-\* required if your bucket is not the default.
-
-### Optional environment variables
-| Variable | Default | Description |
-|---|---|---|
-| `FIREBASE_PROJECT_ID` | `pletcher-portfolio-app` | Firebase project ID |
-| `FIRESTORE_COLLECTION` | `projects` | Firestore collection to migrate |
-| `SOURCE_MODE` | `firestore` | `firestore`, `callable`, or `json` |
-| `DOWNLOAD_MODE` | `firebase-admin` | `firebase-admin` or `http` |
-| `CALLABLE_URL` | derived from project | Callable endpoint URL |
-| `INPUT_JSON` | (empty) | Required when `SOURCE_MODE=json` |
-| `MAX_PROJECTS` | `0` | Limit migrated projects for smoke tests |
-| `FIREBASE_STORAGE_PUBLIC_BASE` | `https://firebasestorage.googleapis.com` | Base URL for public HTTP image downloads |
-| `R2_PREFIX` | (empty) | Prefix prepended to uploaded R2 object keys |
-| `R2_PUBLIC_BASE_URL` | (empty) | If set, rewrites image `url` in migrated JSON |
-| `INCLUDE_HIDDEN` | `1` | Set to `0` to skip hidden projects |
-| `UPLOAD_R2` | `0` | Set `1` to upload downloaded files to R2 |
-| `APPLY_D1` | `0` | Set `1` to execute generated SQL against D1 |
-| `OUT_DIR` | auto timestamp path | Override output path |
-
-### Recommended run order
-From `firebase/functions/`:
-
-1) Snapshot production data from callable (no Firebase auth required):
-```bash
-npm run cloudflare:snapshot:callable
-```
-
-2) Dry run using callable source + public HTTP image download (no remote writes):
-```bash
-SOURCE_MODE=callable \
-DOWNLOAD_MODE=http \
-FIREBASE_STORAGE_BUCKET="<your-firebase-bucket>" \
-CLOUDFLARE_R2_BUCKET="<your-r2-bucket>" \
-CLOUDFLARE_D1_DATABASE="<your-d1-db>" \
-npm run cloudflare:migrate:prepare
-```
-
-3) Apply to Cloudflare from callable source:
-```bash
-SOURCE_MODE=callable \
-DOWNLOAD_MODE=http \
-FIREBASE_STORAGE_BUCKET="<your-firebase-bucket>" \
-CLOUDFLARE_R2_BUCKET="<your-r2-bucket>" \
-CLOUDFLARE_D1_DATABASE="<your-d1-db>" \
-npm run cloudflare:migrate:apply
-```
-
-4) Optional: apply from a frozen local snapshot:
-```bash
-SOURCE_MODE=json \
-INPUT_JSON="<absolute-path-to-projects-from-callable.json>" \
-DOWNLOAD_MODE=http \
-FIREBASE_STORAGE_BUCKET="<your-firebase-bucket>" \
-CLOUDFLARE_R2_BUCKET="<your-r2-bucket>" \
-CLOUDFLARE_D1_DATABASE="<your-d1-db>" \
-npm run cloudflare:migrate:apply
-```
-
-Outputs are written to `.backups/cloudflare-migration/<timestamp>/`:
-- `migration-manifest.json`
-- `d1-seed.sql`
-- downloaded images under `images/`
-
-Admin image behavior after cutover:
-- Uploads originate from admin UI directly to Cloudflare API (`/api/admin/images/upload`).
-- Uploads may include canonical image + resized variants (`480/960`) in R2.
-- Cards, first paint, and modal view use the canonical original while responsive `srcset` is disabled.
-- Responsive `srcset` remains disabled unless resized variants are separately seeded and verified; existing canonical originals must continue to work.
-
-### Zero-downtime rollout notes
+## Rollout notes
 - Deploy Worker API first (`/api/projects`, `/api/admin/*`).
 - Leave `VITE_API_BASE_URL` empty for production same-origin `/api` unless a separately reviewed custom API origin is required; local development uses the Vite proxy.
 - Set `VITE_MEDIA_BASE_URL` only when a reviewed public R2/CDN custom domain is available.
 - Keep `VITE_ENABLE_RESPONSIVE_SRCSET=false` until resized variants are seeded and verified.
+
+## Archived v1 portfolio and Firebase retirement
+The project previously ran on Firebase (Hosting, Firestore, Storage, Functions). That stack has been fully retired.
+
+- The current site runs entirely on Cloudflare (Pages + Worker + D1 + R2).
+- The original v1 portfolio is preserved as a frozen archive at `https://v1.bcpletcher.com/`. It is its own Pages project (`bcpletcher-v1`) built from `archive/v1/site`, with data in the D1 table `archive_projects` and media in R2 under `Archive/v1/`. See `archive/v1/README.md`.
+- The Firebase-era source and migration tooling remain in git history and on the protected `archives/v1` branch.
 
 ## Troubleshooting
 ### Boot loader shows maintenance message

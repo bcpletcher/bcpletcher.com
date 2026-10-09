@@ -26,8 +26,7 @@ if (publishR2 && !r2Bucket) {
   process.exit(1);
 }
 
-const repoFirebaseDir = fileURLToPath(new URL("../..", import.meta.url));
-const repoRoot = resolve(repoFirebaseDir, "..");
+const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const outJson = outJsonEnv || resolve(repoRoot, "frontend", "public", "projects.json");
 
 function runOrThrow(cmd, args, { capture = false } = {}) {
