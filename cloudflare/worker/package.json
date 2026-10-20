@@ -6,6 +6,6 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test test/index.test.js"
+    "test": "node --test test/index.test.js test/login-lockout.test.js"
   }
 }

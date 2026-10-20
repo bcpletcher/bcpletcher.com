@@ -374,17 +374,103 @@ async function handleArchiveProjects(env) {
   return json({ result });
 }
 
+// Admin login lockout (D1-backed). Cloudflare's Free-plan rate limiting only counts over
+// 10 seconds, so the Worker enforces a longer per-address lockout and a global brake.
+// Limiter storage errors fail open (the edge rule still applies) so a missing table can
+// never lock the owner out; apply cloudflare/migrations/0001_admin_login_attempts.sql.
+const LOGIN_LIMITS = {
+  ip: { limit: 5, windowSeconds: 15 * 60, lockSeconds: 15 * 60 },
+  global: { limit: 30, windowSeconds: 60 * 60, lockSeconds: 15 * 60 },
+};
+
+async function loginAttemptKeys(request) {
+  const ip = request.headers.get("cf-connecting-ip") || "unknown";
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`login:${ip}`));
+  const hex = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  return { ip: `ip:${hex.slice(0, 32)}`, global: "global" };
+}
+
+async function loginLockRemaining(env, keys, now) {
+  try {
+    const rows = await env.DB.prepare(
+      "SELECT MAX(locked_until) AS locked_until FROM admin_login_attempts WHERE key IN (?1, ?2) AND locked_until > ?3",
+    )
+      .bind(keys.ip, keys.global, now)
+      .all();
+    const lockedUntil = Number(rows?.results?.[0]?.locked_until || 0);
+    return lockedUntil > now ? lockedUntil - now : 0;
+  } catch {
+    return 0;
+  }
+}
+
+const RECORD_FAILURE_SQL = `INSERT INTO admin_login_attempts (key, failures, window_start, locked_until)
+VALUES (?1, 1, ?2, CASE WHEN 1 >= ?4 THEN ?2 + ?5 ELSE 0 END)
+ON CONFLICT(key) DO UPDATE SET
+  failures = CASE WHEN ?2 - window_start >= ?3 THEN 1 ELSE failures + 1 END,
+  window_start = CASE WHEN ?2 - window_start >= ?3 THEN ?2 ELSE window_start END,
+  locked_until = CASE WHEN (CASE WHEN ?2 - window_start >= ?3 THEN 1 ELSE failures + 1 END) >= ?4 THEN ?2 + ?5 ELSE locked_until END`;
+
+async function recordLoginFailure(env, keys, now) {
+  try {
+    const statements = [
+      env.DB.prepare(RECORD_FAILURE_SQL).bind(keys.ip, now, LOGIN_LIMITS.ip.windowSeconds, LOGIN_LIMITS.ip.limit, LOGIN_LIMITS.ip.lockSeconds),
+      env.DB.prepare(RECORD_FAILURE_SQL).bind(keys.global, now, LOGIN_LIMITS.global.windowSeconds, LOGIN_LIMITS.global.limit, LOGIN_LIMITS.global.lockSeconds),
+      env.DB.prepare("DELETE FROM admin_login_attempts WHERE window_start < ?1 AND locked_until < ?1").bind(now - 24 * 60 * 60),
+    ];
+    await env.DB.batch(statements);
+  } catch {
+    // Fail open; see note above.
+  }
+}
+
+async function clearLoginFailures(env, keys) {
+  try {
+    await env.DB.prepare("DELETE FROM admin_login_attempts WHERE key = ?1").bind(keys.ip).run();
+  } catch {
+    // Fail open.
+  }
+}
+
+// Compare through fixed-length digests so the check does not leak length or prefix timing.
+async function constantTimeEqual(left, right) {
+  const encoder = new TextEncoder();
+  const [a, b] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(String(left))),
+    crypto.subtle.digest("SHA-256", encoder.encode(String(right))),
+  ]);
+  const x = new Uint8Array(a);
+  const y = new Uint8Array(b);
+  let diff = 0;
+  for (let index = 0; index < x.length; index += 1) diff |= x[index] ^ y[index];
+  return diff === 0;
+}
+
 async function handleLogin(request, env) {
   requireEnvAuthConfig(env);
   const body = await readJsonBody(request);
   if (!isPlainObject(body)) throw new ValidationError("Login payload must be an object");
 
+  const now = Math.floor(Date.now() / 1000);
+  const keys = await loginAttemptKeys(request);
+  const locked = await loginLockRemaining(env, keys, now);
+  if (locked > 0) {
+    return adminJson(
+      { error: "Too many login attempts. Try again later." },
+      { status: 429, headers: { "retry-after": String(locked) } },
+    );
+  }
+
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body.password === "string" ? body.password : "";
-  if (email !== String(env.ADMIN_EMAIL).trim().toLowerCase() || password !== String(env.ADMIN_PASSWORD)) {
+  const emailOk = await constantTimeEqual(email, String(env.ADMIN_EMAIL).trim().toLowerCase());
+  const passwordOk = await constantTimeEqual(password, String(env.ADMIN_PASSWORD));
+  if (!(emailOk && passwordOk)) {
+    await recordLoginFailure(env, keys, now);
     return adminJson({ error: "Invalid credentials" }, { status: 401 });
   }
 
+  await clearLoginFailures(env, keys);
   const user = { uid: "admin", email };
   const token = await createSessionToken(env, user);
   return adminJson({ token, user });
