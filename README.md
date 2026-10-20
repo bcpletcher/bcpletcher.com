@@ -28,7 +28,7 @@ Personal portfolio site powered by Vue 3 + Vite with Cloudflare-backed data/stor
 - `cloudflare/worker/`: Cloudflare Worker API (admin auth + CRUD + image ops)
 - `cloudflare/d1-schema.sql`: D1 schema (`projects`, `project_images`)
 - `cloudflare/migrations/`: D1 migrations applied by hand (admin login lockout)
-- `cloudflare/scripts/`: D1 export helper and `backup-portfolio.mjs`
+- `cloudflare/scripts/`: D1 export helper, `backup-portfolio.mjs` and the Unraid weekly backup script
 - `archive/v1/`: frozen v1 portfolio (served at `v1.bcpletcher.com`, see below)
 
 ## Prerequisites
@@ -225,9 +225,12 @@ Two layers protect `POST /api/admin/login`:
 To unlock yourself immediately: `wrangler d1 execute bcpletcher-db --remote --command "DELETE FROM admin_login_attempts"`.
 
 ### Backups and restore
-Run `node cloudflare/scripts/backup-portfolio.mjs` (uses the `wrangler` you are logged in with; read-only against Cloudflare). It writes `~/bcpletcher-backups/portfolio-YYYY-MM-DD/` with `d1.sql` (full database export), every R2 image the database references plus `projects.json` under `media/`, and `manifest.json` (counts, sizes, SHA-256, anything that failed). Re-running into the same folder resumes and skips files already downloaded. Take one before risky changes and about monthly, and keep a copy outside your laptop (external drive or cloud storage).
+Two complementary backups; D1 also keeps 7 days of automatic point-in-time recovery (Time Travel, Free plan).
 
-Restore: recreate or empty the database and run `wrangler d1 execute bcpletcher-db --remote --file d1.sql`; re-upload images with `wrangler r2 object put bcpletcher-artwork/<key> --file media/<key> --remote` (the folder layout mirrors the R2 keys).
+- **Weekly snapshot on the home server (automatic, no credentials).** `cloudflare/scripts/unraid-portfolio-backup.sh` runs as an Unraid User Script (Sundays, 04:45). It reads the site's public API and writes `snapshot-YYYY-MM-DD/` to the `backups` share: `projects.json`, `archive-v1.json`, every referenced image under `media/`, `manifest.sha256` and `manifest.json`. It verifies every download and keeps the newest 12, and Unraid raises a notification on failure. Install by copying the script to `/boot/config/plugins/user.scripts/scripts/<name>/script` and scheduling it in Settings → User Scripts.
+- **Full database dump (manual).** `node cloudflare/scripts/backup-portfolio.mjs` uses your logged-in `wrangler` (read-only against Cloudflare) to write `d1.sql` (schema + data), the referenced R2 objects and `manifest.json` to `~/bcpletcher-backups/portfolio-YYYY-MM-DD/`. Run it before risky changes. Re-running into the same folder resumes.
+
+Restore: for a full database restore, recreate or empty the database and run `wrangler d1 execute bcpletcher-db --remote --file d1.sql`, then re-upload images with `wrangler r2 object put bcpletcher-artwork/<key> --file media/<key> --remote` (folder layout mirrors the R2 keys). From a weekly snapshot, re-upload the images the same way and re-create each project from `projects.json` through the admin upsert endpoint; archive records come from `archive-v1.json`.
 
 ## Archived v1 portfolio and Firebase retirement
 The project previously ran on Firebase (Hosting, Firestore, Storage, Functions). That stack has been fully retired.
