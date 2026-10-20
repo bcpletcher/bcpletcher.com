@@ -161,9 +161,13 @@ const responsiveFor = (img) => {
   });
   const originalPath = getStoragePathFromImageValue(img);
   const originalUrl = originalPath ? buildMediaUrl(originalPath) : "";
+  // The gallery stage is large (up to full viewport), so it always uses the original image.
+  // The 480w/960w srcset variants are for the small card thumbnails only; using them here
+  // would look soft on large or high-density screens.
   return {
     ...responsive,
     src: originalUrl || responsive.src,
+    srcset: "",
   };
 };
 
