@@ -3,6 +3,15 @@
 @theme {
 }
 
+@layer base {
+  /* Controls with no transition of their own still ease their press-scale back. Any
+     element that sets its own transition (transition-standard, transition-[...]) wins. */
+  a.kbd-focus,
+  button.kbd-focus {
+    transition: scale 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+}
+
 @layer components {
   .transition-standard {
     @apply transition-all ease-in-out duration-300;
@@ -71,5 +80,48 @@
       box-shadow: inset 0 1px 0 0 rgba(148, 163, 184, 0.1);
       filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.3));
     }
+  }
+}
+
+/* Press feedback: respond the instant the pointer goes down (not on release), then settle
+   back smoothly. Skipped entirely for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  a.kbd-focus:active,
+  button.kbd-focus:active {
+    scale: 0.97;
+    transition-duration: 90ms;
+  }
+
+  .card-interactive-link:active ~ .card-interactive-bg {
+    scale: 0.985;
+    transition-duration: 90ms;
+  }
+}
+
+/* Images fade in once decoded instead of popping in (see directives/img-fade.js). */
+.img-fade {
+  opacity: 0;
+  transition: opacity 360ms ease-out;
+}
+
+.img-fade.is-loaded {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .img-fade {
+    transition: none;
+  }
+}
+
+/* Frosted modal backdrop; fall back to a near-solid scrim for reduced transparency. */
+@media (prefers-reduced-transparency: reduce) {
+  [role="dialog"][aria-modal="true"] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .modal-scrim {
+    background-color: rgb(2 6 23 / 0.94) !important;
   }
 }

@@ -38,3 +38,14 @@ body {
 @media (min-width: 1024px) {
   /* removed: handled by .card-interactive-link/.card-interactive-bg */
 }
+
+/* Typographic polish: balanced headings, no orphaned last words in paragraphs. */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}

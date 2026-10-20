@@ -8,6 +8,7 @@
     <!-- Image column -->
     <div class="z-10 mb-2 sm:col-span-2">
       <img
+        v-img-fade
         class="mt-1 w-full rounded border border-white/10 bg-white/5 object-cover"
         :src="img.src"
         :srcset="img.srcset || undefined"
