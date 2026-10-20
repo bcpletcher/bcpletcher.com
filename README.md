@@ -28,7 +28,7 @@ Personal portfolio site powered by Vue 3 + Vite with Cloudflare-backed data/stor
 - `cloudflare/worker/`: Cloudflare Worker API (admin auth + CRUD + image ops)
 - `cloudflare/d1-schema.sql`: D1 schema (`projects`, `project_images`)
 - `cloudflare/migrations/`: D1 migrations applied by hand (admin login lockout)
-- `cloudflare/scripts/`: D1 export helper, `backup-portfolio.mjs` and the Unraid weekly backup script
+- `cloudflare/scripts/`: `backup-portfolio.mjs`, `backfill-resized-images.mjs` and the Unraid weekly backup script
 - `archive/v1/`: frozen v1 portfolio (served at `v1.bcpletcher.com`, see below)
 
 ## Prerequisites
@@ -109,12 +109,6 @@ npm run build    # production build (vite.config.prod.mjs)
 npm run preview  # preview the build
 npm run lint     # eslint
 npm run test:coordination # upload/persist/delete ordering and cleanup checks
-```
-
-### D1 export (`cloudflare/scripts/`)
-```bash
-node cloudflare/scripts/export-projects-from-d1.mjs                 # D1 -> frontend/public/projects.json
-PUBLISH_R2=1 CLOUDFLARE_R2_BUCKET=<bucket> node cloudflare/scripts/export-projects-from-d1.mjs  # also upload to R2
 ```
 
 ### Cloudflare Worker API (`cloudflare/worker/`)

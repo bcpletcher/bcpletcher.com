@@ -9,7 +9,7 @@ export function isValidAdminSessionUser(user) {
   );
 }
 
-export function isUnauthorizedSessionError(error) {
+function isUnauthorizedSessionError(error) {
   return error?.status === 401;
 }
 

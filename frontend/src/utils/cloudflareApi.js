@@ -9,12 +9,12 @@ function safeJsonParse(value, fallback = null) {
   }
 }
 
-export function getApiBaseUrl() {
+function getApiBaseUrl() {
   const raw = (import.meta.env || {}).VITE_API_BASE_URL || "";
   return String(raw).replace(/\/+$/, "");
 }
 
-export function toApiUrl(path) {
+function toApiUrl(path) {
   const base = getApiBaseUrl();
   return `${base}${path}`;
 }

@@ -69,7 +69,7 @@ export function buildMediaUrl(storagePath) {
 /**
  * Given an original R2 object path, produce src/srcset candidates.
  */
-export function buildResponsiveImageSourcesFromPath(
+function buildResponsiveImageSourcesFromPath(
   originalStoragePath,
   {
     widths = [480, 960],

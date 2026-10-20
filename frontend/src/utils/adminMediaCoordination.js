@@ -8,7 +8,7 @@ function collectFailures(items, results) {
     .filter(Boolean);
 }
 
-export function hasMarkedProjectPersistenceRejection(error) {
+function hasMarkedProjectPersistenceRejection(error) {
   return (
     error?.persistenceOutcome === "rejected" &&
     error?.payload?.persistenceOutcome === "rejected"
