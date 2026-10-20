@@ -31,7 +31,7 @@
                 @click.prevent="scrollToItem(item)"
               >
                 <span class="tracking-widest text-right pr-4">
-                  {{ item.label }}
+                  <span class="tabular-nums">{{ item.label }}</span>
                 </span>
 
                 <!-- Track column: dot is centered over the global line -->

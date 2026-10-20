@@ -10,6 +10,7 @@ import "./assets/css/global.css";
 import "./assets/css/tailwind.css";
 
 import gsapReveal from "./directives/gsap-reveal";
+import imgFade from "./directives/img-fade";
 import { initAnalytics } from "./utils/analytics";
 
 // Always start at the top on hard refresh.
@@ -33,5 +34,6 @@ app.use(createPinia());
 app.use(router);
 
 app.directive("gsap-reveal", gsapReveal);
+app.directive("img-fade", imgFade);
 
 app.mount("#app");

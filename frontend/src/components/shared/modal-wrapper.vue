@@ -12,7 +12,7 @@
       <div
         v-if="modelValue"
         ref="rootRef"
-        class="fixed inset-0 w-screen h-screen"
+        class="fixed inset-0 h-screen w-screen backdrop-blur-md"
         :class="[zClass, debug ? 'outline-2 outline-fuchsia-500 -outline-offset-2' : '']"
         role="dialog"
         aria-modal="true"
@@ -28,7 +28,7 @@
           aria-hidden="true"
         >
           <div
-            class="absolute inset-0 bg-black/70"
+            class="modal-scrim absolute inset-0 bg-black/60"
             @click="onBackdrop"
           />
         </div>
