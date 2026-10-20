@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory, START_LOCATION } from "vue-router";
 import { setCanonical } from "@/utils/seo.js";
 
 // Opt out of the browser's scroll restoration so SPA navigations don't inherit
@@ -54,6 +54,45 @@ const router = createRouter({
     });
   },
 });
+
+// Smooth cross-fade between pages using the View Transitions API. Progressive
+// enhancement: browsers without it (or users who prefer reduced motion) navigate as before.
+// The first navigation is skipped so it never fights the boot loader.
+const canViewTransition = () =>
+  typeof document !== "undefined" &&
+  typeof document.startViewTransition === "function" &&
+  !window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+let finishViewTransition = null;
+const settleViewTransition = () => {
+  finishViewTransition?.();
+  finishViewTransition = null;
+};
+
+router.beforeResolve((to, from) => {
+  if (!canViewTransition() || from === START_LOCATION || to.path === from.path) {
+    return;
+  }
+  return new Promise((resolve) => {
+    document.startViewTransition(() => {
+      resolve();
+      // Hold the "new" snapshot until the next route has rendered.
+      return new Promise((done) => {
+        finishViewTransition = done;
+      });
+    });
+  });
+});
+
+router.afterEach(() => {
+  if (!finishViewTransition) return;
+  // Wait a frame so the new view is in the DOM before the transition captures it, with a
+  // timer as a safety net so a throttled frame clock (background tab) can never hang it.
+  requestAnimationFrame(settleViewTransition);
+  setTimeout(settleViewTransition, 250);
+});
+
+router.onError(settleViewTransition);
 
 // Keep canonical URL in sync with the current route.
 router.afterEach((to) => {

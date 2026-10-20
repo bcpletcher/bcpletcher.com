@@ -62,39 +62,44 @@
 
         <!-- 16:9 stage (size to the largest possible area within the viewport) -->
         <div class="w-full aspect-video max-h-[calc(100vh-11rem)]">
-          <Swiper
-            class="h-full"
-            :modules="modules"
-            :initial-slide="initialIndex"
-            :keyboard="{ enabled: true }"
-            :grab-cursor="true"
-            :resistance-ratio="0.85"
-            :speed="650"
-            :space-between="24"
-            :slides-per-view="1"
-            :centered-slides="true"
-            @swiper="onSwiper"
-            @slide-change="onSlideChange"
+          <!-- Native scroll-snap carousel: touch drag, momentum and edge resistance come from the
+               platform (1:1 tracking, interruptible), arrows/keys use the same scroll position. -->
+          <div
+            ref="trackRef"
+            class="gallery-track flex h-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain outline-none"
+            role="group"
+            aria-roledescription="carousel"
+            :aria-label="`${title || 'Project'} gallery`"
+            tabindex="0"
+            @scroll.passive="onScroll"
+            @keydown.left.prevent="slidePrev"
+            @keydown.right.prevent="slideNext"
+            @keydown.home.prevent="goTo(0)"
+            @keydown.end.prevent="goTo(images.length - 1)"
           >
-            <SwiperSlide v-for="(src, i) in images" :key="getImageKey(src, i)">
-              <div class="h-full w-full">
-                <div class="h-full w-full overflow-hidden">
-                  <img
-                    class="h-full w-full select-none object-contain max-h-[calc(100vh-11rem)]"
-                    :src="responsiveFor(src).src"
-                    :srcset="responsiveFor(src).srcset || undefined"
-                    sizes="100vw"
-                    :alt="`${title || 'Project'} image ${i + 1}`"
-                    width="1280"
-                    height="720"
-                    loading="eager"
-                    decoding="async"
-                    draggable="false"
-                  />
-                </div>
+            <div
+              v-for="(src, i) in images"
+              :key="getImageKey(src, i)"
+              class="h-full w-full shrink-0 snap-center snap-always"
+              role="group"
+              aria-roledescription="slide"
+              :aria-label="`${i + 1} of ${images.length}`"
+            >
+              <div class="h-full w-full overflow-hidden">
+                <img
+                  v-img-fade
+                  class="h-full w-full select-none object-contain max-h-[calc(100vh-11rem)]"
+                  :src="responsiveFor(src).src"
+                  :alt="`${title || 'Project'} image ${i + 1}`"
+                  width="1280"
+                  height="720"
+                  :loading="Math.abs(i - activeIndex) <= 1 ? 'eager' : 'lazy'"
+                  decoding="async"
+                  draggable="false"
+                />
               </div>
-            </SwiperSlide>
-          </Swiper>
+            </div>
+          </div>
         </div>
 
         <!-- Footer controls -->
@@ -124,12 +129,8 @@
 </template>
 
 <script setup>
-import { nextTick, ref, watch, computed } from "vue";
+import { nextTick, onBeforeUnmount, ref, watch, computed } from "vue";
 
-import { Swiper, SwiperSlide } from "swiper/vue";
-import { Keyboard } from "swiper/modules";
-
-import "swiper/css";
 import ModalWrapper from "@/components/shared/modal-wrapper.vue";
 import {
   buildResponsiveImageSourcesFromImageValue,
@@ -149,10 +150,8 @@ const emit = defineEmits(["update:modelValue", "close"]);
 const panelRef = ref(null);
 const closeButtonRef = ref(null);
 
-const swiperRef = ref(null);
+const trackRef = ref(null);
 const activeIndex = ref(0);
-
-const modules = [Keyboard];
 
 const responsiveFor = (img) => {
   const responsive = buildResponsiveImageSourcesFromImageValue(img, {
@@ -182,22 +181,51 @@ function close() {
   emit("close");
 }
 
-function onSwiper(swiper) {
-  swiperRef.value = swiper;
-  activeIndex.value = swiper?.activeIndex ?? 0;
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+let scrollRaf = 0;
+function onScroll() {
+  // Keep the counter in step with the snap position while dragging (one read per frame).
+  if (scrollRaf) return;
+  scrollRaf = requestAnimationFrame(() => {
+    scrollRaf = 0;
+    const track = trackRef.value;
+    if (!track || !track.clientWidth) return;
+    const index = Math.round(track.scrollLeft / track.clientWidth);
+    activeIndex.value = Math.min(Math.max(index, 0), props.images.length - 1);
+  });
 }
 
-function onSlideChange(swiper) {
-  activeIndex.value = swiper?.activeIndex ?? 0;
+function goTo(index, { instant = false } = {}) {
+  const track = trackRef.value;
+  if (!track || !props.images.length) return;
+  const clamped = Math.min(Math.max(index, 0), props.images.length - 1);
+  track.scrollTo({
+    left: clamped * track.clientWidth,
+    behavior: instant || prefersReducedMotion() ? "auto" : "smooth",
+  });
+  activeIndex.value = clamped;
 }
 
 function slidePrev() {
-  swiperRef.value?.slidePrev?.();
+  goTo(activeIndex.value - 1);
 }
 
 function slideNext() {
-  swiperRef.value?.slideNext?.();
+  goTo(activeIndex.value + 1);
 }
+
+// Keep the current slide aligned if the viewport changes size (rotation, fullscreen).
+function realign() {
+  goTo(activeIndex.value, { instant: true });
+}
+
+onBeforeUnmount(() => {
+  if (scrollRaf) cancelAnimationFrame(scrollRaf);
+  window.removeEventListener("resize", realign);
+});
 
 async function toggleFullscreen() {
   const el = panelRef.value;
@@ -223,15 +251,10 @@ watch(
 
     lastFocusedEl = document.activeElement;
 
-    // Ensure swiper starts at the right index when opening
+    // Start at the requested slide (instantly) when opening.
     await nextTick();
-    if (swiperRef.value) {
-      try {
-        swiperRef.value.slideTo(props.initialIndex, 0);
-      } catch {
-        // no-op
-      }
-    }
+    goTo(props.initialIndex, { instant: true });
+    window.addEventListener("resize", realign);
   },
 );
 
@@ -239,6 +262,7 @@ watch(
   () => props.modelValue,
   async (isOpen, wasOpen) => {
     if (!wasOpen || isOpen) return;
+    window.removeEventListener("resize", realign);
 
     if (lastFocusedEl && lastFocusedEl.focus) {
       try {
@@ -258,3 +282,13 @@ const internalOpen = computed({
   set: (v) => emit("update:modelValue", v),
 });
 </script>
+
+<style scoped>
+.gallery-track {
+  scrollbar-width: none;
+}
+
+.gallery-track::-webkit-scrollbar {
+  display: none;
+}
+</style>
