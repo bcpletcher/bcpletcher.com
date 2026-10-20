@@ -1,6 +1,6 @@
 <template>
   <!-- Add top padding on mobile to make room for the fixed header -->
-  <main class="flex flex-col">
+  <div class="flex flex-col">
     <section
       id="about"
       class="mb-16 scroll-mt-16 md:mb-24 lg:mb-0 lg:scroll-mt-24"
@@ -47,7 +47,7 @@
       <ProjectsSection />
     </section>
 
-    <div class="text-sm text-slate-400 max-w-lg lg:mt-32 flex gap-4">
+    <footer class="text-sm text-slate-400 max-w-lg lg:mt-32 flex gap-4">
       <button
         ref="logoEl"
         type="button"
@@ -85,9 +85,16 @@
           target="_blank"
           rel="noopener noreferrer"
         >GSAP</a>.
+        Previous version of this site:
+        <a
+          class="kbd-focus font-medium text-slate-300 hover:text-primary-secondary focus-visible:text-primary-secondary"
+          href="https://v1.bcpletcher.com"
+          target="_blank"
+          rel="noopener noreferrer"
+        >v1.bcpletcher.com<span class="sr-only"> (opens in a new tab)</span></a>.
       </p>
-    </div>
-  </main>
+    </footer>
+  </div>
 </template>
 
 <script setup>

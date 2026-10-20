@@ -12,8 +12,8 @@
           class="kbd-focus group/link inline-flex items-center gap-2 text-sm font-medium text-sky-300 hover:text-sky-300 focus-visible:text-sky-300 transition-standard"
           aria-label="Back to home"
         >
-          <i
-            class="fa-light fa-arrow-left transition-transform motion-reduce:transition-none group-hover/link:-translate-x-1 group-focus-visible/link:-translate-x-1"
+          <AppIcon
+            icon="fa-light fa-arrow-left" class="transition-transform motion-reduce:transition-none group-hover/link:-translate-x-1 group-focus-visible/link:-translate-x-1"
             aria-hidden="true"
           />
           <span>{{ backLabel }}</span>

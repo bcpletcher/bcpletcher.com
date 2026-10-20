@@ -92,7 +92,9 @@ export function buildResponsiveImageSourcesFromPath(
     .filter(Boolean);
 
   const src = buildMediaUrl(originalStoragePath) || "";
-  const enableResponsiveSrcset = import.meta.env.VITE_ENABLE_RESPONSIVE_SRCSET === "true";
+  // On by default; set VITE_ENABLE_RESPONSIVE_SRCSET=false to serve originals only.
+  const enableResponsiveSrcset =
+    import.meta.env.VITE_ENABLE_RESPONSIVE_SRCSET !== "false";
   const srcset = enableResponsiveSrcset
     ? resizedPaths
       .map((path) => {
@@ -135,4 +137,18 @@ function splitExt(filename) {
 
 function getSizeToken({ width, height }) {
   return `${width}x${height}`;
+}
+
+/**
+ * <img @error> handler: if a responsive variant is missing (404), drop srcset so the
+ * browser falls back to the original `src` instead of showing a broken image.
+ */
+export function fallbackToOriginalImage(event) {
+  const img = event?.target;
+  if (!img || !img.hasAttribute?.("srcset")) return;
+  img.removeAttribute("srcset");
+  img.removeAttribute("sizes");
+  // Re-assign src to force a reload from the original.
+  const original = img.getAttribute("src");
+  if (original) img.src = original;
 }

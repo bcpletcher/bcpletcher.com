@@ -22,6 +22,7 @@
     </ol>
 
     <ProjectsGalleryModal
+      v-if="galleryMounted"
       v-model="isGalleryOpen"
       :title="galleryTitle"
       :images="galleryImages"
@@ -34,8 +35,8 @@
         class="kbd-focus group/link inline-flex items-baseline gap-2 text-sm font-semibold tracking-widest uppercase text-slate-400 hover:text-sky-300 focus-visible:text-sky-300 transition-standard"
       >
         <span>View all projects</span>
-        <i
-          class="fa-light fa-arrow-right transition-transform motion-reduce:transition-none group-hover/link:translate-x-1 group-focus-visible/link:translate-x-1"
+        <AppIcon
+          icon="fa-light fa-arrow-right" class="transition-transform motion-reduce:transition-none group-hover/link:translate-x-1 group-focus-visible/link:translate-x-1"
           aria-hidden="true"
         />
       </router-link>
@@ -44,14 +45,27 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, defineAsyncComponent, onMounted, ref } from "vue";
 import { useSettingsStore } from "@/stores/settings.js";
 import { normalizeProjectDate } from "@/utils/projectDate.js";
 
 import ProjectsCard from "@/components/home/content/projects-card.vue";
-import ProjectsGalleryModal from "@/components/projects/projects-gallery-modal.vue";
 
 const settingsStore = useSettingsStore();
+
+const loadGalleryModal = () =>
+  import("@/components/projects/projects-gallery-modal.vue");
+const ProjectsGalleryModal = defineAsyncComponent(loadGalleryModal);
+const galleryMounted = ref(false);
+
+// Fetch the gallery code after first paint (idle) so it never competes with the initial load.
+onMounted(() => {
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(loadGalleryModal, { timeout: 4000 });
+  } else {
+    setTimeout(loadGalleryModal, 2500);
+  }
+});
 
 const isGalleryOpen = ref(false);
 const galleryTitle = ref("");
@@ -63,6 +77,7 @@ function openGallery(payload) {
   galleryTitle.value = payload.title || "Project Gallery";
   galleryImages.value = payload.images;
   galleryIndex.value = Number.isFinite(payload.index) ? payload.index : 0;
+  galleryMounted.value = true;
   isGalleryOpen.value = true;
 }
 

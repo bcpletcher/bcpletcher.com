@@ -2,6 +2,7 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 
 import App from "./App.vue";
+import AppIcon from "./components/shared/app-icon.vue";
 import router from "./router";
 
 import "./assets/css/fonts.css";
@@ -27,6 +28,7 @@ initAnalytics();
 
 const app = createApp(App);
 
+app.component("AppIcon", AppIcon);
 app.use(createPinia());
 app.use(router);
 

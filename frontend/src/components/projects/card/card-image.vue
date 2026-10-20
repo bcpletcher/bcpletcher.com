@@ -28,7 +28,7 @@
                 : '',
             ]"
           >
-            <i class="fa-light fa-magnifying-glass" aria-hidden="true" />
+            <AppIcon icon="fa-light fa-magnifying-glass" aria-hidden="true" />
           </div>
         </div>
 
@@ -69,6 +69,7 @@
               height="720"
               loading="lazy"
               decoding="async"
+              @error="fallbackToOriginalImage"
             />
 
             <!-- Per-image tint (pixel-perfect) -->
@@ -92,7 +93,10 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import gsap from "gsap";
-import { buildResponsiveImageSourcesFromImageValue } from "@/utils/mediaStorageImages.js";
+import {
+  buildResponsiveImageSourcesFromImageValue,
+  fallbackToOriginalImage,
+} from "@/utils/mediaStorageImages.js";
 
 const props = defineProps({
   projectName: { type: String, required: true },

@@ -15,9 +15,9 @@
           {{ title }}
         </span>
         <span v-if="href" class="inline-flex items-center">
-          <i
-            :class="[
-              'fa-light fa-arrow-up-right ml-1 translate-y-px inline-block h-4 w-4 shrink-0',
+          <AppIcon
+            icon="fa-light fa-arrow-up-right" :class="[
+              'ml-1 translate-y-px inline-block h-4 w-4 shrink-0',
               'text-slate-200 transition-[transform,color] motion-reduce:transition-none',
               'lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300',
               'lg:group-hover:-translate-y-2 lg:group-hover:translate-x-3',
