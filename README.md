@@ -27,7 +27,8 @@ Personal portfolio site powered by Vue 3 + Vite with Cloudflare-backed data/stor
 - `frontend/`: Frontend application (Vite)
 - `cloudflare/worker/`: Cloudflare Worker API (admin auth + CRUD + image ops)
 - `cloudflare/d1-schema.sql`: D1 schema (`projects`, `project_images`)
-- `cloudflare/scripts/`: D1 export helper
+- `cloudflare/migrations/`: D1 migrations applied by hand (admin login lockout)
+- `cloudflare/scripts/`: D1 export helper and `backup-portfolio.mjs`
 - `archive/v1/`: frozen v1 portfolio (served at `v1.bcpletcher.com`, see below)
 
 ## Prerequisites
@@ -184,11 +185,7 @@ permission plus the minimum zone-read permission Wrangler requires to resolve
 those routes. Do not grant Pages, DNS, D1, R2, account-admin, or global-key
 permissions to the Worker token. Never commit or print any token value.
 
-Retain the current `bcpletcher-com-staging` Pages deployment
-`c3da5dd3-c56d-4fc8-af64-0568231f56f8` and rollback deployment `0163270f` until
-the new release is independently verified. Retain `next` deployments/previews
-for at least 30 days. Do not delete these artifacts during release or rollback
-work.
+Keep the previous Pages deployment available (do not delete it) until a new release is verified; Pages keeps deployment history for rollbacks.
 
 This repository does not have an isolated staging D1/R2 environment; do not call
 the `next.bcpletcher.com` binding a staging binding.
@@ -205,122 +202,32 @@ manual command is for local or separately authorized operations only:
 - Keep the existing Worker routes for `bcpletcher.com/api/*`, `www.bcpletcher.com/api/*`, and `next.bcpletcher.com/api/*`.
 - Keep the Worker on custom zone routes with `workers_dev = false`; the frontend uses same-origin `/api` in production and the Vite proxy for local development.
 
-## Release hardening and cutover checklist
+## Operations
 
-Complete this checklist in order. Values for secrets are entered through Cloudflare and are never committed or printed in logs.
-
-### 1. Preflight and Cloudflare access
-
-- Confirm the reviewed release is the intended commit and that `git status --short` contains no generated state, secrets, or private data.
-- Authenticate Wrangler interactively and verify the account before any deploy:
-
-  ```bash
-  npx wrangler login
-  npx wrangler whoami
-  ```
-
-- In the Worker environment, configure these names only: `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, `MEDIA_BASE_URL`, and `ALLOWED_ORIGIN`. Use the exact production origins above; use a separate non-production value that also includes `http://localhost:5173` for local QA.
-- Confirm the Wrangler configuration still binds D1 database `bcpletcher-db` as `DB` and R2 bucket `bcpletcher-artwork` as `ARTWORK`.
-
-### 2. Local validation and data/media verification
-
-- Run the dependency-free Worker checks:
-
-  ```bash
-  cd cloudflare/worker
-  npm test
-  npx wrangler deploy --dry-run --config wrangler.toml
-  ```
-
-- Verify D1 counts without changing data:
-
-  ```bash
-  npx wrangler d1 execute bcpletcher-db --remote --command "SELECT COUNT(*) AS project_count FROM projects;"
-  npx wrangler d1 execute bcpletcher-db --remote --command "SELECT COUNT(*) AS image_count FROM project_images;"
-  ```
-
-- Verify the `bcpletcher-artwork` bucket exists and contains the expected `Projects/` objects in the Cloudflare R2 dashboard, then fetch one known canonical object without writing it:
-
-  ```bash
-  npx wrangler r2 bucket list
-  npx wrangler r2 object get bcpletcher-artwork/Projects/<known-project>/<known-image>.webp --file=/tmp/bcpletcher-r2-check.webp
-  ```
-
-  Remove the temporary `/tmp` file after inspection; do not delete the R2 object.
-
-### 3. Pages and Worker production configuration
-
-- Verify the existing Pages project is `bcpletcher-com-staging` and that the GitHub Actions deployment uses production branch `main`, project root `frontend`, build command `npm ci && npm run build`, and output directory `dist`.
-- Verify the protected GitHub environment is named `Production`/`production`, its deployment branch policy selects only `main`, and the repository `Protect Main` ruleset continues to require pull requests, linear history, and the two required CI checks without a self-review deadlock.
-- Verify the environment secret names are exactly `CLOUDFLARE_PAGES_API_TOKEN`, `CLOUDFLARE_API_TOKEN`, and `CLOUDFLARE_ACCOUNT_ID`; do not print or read back values.
-- There is no isolated staging D1/R2 binding in this release. `next.bcpletcher.com`, `www.bcpletcher.com`, and `bcpletcher.com` use the configured production D1/R2 bindings. Do not run write-based fixture tests on those surfaces until a separately provisioned environment exists.
-- The future named-environment gate is: provision distinct D1 and R2 resources, add a `[env.<name>]` Worker configuration with distinct `database_id` and `bucket_name`, add matching Pages preview/environment configuration, deploy the named environment, and independently verify its bindings before any fixture write.
-- Build the production frontend with the reviewed environment values and confirm `frontend/dist` contains no unintended Firebase SDK/import/URL references:
-
-  ```bash
-  cd frontend
-  npm ci
-  npm run test:coordination
-  npm run lint
-  npm run build
-  ```
-
-- Deploy the Worker only after the verified Pages deployment and local checks pass. Confirm these routes are present and point to the Worker: `/api/projects`, `/api/admin/login`, `/api/admin/session`, `/api/admin/projects/upsert`, `/api/admin/images/upload`, `/api/admin/images/delete`, and `/api/media/*`.
-- Confirm `workers.dev` is disabled and no frontend environment value points at a public Worker fallback; local development must use the Vite proxy and custom hosts must use same-origin `/api`.
-
-### 4. Admin protection and reversible fixture test
-
-- Before production traffic, create the Cloudflare rate-limit rule in the next section and record its actual plan-supported capabilities and evidence.
-- This release has no staging fixture surface. Keep all write-based remote fixture tests blocked on `next`, `www`, and apex until a separately provisioned named environment passes the binding gate above.
-- If a production-binding mutation test is separately authorized, first export and checksum the exact project and image rows, record the R2 objects involved, use a reversible marker-only payload, verify through `GET /api/projects`, restore the saved D1 payload and R2 state, and re-query both. Without explicit backup/restore authority, leave this gate blocked.
-- For a read-only/auth smoke test, verify `/api/admin/session` without a token returns `401`; only use configured credentials for a controlled login test and keep tokens in a shell variable. Never print or commit secrets.
-
-### 5. DNS cutover and live verification
-
-- Record the current `www`/apex DNS targets and the last known-good Pages deployment before changing anything.
-- Confirm the Pages custom domains and the Worker routes are ready. Then change only the approved DNS records to the Cloudflare Pages targets, keep them proxied as required, and leave the Worker `/api/*` routes enabled.
-- Verify each production host and the CORS policy:
-
-  ```bash
-  curl -fsS https://www.bcpletcher.com/api/projects | jq '.result | length'
-  curl -fsS https://bcpletcher.com/api/projects | jq '.result | length'
-  curl -fsS https://next.bcpletcher.com/api/projects | jq '.result | length'
-  curl -i -X OPTIONS https://next.bcpletcher.com/api/projects \
-    -H 'Origin: https://www.bcpletcher.com' \
-    -H 'Access-Control-Request-Method: GET'
-  curl -i -X OPTIONS https://next.bcpletcher.com/api/projects \
-    -H 'Origin: https://not-allowed.example' \
-    -H 'Access-Control-Request-Method: GET'
-  ```
-
-  The allowed preflight must return `204` with the requesting allowed origin. The disallowed preflight must not return `Access-Control-Allow-Origin` and must be rejected. Check one known media URL for `200`, one missing key for `404`, `/api/admin/session` without a token for `401`, and the browser admin login/upload flow.
-
-### 6. Rollback
-
-- If live verification fails, restore the recorded DNS targets or the previous Pages deployment, then disable/revert only the new Worker route/configuration as needed. Restore the previous frontend environment values and invalidate any temporary fixture session.
-- Retain the current Pages deployment `c3da5dd3-c56d-4fc8-af64-0568231f56f8` and rollback `0163270f` for immediate reversal; retain `next` deployments/previews for at least 30 days. Do not delete either rollback artifact during incident response.
-- Keep D1/R2 data intact during rollback. Do not delete or overwrite the known-good release artifacts until the incident is understood.
-
-### Admin login rate-limit configuration and verification
-
-This Worker has no durable rate-limit binding, so brute-force protection must be configured at the Cloudflare zone edge. In the Cloudflare dashboard, open **Security rules → Create rule → Rate limiting rules** and create the strongest expression supported by the account plan:
-
-- Rule name: `bcpletcher-admin-login-bruteforce`
-- Preferred expression when method and host fields are available: `http.request.method eq "POST" and http.host in {"www.bcpletcher.com" "bcpletcher.com" "next.bcpletcher.com"} and http.request.uri.path eq "/api/admin/login"`
-- If the plan does not expose method and host fields, use the path-only expression `http.request.uri.path eq "/api/admin/login"` and record that plan limitation; do not claim method/host scoping.
-- Counting characteristic: `IP`
-- Threshold: `5` requests in `1 minute`
-- Action: `Block`
-- Mitigation duration: `600` seconds (`10 minutes`) only if the plan exposes that control; otherwise record the actual plan default.
-- Cache exclusions or cache behavior: configure only if the plan exposes the control, and record the actual setting. The Worker login/session responses are `Cache-Control: no-store`.
-
-Record the account plan, exact expression, supported fields, rule ID/export or screenshot, and verification timestamp in the release record. Verify from an approved production-binding test surface only after the backup/restore gate above is satisfied: send six invalid `POST` requests to each intended production host from a controlled test IP. The first five should reach the Worker as `401`; the next should be blocked by Cloudflare (often `429` or the configured block response). Do not use a claimed staging hostname. The rule must be enabled before DNS cutover and remain enabled after release.
-
-## Rollout notes
-- Deploy Worker API first (`/api/projects`, `/api/admin/*`).
-- Leave `VITE_API_BASE_URL` empty for production same-origin `/api` unless a separately reviewed custom API origin is required; local development uses the Vite proxy.
-- Set `VITE_MEDIA_BASE_URL` only when a reviewed public R2/CDN custom domain is available.
+### Rollout notes
+- Deploy the Worker API first (`/api/projects`, `/api/admin/*`); the frontend deploys through Pages.
+- Leave `VITE_API_BASE_URL` empty in production (same-origin `/api`); local development uses the Vite proxy.
+- Set `VITE_MEDIA_BASE_URL` only when a reviewed public R2/CDN custom domain exists.
 - Keep `VITE_ENABLE_RESPONSIVE_SRCSET=false` until resized variants are seeded and verified.
+- Database changes live in `cloudflare/migrations/` (apply with `wrangler d1 execute bcpletcher-db --remote --file <file>`; each file is idempotent). Apply a migration before, or together with, the Worker release that uses it.
+
+### Rollback
+- **Frontend:** Cloudflare dashboard → Workers & Pages → the Pages project → Deployments → pick the last good deployment → Rollback. Or revert the commit on `main`.
+- **Worker:** `cd cloudflare/worker && npx wrangler rollback` (or revert the commit on `main`; the deploy workflow redeploys).
+- **Data:** D1 has automatic point-in-time recovery (Time Travel, 7 days on the Free plan): `wrangler d1 time-travel info bcpletcher-db` then `wrangler d1 time-travel restore bcpletcher-db --timestamp <unix-seconds>`. A restore overwrites the database in place, so take a backup first (below). R2 has no versioning, so rely on the backups.
+- Do not delete the previous deployment while diagnosing an incident.
+
+### Admin login protection
+Two layers protect `POST /api/admin/login`:
+1. **Cloudflare edge rate-limiting rule** (dashboard → Security → WAF → Rate limiting rules). The Free plan allows one rule, counted per IP over 10 seconds with a 10-second block, so it only slows rapid bursts (a burst of bad logins returns `429` after about 9 requests and clears within seconds).
+2. **Worker lockout** (`handleLogin`, table `admin_login_attempts`, migration `cloudflare/migrations/0001_admin_login_attempts.sql`): 5 failed attempts from one address within 15 minutes locks that address for 15 minutes (`429` with `Retry-After`, even for the correct password), and 30 failures across all addresses within an hour locks everyone for 15 minutes. Addresses are stored only as a hash. A successful login clears that address. If the table is missing the limiter fails open, so apply the migration. Passwords are compared in constant time.
+
+To unlock yourself immediately: `wrangler d1 execute bcpletcher-db --remote --command "DELETE FROM admin_login_attempts"`.
+
+### Backups and restore
+Run `node cloudflare/scripts/backup-portfolio.mjs` (uses the `wrangler` you are logged in with; read-only against Cloudflare). It writes `~/bcpletcher-backups/portfolio-YYYY-MM-DD/` with `d1.sql` (full database export), every R2 image the database references plus `projects.json` under `media/`, and `manifest.json` (counts, sizes, SHA-256, anything that failed). Re-running into the same folder resumes and skips files already downloaded. Take one before risky changes and about monthly, and keep a copy outside your laptop (external drive or cloud storage).
+
+Restore: recreate or empty the database and run `wrangler d1 execute bcpletcher-db --remote --file d1.sql`; re-upload images with `wrangler r2 object put bcpletcher-artwork/<key> --file media/<key> --remote` (the folder layout mirrors the R2 keys).
 
 ## Archived v1 portfolio and Firebase retirement
 The project previously ran on Firebase (Hosting, Firestore, Storage, Functions). That stack has been fully retired.

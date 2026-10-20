@@ -79,3 +79,6 @@ key.json
 # =====================
 .wrangler/
 **/.wrangler/
+
+# Local exports (resume drafts etc.); never committed
+/output/
