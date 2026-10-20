@@ -23,7 +23,7 @@ const KEYS = {
 // Deploy-controlled cache buster.
 // Set this in your build env (e.g., CI) to a new value on each deploy.
 // Example: VITE_CACHE_EPOCH=2026-02-11T1200Z
-export const CACHE_EPOCH = (import.meta.env.VITE_CACHE_EPOCH || "").toString();
+const CACHE_EPOCH = (import.meta.env.VITE_CACHE_EPOCH || "").toString();
 
 async function getDb() {
   return openDB(DB_NAME, DB_VERSION, {

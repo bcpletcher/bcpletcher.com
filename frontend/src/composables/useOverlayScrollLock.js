@@ -125,7 +125,7 @@ function parsePx(v) {
   return Number.isFinite(n) ? n : 0;
 }
 
-export function overlayScrollLock() {
+function overlayScrollLock() {
   if (typeof document === "undefined") return () => {};
 
   lockCount += 1;
@@ -206,7 +206,7 @@ export function overlayScrollLock() {
   };
 }
 
-export function overlayScrollUnlock() {
+function overlayScrollUnlock() {
   if (typeof document === "undefined") return;
   if (lockCount <= 0) return;
 
