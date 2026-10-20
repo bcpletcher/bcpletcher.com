@@ -68,8 +68,11 @@ async function exists(path) {
 }
 
 async function publicExists(key) {
-  const response = await fetch(`${BASE}/api/media/${key}`, { method: "HEAD", headers: { "user-agent": "bcpletcher-backfill" } });
-  return response.ok;
+  // The Worker serves media on GET only (HEAD returns 404), so probe with a 1-byte range request.
+  const response = await fetch(`${BASE}/api/media/${key}`, {
+    headers: { "user-agent": "bcpletcher-backfill", range: "bytes=0-0" },
+  });
+  return response.status === 200 || response.status === 206;
 }
 
 function collectKeys(value, keys) {
