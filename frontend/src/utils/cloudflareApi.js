@@ -14,11 +14,6 @@ function getApiBaseUrl() {
   return String(raw).replace(/\/+$/, "");
 }
 
-function toApiUrl(path) {
-  const base = getApiBaseUrl();
-  return `${base}${path}`;
-}
-
 function toApiUrlWithBase(base, path) {
   return `${base || ""}${path}`;
 }
