@@ -99,7 +99,7 @@ Then fill in the runtime values.
 | `VITE_CACHE_TTL_MINUTES` | number | `60` | Cache freshness window before refetch. |
 | `VITE_SIMULATE_BOOT_ERROR` | boolean | `false` | Forces the boot overlay into error mode (dev only). |
 | `VITE_MEDIA_BASE_URL` | string | empty | Public base URL for image paths (e.g. R2 custom domain). |
-| `VITE_ENABLE_RESPONSIVE_SRCSET` | boolean | `false` | Keep disabled until resized R2 variants are seeded and verified. Originals remain the source of truth. |
+| `VITE_ENABLE_RESPONSIVE_SRCSET` | boolean | `true` | Serve 480w/960w WebP variants via `srcset` (set `false` to serve originals only). Variants for existing images come from `cloudflare/scripts/backfill-resized-images.mjs`; new admin uploads create them automatically. Images fall back to the original if a variant is missing. |
 
 ## Common scripts
 ### Frontend (`frontend/`)
@@ -208,7 +208,7 @@ manual command is for local or separately authorized operations only:
 - Deploy the Worker API first (`/api/projects`, `/api/admin/*`); the frontend deploys through Pages.
 - Leave `VITE_API_BASE_URL` empty in production (same-origin `/api`); local development uses the Vite proxy.
 - Set `VITE_MEDIA_BASE_URL` only when a reviewed public R2/CDN custom domain exists.
-- Keep `VITE_ENABLE_RESPONSIVE_SRCSET=false` until resized variants are seeded and verified.
+- Responsive `srcset` is on by default; run `node cloudflare/scripts/backfill-resized-images.mjs` (add `--upload` to write to R2) if images exist without resized variants.
 - Database changes live in `cloudflare/migrations/` (apply with `wrangler d1 execute bcpletcher-db --remote --file <file>`; each file is idempotent). Apply a migration before, or together with, the Worker release that uses it.
 
 ### Rollback

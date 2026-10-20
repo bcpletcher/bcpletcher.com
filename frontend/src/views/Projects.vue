@@ -82,6 +82,7 @@
       </div>
 
       <ProjectsGalleryModal
+        v-if="galleryMounted"
         v-model="isGalleryOpen"
         :title="galleryTitle"
         :images="galleryImages"
@@ -95,12 +96,18 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from "vue";
 import RailLayout from "@/components/shared/rail-layout.vue";
 import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsRailTimeline from "@/components/projects/projects-rail-timeline.vue";
 import ProjectsCard from "@/components/projects/card/card.vue";
-import ProjectsGalleryModal from "@/components/projects/projects-gallery-modal.vue";
 import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
 import { useSettingsStore } from "@/stores/settings.js";
 import {
@@ -248,6 +255,10 @@ onBeforeUnmount(() => {
   headerRo?.disconnect?.();
 });
 
+const loadGalleryModal = () =>
+  import("@/components/projects/projects-gallery-modal.vue");
+const ProjectsGalleryModal = defineAsyncComponent(loadGalleryModal);
+const galleryMounted = ref(false);
 const isGalleryOpen = ref(false);
 const galleryTitle = ref("");
 const galleryImages = ref([]);
@@ -258,6 +269,7 @@ function openGallery(payload) {
   galleryTitle.value = payload.title || "Project Gallery";
   galleryImages.value = payload.images;
   galleryIndex.value = Number.isFinite(payload.index) ? payload.index : 0;
+  galleryMounted.value = true;
   isGalleryOpen.value = true;
 }
 </script>

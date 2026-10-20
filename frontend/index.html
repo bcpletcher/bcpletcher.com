@@ -18,7 +18,12 @@
     />
     <meta property="og:url" content="https://www.bcpletcher.com/" />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="https://www.bcpletcher.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Benjamin Pletcher, bcpletcher.com" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://www.bcpletcher.com/og-image.png" />
     <meta name="twitter:title" content="Benjamin Pletcher - UX/UI Designer & Full Stack Developer" />
     <meta
       name="twitter:description"
@@ -28,11 +33,6 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <!-- Reduce latency for third-party critical chains -->
-    <link rel="preconnect" href="https://kit.fontawesome.com" crossorigin>
-    <link rel="preconnect" href="https://ka-p.fontawesome.com" crossorigin>
-    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
@@ -40,30 +40,10 @@
     <link rel="mask-icon" href="/favicon/safari-pinned-tab.svg" color="#5bbad5">
 
     <meta name="msapplication-TileColor" content="#603cba">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#0f172a">
 
-    <link rel="preload" href="/resume.pdf" as="fetch" crossorigin="anonymous" />
 
     <!-- Analytics is initialized in src/main.js (env-driven) to avoid BFCache blockers -->
-
-    <!-- Load Font Awesome after initial paint to avoid render-blocking font/CSS work in Lighthouse -->
-    <script>
-      (function () {
-        const loadFA = () => {
-          const s = document.createElement("script");
-          s.src = "https://kit.fontawesome.com/b5b13ceb62.js";
-          s.crossOrigin = "anonymous";
-          s.defer = true;
-          document.head.appendChild(s);
-        };
-
-        if ("requestIdleCallback" in window) {
-          window.requestIdleCallback(loadFA, { timeout: 2000 });
-        } else {
-          setTimeout(loadFA, 1200);
-        }
-      })();
-    </script>
 
   </head>
   <body>

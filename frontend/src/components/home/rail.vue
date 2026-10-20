@@ -9,7 +9,7 @@
             >
               {{ name }}
             </h1>
-            <h2 class="max-w-sm mt-4 text-slate-100 text-xl">{{ title }}</h2>
+            <p class="max-w-sm mt-4 text-slate-100 text-xl">{{ title }}</p>
             <p class="max-w-sm mt-6 leading-normal font-normal">
               {{ description }}
             </p>
@@ -34,7 +34,7 @@
       <h1 class="text-3xl font-bold tracking-tight text-slate-200 sm:text-5xl">
         {{ name }}
       </h1>
-      <h2 class="max-w-sm mt-3 text-slate-100 text-xl">{{ title }}</h2>
+      <p class="max-w-sm mt-3 text-slate-100 text-xl">{{ title }}</p>
       <p class="max-w-sm mt-4 leading-normal font-normal">
         {{ description }}
       </p>

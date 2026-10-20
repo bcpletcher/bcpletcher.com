@@ -39,7 +39,7 @@
           aria-label="Close"
           @click="cancel"
         >
-          <i class="fa-regular fa-xmark" aria-hidden="true" />
+          <AppIcon icon="fa-regular fa-xmark" aria-hidden="true" />
         </button>
       </div>
 
@@ -204,7 +204,7 @@
                 </select>
 
                 <div v-if="selectedMetaKey" class="mt-2 flex items-center gap-2 text-xs text-slate-400">
-                  <i :class="metaOptions[selectedMetaKey]?.iconClass" aria-hidden="true" />
+                  <AppIcon :icon="metaOptions[selectedMetaKey]?.iconClass" />
                   <span>{{ metaOptions[selectedMetaKey]?.label }}</span>
                 </div>
 
@@ -315,7 +315,7 @@
                       aria-label="Add technology"
                       @click="commitTechToAdd"
                     >
-                      <i class="fa-regular fa-plus" aria-hidden="true" />
+                      <AppIcon icon="fa-regular fa-plus" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -337,7 +337,7 @@
                     aria-label="Remove technology"
                     @click="removeTechnology(item.originalIndex)"
                   >
-                    <i class="fa-regular fa-xmark" aria-hidden="true" />
+                    <AppIcon icon="fa-regular fa-xmark" aria-hidden="true" />
                   </button>
                 </div>
 
@@ -428,8 +428,8 @@
                     aria-label="Set hero image"
                     @click.stop="setHeroImage(item)"
                   >
-                    <i
-                      :class="
+                    <AppIcon
+                      :icon="
                         index === 0 ? 'fa-solid fa-star' : 'fa-regular fa-star'
                       "
                       aria-hidden="true"
@@ -443,7 +443,7 @@
                     aria-label="Remove image"
                     @click.stop="queueRemoval(index, 'images')"
                   >
-                    <i class="fa-regular fa-minus" aria-hidden="true" />
+                    <AppIcon icon="fa-regular fa-minus" aria-hidden="true" />
                   </button>
                 </div>
               </VueDraggableNext>
@@ -478,7 +478,7 @@
                     aria-label="Remove pending image"
                     @click.stop="removePendingFile(pIndex)"
                   >
-                    <i class="fa-regular fa-minus" aria-hidden="true" />
+                    <AppIcon icon="fa-regular fa-minus" aria-hidden="true" />
                   </button>
                 </div>
               </div>

@@ -25,6 +25,12 @@
       </transition>
     </router-view>
 
+    <a
+      href="https://bcpletcher.com/"
+      class="fixed bottom-3 right-3 z-40 rounded-full border border-white/10 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-300 backdrop-blur transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+      >Archived version &middot; View the current site &rarr;</a
+    >
+
     <template v-if="!isBlankLayout">
       <sidebar />
 

@@ -12,8 +12,8 @@
       <span>
         Resume
         <span class="inline-block">
-          <i
-            class="fa-solid fa-arrow-up-right ml-1 translate-y-px inline-block h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none group-hover/link:-translate-y-1 group-hover/link:translate-x-1 group-focus-visible/link:-translate-y-1 group-focus-visible/link:translate-x-1"
+          <AppIcon
+            icon="fa-solid fa-arrow-up-right" class="ml-1 translate-y-px inline-block h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none group-hover/link:-translate-y-1 group-hover/link:translate-x-1 group-focus-visible/link:-translate-y-1 group-focus-visible/link:translate-x-1"
             aria-hidden="true"
           />
         </span>
@@ -29,7 +29,7 @@
         :rel="link.external ? 'noopener noreferrer' : undefined"
         :aria-label="link.label"
       >
-        <i :class="link.iconClass" aria-hidden="true" />
+        <AppIcon :icon="link.iconClass" />
       </a>
     </div>
   </div>

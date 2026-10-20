@@ -36,7 +36,7 @@
             aria-label="Close"
             @click="close"
           >
-            <i class="fa-light fa-xmark" aria-hidden="true" />
+            <AppIcon icon="fa-light fa-xmark" aria-hidden="true" />
           </button>
         </div>
       </header>
@@ -49,7 +49,7 @@
           aria-label="Previous image"
           @click="slidePrev"
         >
-          <i class="fa-light fa-chevron-left" aria-hidden="true" />
+          <AppIcon icon="fa-light fa-chevron-left" aria-hidden="true" />
         </button>
         <button
           type="button"
@@ -57,7 +57,7 @@
           aria-label="Next image"
           @click="slideNext"
         >
-          <i class="fa-light fa-chevron-right" aria-hidden="true" />
+          <AppIcon icon="fa-light fa-chevron-right" aria-hidden="true" />
         </button>
 
         <!-- 16:9 stage (size to the largest possible area within the viewport) -->
@@ -113,7 +113,7 @@
               class="kbd-focus cursor-pointer inline-flex items-center gap-2 rounded-full border border-slate-800 bg-white/5 px-4 py-2 text-slate-200 transition-standard hover:bg-white/10 focus-visible:bg-white/10"
               @click="toggleFullscreen"
             >
-              <i class="fa-light fa-expand" aria-hidden="true" />
+              <AppIcon icon="fa-light fa-expand" aria-hidden="true" />
               <span class="tracking-widest">FULLSCREEN</span>
             </button>
           </div>
@@ -161,9 +161,13 @@ const responsiveFor = (img) => {
   });
   const originalPath = getStoragePathFromImageValue(img);
   const originalUrl = originalPath ? buildMediaUrl(originalPath) : "";
+  // The gallery stage is large (up to full viewport), so it always uses the original image.
+  // The 480w/960w srcset variants are for the small card thumbnails only; using them here
+  // would look soft on large or high-density screens.
   return {
     ...responsive,
     src: originalUrl || responsive.src,
+    srcset: "",
   };
 };
 

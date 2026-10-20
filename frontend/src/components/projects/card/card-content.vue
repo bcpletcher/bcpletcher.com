@@ -27,8 +27,8 @@
             <h3 class="min-w-0 font-medium leading-snug wrap-break-word">
               {{ projectName }}
             </h3>
-            <i
-              class="fa-light fa-arrow-up-right mt-0.5 inline-block h-4 w-4 shrink-0 text-current transition-transform motion-reduce:transition-none group-hover/title:-translate-y-0.5 group-hover/title:translate-x-0.5 group-focus-visible/title:-translate-y-0.5 group-focus-visible/title:translate-x-0.5"
+            <AppIcon
+              icon="fa-light fa-arrow-up-right" class="mt-0.5 inline-block h-4 w-4 shrink-0 text-current transition-transform motion-reduce:transition-none group-hover/title:-translate-y-0.5 group-hover/title:translate-x-0.5 group-focus-visible/title:-translate-y-0.5 group-focus-visible/title:translate-x-0.5"
               aria-hidden="true"
             />
           </a>
@@ -76,7 +76,7 @@
       <!-- Meta row (bottom) -->
       <template v-if="showFeatured && featured">
         <div class="mt-3 flex items-center gap-3 text-xs text-slate-400">
-          <i class="fa-solid fa-star text-yellow-300/60" aria-hidden="true" />
+          <AppIcon icon="fa-solid fa-star" class="text-yellow-300/60" aria-hidden="true" />
           <span>Featured</span>
         </div>
       </template>
@@ -85,11 +85,7 @@
         v-if="showMeta && metaDisplay?.label"
         class="mt-3 flex items-center gap-2 text-xs text-slate-400"
       >
-        <i
-          v-if="metaDisplay?.iconClass"
-          :class="metaDisplay.iconClass"
-          aria-hidden="true"
-        />
+        <AppIcon v-if="metaDisplay?.iconClass" :icon="metaDisplay.iconClass" />
         <span v-else class="sr-only">Meta</span>
         <span>{{ metaDisplay.label }}</span>
       </div>
@@ -101,7 +97,7 @@
           :tabindex="-1"
           @click="onOpenGallery(0)"
         >
-          <i class="fa-light fa-images" aria-hidden="true" />
+          <AppIcon icon="fa-light fa-images" aria-hidden="true" />
           <span>View Gallery</span>
         </button>
       </div>

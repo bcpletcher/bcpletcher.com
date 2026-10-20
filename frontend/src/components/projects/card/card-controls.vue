@@ -12,7 +12,7 @@
         aria-label="Edit project"
         @click.stop="handleEdit"
       >
-        <i class="fa-light fa-pen-to-square" aria-hidden="true" />
+        <AppIcon icon="fa-light fa-pen-to-square" aria-hidden="true" />
       </button>
 
       <button
@@ -26,8 +26,8 @@
         :aria-label="isHidden ? 'Unhide project' : 'Hide project'"
         @click.stop="handleToggleHidden"
       >
-        <i
-          :class="isHidden ? 'fa-light fa-eye' : 'fa-light fa-eye-slash'"
+        <AppIcon
+          :icon="isHidden ? 'fa-light fa-eye' : 'fa-light fa-eye-slash'"
           aria-hidden="true"
         />
       </button>

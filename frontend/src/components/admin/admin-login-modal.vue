@@ -42,7 +42,7 @@
             aria-label="Close"
             @click="close"
           >
-            <i class="fa-regular fa-xmark" aria-hidden="true" />
+            <AppIcon icon="fa-regular fa-xmark" aria-hidden="true" />
           </button>
         </div>
       </header>

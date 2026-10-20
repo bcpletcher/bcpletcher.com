@@ -1,7 +1,6 @@
 // Common project meta presets for the admin upsert modal.
-// Stored as Font Awesome CSS class strings to match the site's current FA usage.
-// NOTE: Keep this list in sync with `src/assets/css/fa-safelist.css` so classes
-// are guaranteed to exist in production builds.
+// `iconClass` keeps the legacy Font Awesome class-string format; <AppIcon> maps it to an
+// inline SVG icon (see src/components/shared/app-icon.vue). Add new icons there.
 
 export const PROJECT_META_OPTIONS = {
   award: { label: "Award / Recognition", iconClass: "fa-light fa-award" },

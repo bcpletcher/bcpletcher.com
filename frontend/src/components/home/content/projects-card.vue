@@ -17,6 +17,7 @@
         height="720"
         loading="lazy"
         decoding="async"
+        @error="fallbackToOriginalImage"
       />
     </div>
 
@@ -30,10 +31,10 @@
         </h3>
 
         <!-- If there is an external url, show the "open in new" icon. -->
-        <i
+        <AppIcon
           v-if="href"
-          :class="[
-            'fa-light fa-arrow-up-right ml-1 translate-y-px inline-block h-4 w-4 shrink-0',
+          icon="fa-light fa-arrow-up-right" :class="[
+            'ml-1 translate-y-px inline-block h-4 w-4 shrink-0',
             'text-slate-200 transition-[transform,color] motion-reduce:transition-none',
             'lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300',
             'lg:group-hover:-translate-y-2 lg:group-hover:translate-x-3',
@@ -57,8 +58,8 @@
           aria-label="Open gallery"
           @click.stop.prevent="onOpenGallery(0)"
         >
-          <i
-            class="fa-light fa-images gallery-icon-wiggle leading-none"
+          <AppIcon
+            icon="fa-light fa-images" class="gallery-icon-wiggle leading-none"
             aria-hidden="true"
           />
         </button>
@@ -86,12 +87,8 @@
         v-if="metaDisplay?.label"
         class="mt-3 flex items-center gap-2 text-xs text-font-primary/60"
       >
-        <i
-          v-if="metaDisplay?.iconClass"
-          :class="metaDisplay.iconClass"
-          aria-hidden="true"
-        />
-        <i v-else class="fa-light fa-star" aria-hidden="true" />
+        <AppIcon v-if="metaDisplay?.iconClass" :icon="metaDisplay.iconClass" />
+        <AppIcon v-else icon="fa-light fa-star" aria-hidden="true" />
         {{ metaDisplay.label }}
       </div>
     </div>
@@ -101,7 +98,10 @@
 <script setup>
 import CardWrapper from "@/components/home/content/card-wrapper.vue";
 import { computed } from "vue";
-import { buildResponsiveImageSourcesFromImageValue } from "@/utils/mediaStorageImages.js";
+import {
+  buildResponsiveImageSourcesFromImageValue,
+  fallbackToOriginalImage,
+} from "@/utils/mediaStorageImages.js";
 import { PROJECT_META_OPTIONS } from "@/constants/projectMetaIconOptions.js";
 
 const emit = defineEmits(["open-gallery"]);

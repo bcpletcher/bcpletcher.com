@@ -317,8 +317,10 @@ test("production routing disables workers.dev and frontend uses same-origin API 
     assert.doesNotMatch(source, /bcpletcher-api\.bcpletcher\.workers\.dev/);
   });
   assert.match(frontendFiles[1], /const src = buildMediaUrl\(originalStoragePath\)/);
-  assert.match(frontendFiles[1], /VITE_ENABLE_RESPONSIVE_SRCSET === "true"/);
-  assert.match(frontendFiles[3], /VITE_ENABLE_RESPONSIVE_SRCSET=false/);
+  // Responsive srcset is on by default and can be switched off with VITE_ENABLE_RESPONSIVE_SRCSET=false;
+  // the original image stays the plain `src` fallback either way.
+  assert.match(frontendFiles[1], /VITE_ENABLE_RESPONSIVE_SRCSET !== "false"/);
+  assert.match(frontendFiles[3], /VITE_ENABLE_RESPONSIVE_SRCSET=true/);
   assert.match(readme, /isolated staging D1\/R2 environment/i);
   assert.doesNotMatch(readme, /VITE_API_BASE_URL_FALLBACK|bcpletcher-api\.bcpletcher\.workers\.dev/);
 });
