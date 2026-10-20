@@ -29,15 +29,15 @@ export const LOADER_DEFAULTS = Object.freeze({
   repeat: 0,
 
   // Timings (seconds) – these should match the GSAP timeline sequencing
-  preOutlineDelay: 0.25,
-  outlineDuration: 0.75,
+  preOutlineDelay: 0.1,
+  outlineDuration: 0.5,
   outlineToFillDelay: 0.0,
-  fillDuration: 1.0,
+  fillDuration: 0.6,
   fillToFadeDelay: 0.0,
-  outlineFadeDuration: 0.25,
-  postFillHold: 0.125,
-  zoomOutDuration: 0.5,
-  overlayFadeDuration: 0.25,
+  outlineFadeDuration: 0.2,
+  postFillHold: 0.1,
+  zoomOutDuration: 0.4,
+  overlayFadeDuration: 0.2,
 });
 
 /**
