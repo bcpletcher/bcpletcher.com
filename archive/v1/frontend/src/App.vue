@@ -27,7 +27,7 @@
 
     <a
       href="https://bcpletcher.com/"
-      class="fixed bottom-3 right-3 z-40 rounded-full border border-white/10 bg-slate-900/80 px-3 py-1.5 text-xs text-slate-300 backdrop-blur transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+      class="fixed bottom-3 right-3 z-40 rounded-full border border-white bg-white px-3.5 py-2 text-xs font-semibold text-slate-900 shadow-lg shadow-black/40 transition-colors hover:bg-sky-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
       >Archived version &middot; View the current site &rarr;</a
     >
 
