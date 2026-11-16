@@ -23,7 +23,7 @@
       <a
         v-for="link in links"
         :key="link.label"
-        class="kbd-focus cursor-pointer hover:text-slate-100 transition-standard"
+        class="kbd-focus -m-2 cursor-pointer p-2 hover:text-slate-100 transition-standard"
         :href="link.href"
         :target="link.external ? '_blank' : undefined"
         :rel="link.external ? 'noopener noreferrer' : undefined"

@@ -1,5 +1,11 @@
 <template>
   <aside class="relative">
+    <MobileSectionNav
+      :nav-items="navItems"
+      :active-section-id="activeSectionId"
+      @nav="onNav"
+    />
+
     <div class="hidden lg:block">
       <div class="flex min-h-[calc(100vh-12rem)] flex-col">
         <div class="pt-0">
@@ -48,6 +54,7 @@ import { useScrollSpy } from "@/composables/useScrollSpy.js";
 
 import Navigation from "@/components/home/rail/navigation.vue";
 import SocialLinks from "@/components/home/rail/social-links.vue";
+import MobileSectionNav from "@/components/home/rail/mobile-section-nav.vue";
 
 const name = "Benjamin Pletcher";
 const title = "Senior Software Engineer";
