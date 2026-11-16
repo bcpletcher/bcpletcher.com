@@ -22,6 +22,7 @@
       <div class="flex flex-col gap-6 lg:-mt-8">
         <!-- Stub notice: remove once a real write-up exists. -->
         <p
+          v-if="!content"
           class="flex w-fit items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] py-2.5 pl-3.5 pr-4 text-sm leading-relaxed text-slate-400 sm:items-center sm:rounded-full"
           role="note"
         >
@@ -44,10 +45,10 @@
         </p>
 
         <p
-          v-if="project.summary"
+          v-if="content?.summary || project.summary"
           class="max-w-2xl text-lg leading-relaxed text-pretty text-slate-300 sm:text-xl sm:leading-relaxed"
         >
-          {{ project.summary }}
+          {{ content?.summary || project.summary }}
         </p>
       </div>
 
@@ -79,7 +80,12 @@
           >
             Role
           </dt>
-          <dd class="mt-2.5 text-slate-400">To be added</dd>
+          <dd
+            class="mt-2.5"
+            :class="content?.role ? 'font-medium text-slate-200' : 'text-slate-400'"
+          >
+            {{ content?.role || "To be added" }}
+          </dd>
         </div>
         <div class="sm:border-l sm:border-white/10 sm:pl-8">
           <dt
@@ -88,10 +94,14 @@
             Timeline
           </dt>
           <dd
-            class="mt-2.5 tabular-nums"
-            :class="year ? 'font-medium text-slate-200' : 'text-slate-400'"
+            class="mt-2.5"
+            :class="
+              content?.timeline || year
+                ? 'font-medium text-slate-200'
+                : 'text-slate-400'
+            "
           >
-            {{ year || "To be added" }}
+            {{ content?.timeline || year || "To be added" }}
           </dd>
         </div>
         <div class="sm:border-l sm:border-white/10 sm:pl-8">
@@ -129,9 +139,33 @@
               {{ s.title }}
             </h2>
           </div>
-          <p class="max-w-prose leading-relaxed text-slate-400 md:pt-6">
-            {{ s.hint }}
-          </p>
+          <div class="flex max-w-prose flex-col gap-5 md:pt-6">
+            <template v-if="content?.sections?.[s.title]">
+              <p
+                v-for="(para, pi) in content.sections[s.title].body"
+                :key="pi"
+                class="leading-relaxed text-slate-300"
+              >
+                {{ para }}
+              </p>
+              <dl
+                v-if="content.sections[s.title].points?.length"
+                class="flex flex-col gap-4"
+              >
+                <div
+                  v-for="pt in content.sections[s.title].points"
+                  :key="pt.title"
+                  class="border-l-2 border-sky-300/30 pl-4"
+                >
+                  <dt class="font-semibold text-slate-100">{{ pt.title }}</dt>
+                  <dd class="mt-1 leading-relaxed text-slate-400">
+                    {{ pt.text }}
+                  </dd>
+                </div>
+              </dl>
+            </template>
+            <p v-else class="leading-relaxed text-slate-400">{{ s.hint }}</p>
+          </div>
 
           <!-- Screens that illustrate this section. Tapping one opens the lightbox on it. -->
           <div
@@ -140,7 +174,7 @@
             :class="sectionFigures[i].length > 1 ? 'sm:grid-cols-2' : ''"
           >
             <figure
-              v-for="fig in sectionFigures[i]"
+              v-for="(fig, fi) in sectionFigures[i]"
               :key="fig.index"
               class="flex flex-col gap-3"
             >
@@ -170,7 +204,10 @@
                 </span>
               </button>
               <figcaption class="text-sm leading-relaxed text-slate-500">
-                Caption to be added: what this screen shows and why it matters.
+                {{
+                  content?.sections?.[s.title]?.captions?.[fi] ||
+                  "Caption to be added: what this screen shows and why it matters."
+                }}
               </figcaption>
             </figure>
           </div>
@@ -231,6 +268,7 @@ import { setNoIndex, setPageTitle } from "@/utils/pageMeta.js";
 import { getYearFromProjectDate } from "@/utils/projectDate.js";
 import { slugify } from "@/utils/slug.js";
 import { hasCaseStudy } from "@/constants/caseStudies.js";
+import { getCaseStudyContent } from "@/constants/caseStudyContent.js";
 
 const SECTIONS = [
   {
@@ -307,6 +345,8 @@ function openFigure(index) {
     autoplay: false,
   });
 }
+
+const content = computed(() => getCaseStudyContent(String(route.params.slug || "")));
 
 const year = computed(() => getYearFromProjectDate(project.value?.date) || "");
 
