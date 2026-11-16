@@ -22,8 +22,13 @@
             style="transform: scaleY(0)"
           />
 
-          <ol class="flex flex-1 min-h-0 flex-col justify-between pr-6">
-            <li v-for="item in items" :key="item.key" class="relative ml-auto">
+          <ol class="flex flex-1 min-h-0 flex-col pr-6">
+            <li
+              v-for="(item, itemIdx) in items"
+              :key="item.key"
+              class="relative ml-auto flex w-full flex-col items-end"
+              :style="{ flexGrow: item.count, flexBasis: 0, minHeight: 28 + item.count * 14 + 'px' }"
+            >
               <a
                 :href="item.href"
                 class="kbd-focus group grid grid-cols-[1fr_1.25rem] items-center text-sm text-slate-400 hover:text-slate-200 focus-visible:text-slate-200 transition-standard"
@@ -47,6 +52,19 @@
                   />
                 </span>
               </a>
+
+              <!-- One notch per project in this year, spaced along the rail below the year dot. -->
+              <span
+                class="pointer-events-none absolute right-0 top-7 bottom-1 flex w-5 flex-col items-center justify-evenly"
+                aria-hidden="true"
+              >
+                <span
+                  v-for="k in item.count"
+                  :key="k"
+                  class="rail-notch h-0.5 w-2 rounded-full"
+                  :class="notchPassed(itemIdx, k) ? 'bg-sky-300' : 'bg-slate-600'"
+                />
+              </span>
             </li>
           </ol>
         </div>
@@ -82,6 +100,12 @@ const props = defineProps({
    */
   scroller: { type: String, default: null },
   yearSectionSelector: { type: String, default: "[data-project-year-section]" },
+
+  /**
+   * Projects per year ({ 2025: 3, ... }). Each year's stretch of the rail is as long as its
+   * share of work, with one notch per project.
+   */
+  counts: { type: Object, default: () => ({}) },
 });
 
 const activeYear = ref(null);
@@ -125,6 +149,7 @@ const items = computed(() => {
     year: y,
     label: String(y),
     href: `#year-${y}`,
+    count: Math.max(1, Number(props.counts?.[y]) || 1),
   }));
 
   if (useCollapse && collapsedYears.length) {
@@ -136,6 +161,10 @@ const items = computed(() => {
       label: props.collapsedLabel,
       href: target ? `#year-${target}` : "#",
       collapsedYears,
+      count: Math.max(
+        1,
+        collapsedYears.reduce((n, y) => n + (Number(props.counts?.[y]) || 0), 0),
+      ),
     });
   }
 
@@ -200,10 +229,26 @@ function getEffectiveScrollerElForScrollTo() {
   return getEffectiveScrollerEl();
 }
 
+// While a click-to-jump scroll is running, the clicked item stays active.
+const navLockIndex = ref(null);
+function releaseNavLock() {
+  navLockIndex.value = null;
+  window.removeEventListener("wheel", releaseNavLock);
+  window.removeEventListener("touchmove", releaseNavLock);
+}
+
 function scrollToItem(item) {
   const year = item?.year;
   if (!year) return;
   pingDot(item.key);
+
+  const itemIdx = items.value.findIndex((it) => it.key === item.key);
+  if (itemIdx !== -1) {
+    navLockIndex.value = itemIdx;
+    activeIndex.value = itemIdx;
+    window.addEventListener("wheel", releaseNavLock, { passive: true });
+    window.addEventListener("touchmove", releaseNavLock, { passive: true });
+  }
 
   const target = document.getElementById(`year-${year}`);
   if (!target) return;
@@ -216,6 +261,8 @@ function scrollToItem(item) {
       ease: "power2.out",
       scrollTo: { y: target, offsetY: Number(props.scrollOffsetPx) },
       overwrite: "auto",
+      onComplete: releaseNavLock,
+      onInterrupt: releaseNavLock,
     });
     return;
   }
@@ -225,6 +272,8 @@ function scrollToItem(item) {
     ease: "power2.out",
     scrollTo: { y: target, offsetY: Number(props.scrollOffsetPx) },
     overwrite: "auto",
+    onComplete: releaseNavLock,
+    onInterrupt: releaseNavLock,
   });
 }
 
@@ -240,6 +289,8 @@ function setBubbleEl(key, el) {
 }
 
 const progress01 = ref(0);
+// Dot positions along the track (0..1), refreshed on every update; drives notch fill.
+const dotTs = ref([]);
 
 function computeBubbleThresholds() {
   const wrap = trackWrapRef.value;
@@ -265,16 +316,15 @@ function computeBubbleThresholds() {
   return { thresholds, trackTop, trackBottom };
 }
 
-function getPassedIndexByIntersection() {
-  const meta = computeBubbleThresholds();
-  if (!meta) return 0;
-
-  const p = clamp01(progress01.value);
-  let idx = 0;
-  for (let i = 0; i < meta.thresholds.length; i++) {
-    if (p + 1e-6 >= meta.thresholds[i].t) idx = i;
-  }
-  return idx;
+// A notch is filled once the progress line has passed it. Notches sit evenly between this
+// item's dot and the next dot (or the end of the rail).
+function notchPassed(itemIdx, k) {
+  const list = items.value;
+  const start = dotTs.value[itemIdx];
+  if (start === undefined) return false;
+  const end = itemIdx + 1 < list.length ? (dotTs.value[itemIdx + 1] ?? 1) : 1;
+  const n = list[itemIdx].count;
+  return progress01.value + 1e-6 >= start + ((end - start) * k) / (n + 1);
 }
 
 function isActive(item) {
@@ -336,20 +386,6 @@ function cleanup() {
     // no-op
   }
   onWindowLoad = null;
-}
-
-function getRenderedIndexForActiveYear(year) {
-  if (!year || !items.value.length) return 0;
-
-  // If the active year is part of the collapsed range, map it to the 'Earlier' item.
-  const cutoff = Number(props.collapseBeforeYear);
-  if (Number.isFinite(cutoff) && year <= cutoff) {
-    const idx = items.value.findIndex((it) => it.type === "earlier");
-    return idx === -1 ? items.value.length - 1 : idx;
-  }
-
-  const idx = items.value.findIndex((it) => it.type === "year" && it.year === year);
-  return idx === -1 ? 0 : idx;
 }
 
 // New helpers: compute geometry using getBoundingClientRect (robust to layout shifts)
@@ -415,24 +451,59 @@ onMounted(async () => {
     const currentYear = tops[activeIdx]?.year ?? tops[0]?.year ?? null;
     activeYear.value = currentYear;
 
-    // Clamp to last item when at the very bottom so the final bubble always fills.
-    const renderedIdx = isNearBottom(scrollerEl)
-      ? items.value.length - 1
-      : getRenderedIndexForActiveYear(currentYear);
+    const list = items.value;
+    const lastIdx = list.length - 1;
+    const nearBottom = isNearBottom(scrollerEl);
 
-    activeIndex.value = Math.max(0, Math.min(items.value.length - 1, renderedIdx));
+    // Where each rail item's section starts, in scroll coordinates (same targets the
+    // click-to-jump uses), and where each dot sits along the track (0..1).
+    const itemTops = list.map((it) => {
+      const el = document.getElementById(`year-${it.year}`);
+      return el ? getElementTopInScroller(el, scrollerEl) : Infinity;
+    });
+    const thr = computeBubbleThresholds()?.thresholds;
+    const dotT = thr
+      ? list.map((it) => thr.find((x) => x.key === it.key)?.t ?? 1)
+      : null;
 
-    // Progress: based on true scroll range so it reaches 100% at the bottom.
-    const max = getScrollMax(scrollerEl);
-    const p = max > 0 ? clamp01(scrollTop / max) : 0;
-    progress01.value = p;
+    if (dotT) dotTs.value = dotT;
 
-    // Active bubble is the last one whose center has been intersected by the fill.
-    activeIndex.value = Math.max(0, Math.min(items.value.length - 1, getPassedIndexByIntersection()));
+    let idx = 0;
+    for (let i = 0; i < itemTops.length; i++) {
+      if (itemTops[i] <= viewLine) idx = i;
+    }
+    if (nearBottom) idx = lastIdx;
+
+    // Progress runs from dot to dot as sections pass the view line, so the fill reaches
+    // each dot exactly when its year becomes active (raw scroll fraction drifts from that).
+    let p;
+    if (nearBottom) {
+      p = 1;
+    } else if (dotT) {
+      if (idx >= lastIdx) {
+        p = dotT[lastIdx];
+      } else {
+        const span = itemTops[idx + 1] - itemTops[idx];
+        const f = span > 0 ? clamp01((viewLine - itemTops[idx]) / span) : 0;
+        const from = viewLine < itemTops[0] ? 0 : dotT[idx];
+        p = from + (dotT[idx + 1] - from) * f;
+      }
+    } else {
+      const max = getScrollMax(scrollerEl);
+      p = max > 0 ? clamp01(scrollTop / max) : 0;
+    }
+    progress01.value = clamp01(p);
+
+    // While gliding to a clicked year, that year stays active (no flicker through the
+    // years in between).
+    activeIndex.value =
+      navLockIndex.value !== null
+        ? navLockIndex.value
+        : Math.max(0, Math.min(lastIdx, idx));
 
     if (progressRef.value) {
       gsap.to(progressRef.value, {
-        scaleY: p,
+        scaleY: progress01.value,
         duration: 0.12,
         ease: "none",
         overwrite: true,
@@ -512,6 +583,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   clearTimeout(pingTimer);
+  releaseNavLock();
   cleanup();
 });
 </script>
@@ -539,6 +611,16 @@ onBeforeUnmount(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .rail-dot {
+    transition: none;
+  }
+}
+
+.rail-notch {
+  transition: background-color 250ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-notch {
     transition: none;
   }
 }

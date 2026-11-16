@@ -3,6 +3,7 @@
     <template #rail>
       <ProjectsRailTimeline
         :years="years"
+        :counts="yearCounts"
         :collapse-before-year="2019"
         collapsed-label="Earlier"
       >
@@ -199,6 +200,12 @@ const years = computed(() => {
     .filter((n) => Number.isFinite(n))
     .sort((a, b) => b - a);
 });
+
+const yearCounts = computed(() =>
+  Object.fromEntries(
+    years.value.map((y) => [y, projectsByYear.value[y]?.length || 0]),
+  ),
+);
 
 const projectsByYear = computed(() => {
   const grouped = {};
