@@ -17,9 +17,10 @@
         ref="panelRef"
         data-modal-panel
         class="gallery-panel relative w-[98vw] max-w-[1600px] overflow-hidden rounded-2xl border border-white/10 bg-base-background/95 shadow-[0_32px_80px_-16px_rgb(0_0_0/0.75)] ring-1 ring-black/40 backdrop-blur"
-        :class="{ 'is-closing': closing, 'is-dragging': dragging }"
+        :class="{ 'is-closing': closing, 'is-dragging': dragging, 'is-expanded': expanded }"
         :style="panelStyle"
         @click.stop
+        @pointerdown.capture="onPanelPointerDown"
       >
         <!-- Header: a slim bar above the image, so the screenshot itself stays unobstructed
              (titles and controls floating over light, busy UI screenshots were hard to read). -->
@@ -88,12 +89,28 @@
               />
             </button>
             <button
+              v-if="canAutoplay"
+              type="button"
+              class="kbd-focus h-11 w-11 cursor-pointer items-center justify-center rounded-full text-slate-300 transition-[background-color,color,scale] duration-200 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white motion-reduce:transition-none md:h-10 md:w-10 inline-flex"
+              :aria-label="playing ? 'Pause slideshow' : 'Play slideshow'"
+              :aria-pressed="playing"
+              @click="togglePlaying"
+            >
+              <AppIcon
+                :icon="playing ? 'fa-light fa-pause' : 'fa-light fa-play'"
+                aria-hidden="true"
+              />
+            </button>
+            <button
               type="button"
               class="kbd-focus h-11 w-11 cursor-pointer items-center justify-center rounded-full text-slate-300 transition-[background-color,color,scale] duration-200 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white motion-reduce:transition-none md:h-10 md:w-10 hidden md:inline-flex"
-              aria-label="Toggle fullscreen"
+              :aria-label="isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'"
               @click="toggleFullscreen"
             >
-              <AppIcon icon="fa-light fa-expand" aria-hidden="true" />
+              <AppIcon
+                :icon="isFullscreen ? 'fa-light fa-compress' : 'fa-light fa-expand'"
+                aria-hidden="true"
+              />
             </button>
             <span
               class="mx-1 hidden h-5 w-px bg-white/10 md:block"
@@ -145,6 +162,8 @@
             @pointermove="onPointerMove"
             @pointerup="onPointerUp"
             @pointercancel="onPointerCancel"
+            @pointerenter="hovering = true"
+            @pointerleave="hovering = false"
           >
             <!-- Native scroll-snap carousel: touch drag, momentum and edge resistance come from the
                  platform (1:1 tracking, interruptible); arrows/keys use the same scroll position. -->
@@ -232,13 +251,26 @@
                   @click="goTo(i)"
                 >
                   <span
-                    class="block h-1.5 rounded-full transition-[width,background-color] duration-300 ease-out motion-reduce:transition-none"
+                    class="relative block h-1.5 overflow-hidden rounded-full transition-[width,background-color] duration-300 ease-out motion-reduce:transition-none"
                     :class="
                       i === activeIndex
-                        ? 'w-6 bg-sky-300'
+                        ? showProgress
+                          ? 'w-9 bg-white/25'
+                          : 'w-6 bg-sky-300'
                         : 'w-1.5 bg-white/45 group-hover/dot:bg-white/90'
                     "
-                  />
+                  >
+                    <span
+                      v-if="i === activeIndex && showProgress"
+                      :key="`p-${activeIndex}`"
+                      class="gallery-progress absolute inset-0 rounded-full bg-sky-300"
+                      :style="{
+                        animationDuration: AUTOPLAY_MS + 'ms',
+                        animationPlayState: progressRunning ? 'running' : 'paused',
+                      }"
+                      @animationend="onProgressEnd"
+                    />
+                  </span>
                 </button>
               </template>
               <span
@@ -289,17 +321,6 @@
               />
             </button>
           </div>
-
-          <p
-            class="pointer-events-none absolute right-5 top-1/2 hidden -translate-y-1/2 items-center gap-1.5 text-[11px] tracking-wide text-slate-400 lg:flex"
-            aria-hidden="true"
-          >
-            <kbd class="gallery-kbd">←</kbd>
-            <kbd class="gallery-kbd">→</kbd>
-            <span class="mr-2">browse</span>
-            <kbd class="gallery-kbd">Esc</kbd>
-            <span>close</span>
-          </p>
         </div>
 
         <p class="sr-only" aria-live="polite">
@@ -341,6 +362,7 @@ const router = useRouter();
 
 const ZOOM_FACTOR = 2.2;
 const MAX_DOTS = 10;
+const AUTOPLAY_MS = 5000;
 const SWIPE_CLOSE_PX = 110;
 
 const panelRef = ref(null);
@@ -349,6 +371,12 @@ const trackRef = ref(null);
 const thumbsRef = ref(null);
 const activeIndex = ref(0);
 const closing = ref(false);
+const playing = ref(false);
+const hovering = ref(false);
+const pageHidden = ref(false);
+const nativeFullscreen = ref(false);
+const expanded = ref(false);
+const isFullscreen = computed(() => nativeFullscreen.value || expanded.value);
 const copied = ref(false);
 const zoomedIndex = ref(null);
 const isZoomed = computed(() => zoomedIndex.value === activeIndex.value);
@@ -422,12 +450,74 @@ function goTo(index, { instant = false } = {}) {
   activeIndex.value = clamped;
 }
 
-const slidePrev = () => goTo(activeIndex.value - 1);
-const slideNext = () => goTo(activeIndex.value + 1);
+const slidePrev = () => {
+  stopAutoplay();
+  goTo(activeIndex.value - 1);
+};
+const slideNext = () => {
+  stopAutoplay();
+  goTo(activeIndex.value + 1);
+};
 
 // Keep the current slide aligned if the viewport changes size (rotation, fullscreen).
 function realign() {
   goTo(activeIndex.value, { instant: true });
+}
+
+
+// Slideshow: the active dot fills over AUTOPLAY_MS, then the next image shows. Any manual
+// navigation stops it for good; hover, a hidden tab, zoom and dragging only pause it.
+const canAutoplay = computed(
+  () => props.images.length > 1 && props.images.length <= MAX_DOTS,
+);
+const showProgress = computed(
+  () =>
+    playing.value &&
+    canAutoplay.value &&
+    activeIndex.value < props.images.length - 1,
+);
+const progressRunning = computed(
+  () =>
+    !hovering.value &&
+    !pageHidden.value &&
+    !isZoomed.value &&
+    !dragging.value &&
+    !closing.value,
+);
+
+function onProgressEnd() {
+  if (!playing.value) return;
+  goTo(activeIndex.value + 1);
+}
+
+function stopAutoplay() {
+  playing.value = false;
+}
+
+function togglePlaying() {
+  if (playing.value) {
+    playing.value = false;
+    return;
+  }
+  // Replaying from the last image starts over.
+  if (activeIndex.value >= props.images.length - 1) goTo(0);
+  playing.value = true;
+}
+
+function onPanelPointerDown(e) {
+  // Touching the stage, dots, thumbnails or arrows is the viewer taking over.
+  if (e.target.closest?.(".gallery-stage-wrap, .gallery-pill, .gallery-thumbs")) {
+    stopAutoplay();
+  }
+}
+
+function onVisibility() {
+  pageHidden.value = document.hidden;
+}
+
+function onFullscreenChange() {
+  nativeFullscreen.value = document.fullscreenElement === panelRef.value;
+  nextTick(realign);
 }
 
 // Moving to another image leaves zoom, and brings its thumbnail into view.
@@ -641,18 +731,27 @@ function onCaseStudyClick() {
   router.push(props.caseStudyHref);
 }
 
+// Native fullscreen where the browser allows it; otherwise (embedded panes, some webviews)
+// the panel simply fills the window.
 async function toggleFullscreen() {
   const el = panelRef.value;
   if (!el) return;
 
+  if (expanded.value) {
+    expanded.value = false;
+    nextTick(realign);
+    return;
+  }
+
   try {
-    if (!document.fullscreenElement) {
-      await el.requestFullscreen();
-    } else {
+    if (document.fullscreenElement) {
       await document.exitFullscreen();
+    } else {
+      await el.requestFullscreen();
     }
   } catch {
-    // no-op
+    expanded.value = true;
+    nextTick(realign);
   }
 }
 
@@ -662,6 +761,10 @@ function onKeydown(e) {
   // Esc leaves browser fullscreen first; a second press closes.
   if (document.fullscreenElement) return;
   e.preventDefault();
+  if (expanded.value) {
+    toggleFullscreen();
+    return;
+  }
   requestClose();
 }
 
@@ -681,6 +784,10 @@ watch(
       goTo(props.initialIndex, { instant: true });
       window.addEventListener("resize", realign);
       window.addEventListener("keydown", onKeydown, true);
+      document.addEventListener("visibilitychange", onVisibility);
+      document.addEventListener("fullscreenchange", onFullscreenChange);
+      hovering.value = false;
+      playing.value = canAutoplay.value && !prefersReducedMotion();
       animateOpenFromCard();
       return;
     }
@@ -688,6 +795,10 @@ watch(
     if (!wasOpen) return;
     window.removeEventListener("resize", realign);
     window.removeEventListener("keydown", onKeydown, true);
+    document.removeEventListener("visibilitychange", onVisibility);
+    document.removeEventListener("fullscreenchange", onFullscreenChange);
+    playing.value = false;
+    expanded.value = false;
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
 
     if (lastFocusedEl && lastFocusedEl.focus) {
@@ -706,6 +817,8 @@ onBeforeUnmount(() => {
   if (scrollRaf) cancelAnimationFrame(scrollRaf);
   window.removeEventListener("resize", realign);
   window.removeEventListener("keydown", onKeydown, true);
+  document.removeEventListener("visibilitychange", onVisibility);
+  document.removeEventListener("fullscreenchange", onFullscreenChange);
 });
 
 const titleId = `gallery-title-${Math.random().toString(36).slice(2)}`;
@@ -740,17 +853,37 @@ const internalOpen = computed({
   display: none;
 }
 
-.gallery-kbd {
-  min-width: 1.375rem;
-  padding: 0.125rem 0.375rem;
-  border: 1px solid rgb(255 255 255 / 0.14);
-  border-radius: 0.375rem;
-  background-color: rgb(255 255 255 / 0.05);
-  color: rgb(203 213 225);
-  font-family: inherit;
-  font-size: 0.6875rem;
-  line-height: 1rem;
-  text-align: center;
+.gallery-progress {
+  transform-origin: left center;
+  animation-name: gallery-progress-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+@keyframes gallery-progress-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Browser fullscreen: use the whole screen instead of the windowed panel. */
+.gallery-panel:fullscreen,
+.gallery-panel.is-expanded {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 0;
+  border: 0;
+  background-color: rgb(2 6 23);
 }
 
 /* Arrows sit over the image: ease colour, press-scale and the fade at either end. */
