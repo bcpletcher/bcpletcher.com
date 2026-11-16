@@ -31,15 +31,19 @@
                 @click.prevent="scrollToItem(item)"
               >
                 <span class="tracking-widest text-right pr-4">
-                  <span class="tabular-nums">{{ item.label }}</span>
+                  <span
+                    class="inline-block tabular-nums transition-transform duration-300 ease-out motion-reduce:transition-none"
+                    :class="isActive(item) ? 'translate-x-1' : ''"
+                    >{{ item.label }}</span
+                  >
                 </span>
 
                 <!-- Track column: dot is centered over the global line -->
                 <span class="relative h-full flex items-center justify-center" aria-hidden="true">
                   <span
                     :ref="(el) => setBubbleEl(item.key, el)"
-                    class="relative z-10 inline-flex h-4 w-4 rounded-full border bg-base-background transition-standard"
-                    :class="dotClasses(item)"
+                    class="rail-dot relative z-10 inline-flex h-4 w-4 rounded-full border bg-base-background"
+                    :class="[dotClasses(item), pingKey === item.key ? 'rail-dot-ping' : '']"
                   />
                 </span>
               </a>
@@ -199,6 +203,7 @@ function getEffectiveScrollerElForScrollTo() {
 function scrollToItem(item) {
   const year = item?.year;
   if (!year) return;
+  pingDot(item.key);
 
   const target = document.getElementById(`year-${year}`);
   if (!target) return;
@@ -286,9 +291,24 @@ function isPassed(item) {
   return idx <= activeIndex.value;
 }
 
+// Passed dots fill in; the active one also grows a little and gets a soft halo.
 function dotClasses(item) {
-  if (isActive(item) || isPassed(item)) return "border-sky-300 bg-sky-300";
+  if (isActive(item)) return "border-sky-300 bg-sky-300 scale-125 rail-dot-active";
+  if (isPassed(item)) return "border-sky-300 bg-sky-300";
   return "border-slate-700 bg-slate-700";
+}
+
+// Short pulse on the dot that was clicked while the page glides to its year.
+const pingKey = ref(null);
+let pingTimer = 0;
+async function pingDot(key) {
+  clearTimeout(pingTimer);
+  pingKey.value = null;
+  await nextTick();
+  pingKey.value = key;
+  pingTimer = setTimeout(() => {
+    pingKey.value = null;
+  }, 700);
 }
 
 function cleanup() {
@@ -491,6 +511,50 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(pingTimer);
   cleanup();
 });
 </script>
+
+<style scoped>
+@media (prefers-reduced-motion: no-preference) {
+  .rail-dot {
+    transition:
+      transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      background-color 280ms ease-out,
+      border-color 280ms ease-out,
+      box-shadow 360ms ease-out;
+  }
+
+  .rail-dot-ping::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 9999px;
+    border: 2px solid rgb(125 211 252);
+    animation: rail-ping 650ms ease-out forwards;
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-dot {
+    transition: none;
+  }
+}
+
+.rail-dot-active {
+  box-shadow: 0 0 0 4px rgb(125 211 252 / 0.2);
+}
+
+@keyframes rail-ping {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+</style>
