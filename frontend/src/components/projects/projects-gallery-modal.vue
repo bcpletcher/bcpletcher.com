@@ -7,106 +7,120 @@
     :panel-selector="flipFrom ? null : '[data-modal-panel]'"
     :close-on-backdrop="false"
     :close-on-escape="false"
-    @close="onWrapperClose"
   >
     <!-- Full-screen hit area: a click on the dim area (outside the panel) closes. -->
     <div
       class="flex h-full w-full items-center justify-center"
       @click.self="requestClose"
-      @keydown.esc.stop.prevent="requestClose"
     >
       <div
         ref="panelRef"
         data-modal-panel
-        class="gallery-panel relative w-[98vw] max-w-[1600px] overflow-hidden rounded-2xl border border-white/10 bg-base-background/90 shadow-2xl backdrop-blur"
+        class="gallery-panel relative w-[98vw] max-w-[1600px] overflow-hidden rounded-2xl border border-white/10 bg-base-background/95 shadow-[0_32px_80px_-16px_rgb(0_0_0/0.75)] ring-1 ring-black/40 backdrop-blur"
         :class="{ 'is-closing': closing, 'is-dragging': dragging }"
         :style="panelStyle"
         @click.stop
       >
-        <!-- Stage (image-led: the chrome floats over the image) -->
-        <div class="relative bg-black/40">
-          <!-- Header overlay -->
-          <header
-            class="gallery-chrome pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-4 bg-linear-to-b from-black/80 via-black/40 to-transparent px-4 pb-10 pt-3 sm:px-6"
-          >
-            <div class="min-w-0 pt-1.5">
-              <p
-                :id="titleId"
-                class="truncate text-sm font-semibold tracking-wide text-slate-100 [text-shadow:0_1px_8px_rgb(0_0_0/0.6)]"
-              >
-                {{ title || "Project Gallery" }}
-              </p>
-              <p :id="descId" class="sr-only">
-                Image gallery. Use the left and right arrow keys or swipe to
-                change images, double-tap to zoom, Escape or swipe down to
-                close.
-              </p>
-            </div>
+        <!-- Header: a slim bar above the image, so the screenshot itself stays unobstructed
+             (titles and controls floating over light, busy UI screenshots were hard to read). -->
+        <header
+          class="gallery-chrome flex h-13 items-center justify-between gap-3 border-b border-white/10 pl-4 pr-1 sm:pl-5 sm:pr-2"
+        >
+          <div class="flex min-w-0 items-baseline gap-3">
+            <p
+              :id="titleId"
+              class="truncate text-sm font-semibold tracking-wide text-slate-100"
+            >
+              {{ title || "Project Gallery" }}
+            </p>
+            <span
+              v-if="images.length > 1"
+              class="shrink-0 text-xs font-medium tabular-nums text-slate-400"
+              aria-hidden="true"
+            >
+              {{ activeIndex + 1 }} / {{ images.length }}
+            </span>
+            <p :id="descId" class="sr-only">
+              Image gallery. Use the left and right arrow keys or swipe to
+              change images, double-tap to zoom, Escape or swipe down to close.
+            </p>
+          </div>
 
-            <div class="pointer-events-auto flex shrink-0 items-center gap-2">
-              <a
-                v-if="caseStudyHref"
-                :href="caseStudyHref"
-                class="kbd-focus hidden h-10 items-center rounded-full border border-white/15 bg-black/40 px-4 text-xs font-semibold uppercase tracking-widest text-slate-100 backdrop-blur transition-standard hover:bg-black/60 focus-visible:bg-black/60 sm:inline-flex"
-                @click.prevent="onCaseStudyClick"
-              >
-                Case study
-              </a>
-              <button
-                type="button"
-                class="kbd-focus hidden h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/40 text-slate-100 backdrop-blur transition-standard hover:bg-black/60 focus-visible:bg-black/60 md:inline-flex"
-                :aria-pressed="isZoomed"
-                :aria-label="isZoomed ? 'Zoom out' : 'Zoom in'"
-                @click="toggleZoom()"
-              >
-                <AppIcon
-                  :icon="
-                    isZoomed
-                      ? 'fa-light fa-magnifying-glass-minus'
-                      : 'fa-light fa-magnifying-glass-plus'
-                  "
-                  aria-hidden="true"
-                />
-              </button>
-              <button
-                v-if="shareUrl"
-                type="button"
-                class="kbd-focus inline-flex h-10 cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-black/40 px-3 text-xs font-semibold uppercase tracking-widest text-slate-100 backdrop-blur transition-standard hover:bg-black/60 focus-visible:bg-black/60 sm:px-4"
-                aria-label="Copy link to this project"
-                @click="copyLink"
-              >
-                <AppIcon
-                  :icon="copied ? 'fa-light fa-check' : 'fa-light fa-link'"
-                  aria-hidden="true"
-                />
-                <span class="hidden sm:inline">{{
-                  copied ? "Copied" : "Copy link"
-                }}</span>
-              </button>
-              <button
-                type="button"
-                class="kbd-focus hidden h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/40 text-slate-100 backdrop-blur transition-standard hover:bg-black/60 focus-visible:bg-black/60 md:inline-flex"
-                aria-label="Toggle fullscreen"
-                @click="toggleFullscreen"
-              >
-                <AppIcon icon="fa-light fa-expand" aria-hidden="true" />
-              </button>
-              <button
-                ref="closeButtonRef"
-                type="button"
-                class="kbd-focus inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/40 text-slate-100 backdrop-blur transition-standard hover:bg-black/60 focus-visible:bg-black/60"
-                aria-label="Close"
-                @click="requestClose"
-              >
-                <AppIcon icon="fa-light fa-xmark" aria-hidden="true" />
-              </button>
-            </div>
-          </header>
+          <div class="flex shrink-0 items-center gap-0.5">
+            <a
+              v-if="caseStudyHref"
+              :href="caseStudyHref"
+              class="kbd-focus relative mr-1.5 hidden h-9 items-center rounded-full border border-sky-300/30 bg-sky-300/10 px-3.5 text-[11px] font-semibold uppercase tracking-widest text-sky-200 transition-[background-color,border-color,scale] duration-200 after:absolute after:inset-x-0 after:-inset-y-1 hover:border-sky-300/50 hover:bg-sky-300/20 focus-visible:border-sky-300/50 focus-visible:bg-sky-300/20 motion-reduce:transition-none sm:inline-flex"
+              @click.prevent="onCaseStudyClick"
+            >
+              Case study
+            </a>
+            <button
+              v-if="shareUrl"
+              type="button"
+              class="kbd-focus relative inline-flex h-11 w-11 cursor-pointer items-center justify-center gap-2 rounded-full text-[11px] font-semibold uppercase tracking-widest transition-[background-color,border-color,color,scale] duration-200 after:absolute after:inset-x-0 after:-inset-y-1 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white motion-reduce:transition-none sm:mr-1.5 sm:h-9 sm:w-auto sm:border sm:border-white/10 sm:px-3.5"
+              :class="copied ? 'text-sky-300' : 'text-slate-300'"
+              aria-label="Copy link to this project"
+              @click="copyLink"
+            >
+              <AppIcon
+                :icon="copied ? 'fa-light fa-check' : 'fa-light fa-link'"
+                aria-hidden="true"
+              />
+              <span class="hidden sm:inline">{{
+                copied ? "Copied" : "Copy link"
+              }}</span>
+            </button>
+            <button
+              type="button"
+              class="kbd-focus h-11 w-11 cursor-pointer items-center justify-center rounded-full text-slate-300 transition-[background-color,color,scale] duration-200 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white motion-reduce:transition-none md:h-10 md:w-10 hidden md:inline-flex"
+              :aria-pressed="isZoomed"
+              :aria-label="isZoomed ? 'Zoom out' : 'Zoom in'"
+              @click="toggleZoom()"
+            >
+              <AppIcon
+                :icon="
+                  isZoomed
+                    ? 'fa-light fa-magnifying-glass-minus'
+                    : 'fa-light fa-magnifying-glass-plus'
+                "
+                aria-hidden="true"
+              />
+            </button>
+            <button
+              type="button"
+              class="kbd-focus h-11 w-11 cursor-pointer items-center justify-center rounded-full text-slate-300 transition-[background-color,color,scale] duration-200 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white motion-reduce:transition-none md:h-10 md:w-10 hidden md:inline-flex"
+              aria-label="Toggle fullscreen"
+              @click="toggleFullscreen"
+            >
+              <AppIcon icon="fa-light fa-expand" aria-hidden="true" />
+            </button>
+            <span
+              class="mx-1 hidden h-5 w-px bg-white/10 md:block"
+              aria-hidden="true"
+            />
+            <button
+              ref="closeButtonRef"
+              type="button"
+              class="kbd-focus h-11 w-11 cursor-pointer items-center justify-center rounded-full text-slate-300 transition-[background-color,color,scale] duration-200 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white motion-reduce:transition-none md:h-10 md:w-10 inline-flex"
+              aria-label="Close"
+              @click="requestClose"
+            >
+              <AppIcon
+                icon="fa-light fa-xmark"
+                class="text-base"
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+        </header>
 
+        <!-- Stage -->
+        <div class="gallery-stage-wrap relative bg-black/50">
           <!-- Previous / next -->
           <button
             type="button"
-            class="gallery-chrome kbd-focus absolute left-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/40 text-slate-100 backdrop-blur transition-standard hover:bg-black/60 focus-visible:bg-black/60 disabled:pointer-events-none disabled:opacity-0 sm:inline-flex"
+            class="gallery-chrome gallery-nav kbd-focus absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-slate-950/55 text-white shadow-lg shadow-black/30 ring-1 ring-black/20 backdrop-blur-md hover:bg-slate-950/80 focus-visible:bg-slate-950/80 disabled:pointer-events-none disabled:opacity-0 sm:inline-flex left-3 lg:left-4"
             aria-label="Previous image"
             :disabled="activeIndex <= 0"
             @click="slidePrev"
@@ -115,7 +129,7 @@
           </button>
           <button
             type="button"
-            class="gallery-chrome kbd-focus absolute right-3 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-black/40 text-slate-100 backdrop-blur transition-standard hover:bg-black/60 focus-visible:bg-black/60 disabled:pointer-events-none disabled:opacity-0 sm:inline-flex"
+            class="gallery-chrome gallery-nav kbd-focus absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-slate-950/55 text-white shadow-lg shadow-black/30 ring-1 ring-black/20 backdrop-blur-md hover:bg-slate-950/80 focus-visible:bg-slate-950/80 disabled:pointer-events-none disabled:opacity-0 sm:inline-flex right-3 lg:right-4"
             aria-label="Next image"
             :disabled="activeIndex >= images.length - 1"
             @click="slideNext"
@@ -125,8 +139,8 @@
 
           <!-- Stage: as large as the viewport allows -->
           <div
-            class="gallery-stage aspect-video max-h-[calc(100dvh-1.5rem)] w-full sm:max-h-[calc(100dvh-3rem)]"
-            :class="images.length > 1 ? 'md:max-h-[calc(100dvh-8.25rem)]!' : ''"
+            class="gallery-stage aspect-video max-h-[calc(100dvh-8rem)] w-full sm:max-h-[calc(100dvh-6.5rem)]"
+            :class="images.length > 1 ? 'md:max-h-[calc(100dvh-11.25rem)]!' : ''"
             @pointerdown="onPointerDown"
             @pointermove="onPointerMove"
             @pointerup="onPointerUp"
@@ -195,13 +209,14 @@
             </div>
           </div>
 
-          <!-- Capsule pagination + keyboard hint -->
+          <!-- Capsule pagination: a plain row under the image on phones (the stage is short
+               there, so nothing covers it); a frosted capsule over the image from sm up. -->
           <div
             v-if="images.length > 1"
-            class="gallery-chrome pointer-events-none absolute inset-x-0 bottom-3 z-20 flex items-end justify-center px-4"
+            class="gallery-chrome pointer-events-none flex justify-center border-t border-white/10 sm:absolute sm:inset-x-0 sm:bottom-4 sm:z-20 sm:border-0"
           >
             <div
-              class="gallery-pill pointer-events-auto flex items-center gap-1 rounded-full border border-white/15 bg-black/50 px-2 py-1 backdrop-blur-md"
+              class="gallery-pill pointer-events-auto flex items-center rounded-full sm:border sm:border-white/15 sm:bg-slate-950/60 sm:px-1.5 sm:shadow-lg sm:shadow-black/30 sm:ring-1 sm:ring-black/20 sm:backdrop-blur-md"
               role="tablist"
               aria-label="Choose image"
             >
@@ -211,72 +226,80 @@
                   :key="i"
                   type="button"
                   role="tab"
-                  class="kbd-focus group/dot flex h-8 cursor-pointer items-center justify-center px-1"
+                  class="kbd-focus group/dot flex h-11 cursor-pointer items-center justify-center rounded-full px-2.5 sm:h-9 sm:px-1.5"
                   :aria-selected="i === activeIndex"
                   :aria-label="`Image ${i + 1} of ${images.length}`"
                   @click="goTo(i)"
                 >
                   <span
-                    class="block h-2 rounded-full transition-[width,background-color] duration-300 ease-out motion-reduce:transition-none"
+                    class="block h-1.5 rounded-full transition-[width,background-color] duration-300 ease-out motion-reduce:transition-none"
                     :class="
                       i === activeIndex
-                        ? 'w-6 bg-slate-100'
-                        : 'w-2 bg-white/40 group-hover/dot:bg-white/70'
+                        ? 'w-6 bg-sky-300'
+                        : 'w-1.5 bg-white/45 group-hover/dot:bg-white/90'
                     "
                   />
                 </button>
               </template>
               <span
                 v-else
-                class="px-3 py-1 text-xs font-semibold tracking-widest text-slate-100"
+                class="px-3 py-2.5 text-xs font-semibold tabular-nums tracking-widest text-slate-100 sm:py-1.5"
                 aria-hidden="true"
               >
                 {{ activeIndex + 1 }} / {{ images.length }}
               </span>
             </div>
           </div>
-
-          <p
-            class="gallery-chrome pointer-events-none absolute bottom-4 right-6 z-20 hidden rounded-full bg-black/50 px-3 py-1.5 text-xs tracking-wide text-slate-200 backdrop-blur-md lg:block"
-            aria-hidden="true"
-          >
-            ← → browse · Esc close
-          </p>
         </div>
 
-        <!-- Thumbnails -->
+        <!-- Thumbnails + keyboard hint -->
         <div
           v-if="images.length > 1"
-          ref="thumbsRef"
-          class="gallery-chrome hidden gap-2 overflow-x-auto border-t border-white/10 bg-black/30 px-4 py-3 md:flex"
-          role="group"
-          aria-label="Thumbnails"
+          class="gallery-chrome relative hidden border-t border-white/10 md:block"
         >
-          <button
-            v-for="(src, i) in images"
-            :key="'t-' + getImageKey(src, i)"
-            type="button"
-            class="kbd-focus relative aspect-video h-14 shrink-0 cursor-pointer overflow-hidden rounded-md border transition-[border-color,opacity] duration-200 motion-reduce:transition-none"
-            :class="
-              i === activeIndex
-                ? 'border-sky-300 opacity-100'
-                : 'border-white/10 opacity-60 hover:opacity-100'
-            "
-            :data-thumb-index="i"
-            :aria-label="`Show image ${i + 1}`"
-            :aria-current="i === activeIndex ? 'true' : undefined"
-            @click="goTo(i)"
+          <div
+            ref="thumbsRef"
+            class="gallery-thumbs flex gap-2.5 overflow-x-auto px-4 py-3 lg:px-48"
+            role="group"
+            aria-label="Thumbnails"
           >
-            <img
-              v-img-fade
-              class="h-full w-full object-cover"
-              :src="thumbFor(src)"
-              alt=""
-              loading="lazy"
-              decoding="async"
-              draggable="false"
-            />
-          </button>
+            <button
+              v-for="(src, i) in images"
+              :key="'t-' + getImageKey(src, i)"
+              type="button"
+              class="kbd-focus relative aspect-video h-12 shrink-0 cursor-pointer overflow-hidden rounded-md ring-offset-base-background transition-[opacity,box-shadow,scale] duration-200 first:ml-auto last:mr-auto motion-reduce:transition-none"
+              :class="
+                i === activeIndex
+                  ? 'opacity-100 ring-2 ring-sky-300 ring-offset-2'
+                  : 'opacity-50 ring-1 ring-white/15 hover:opacity-100 focus-visible:opacity-100'
+              "
+              :data-thumb-index="i"
+              :aria-label="`Show image ${i + 1}`"
+              :aria-current="i === activeIndex ? 'true' : undefined"
+              @click="goTo(i)"
+            >
+              <img
+                v-img-fade
+                class="h-full w-full object-cover"
+                :src="thumbFor(src)"
+                alt=""
+                loading="lazy"
+                decoding="async"
+                draggable="false"
+              />
+            </button>
+          </div>
+
+          <p
+            class="pointer-events-none absolute right-5 top-1/2 hidden -translate-y-1/2 items-center gap-1.5 text-[11px] tracking-wide text-slate-400 lg:flex"
+            aria-hidden="true"
+          >
+            <kbd class="gallery-kbd">←</kbd>
+            <kbd class="gallery-kbd">→</kbd>
+            <span class="mr-2">browse</span>
+            <kbd class="gallery-kbd">Esc</kbd>
+            <span>close</span>
+          </p>
         </div>
 
         <p class="sr-only" aria-live="polite">
@@ -408,11 +431,10 @@ function realign() {
 }
 
 // Moving to another image leaves zoom, and brings its thumbnail into view.
-watch(activeIndex, async (i, prev) => {
+watch(activeIndex, async (i) => {
   if (zoomedIndex.value !== null && zoomedIndex.value !== i) {
     zoomedIndex.value = null;
   }
-  void prev;
   await nextTick();
   const thumb = thumbsRef.value?.querySelector(`[data-thumb-index="${i}"]`);
   if (!thumb || !thumbsRef.value) return;
@@ -598,18 +620,16 @@ async function requestClose({ skipFlip = false } = {}) {
   emit("close");
 }
 
-function onWrapperClose() {
-  // The wrapper no longer closes itself (backdrop/Esc are handled here), so this only fires
-  // for programmatic closes; nothing to do.
-}
 
 /* ---------- misc ---------- */
 
+let copiedTimer = 0;
 async function copyLink() {
   try {
     await navigator.clipboard.writeText(props.shareUrl);
     copied.value = true;
-    setTimeout(() => (copied.value = false), 1800);
+    clearTimeout(copiedTimer);
+    copiedTimer = setTimeout(() => (copied.value = false), 1800);
   } catch {
     // Clipboard unavailable: fall back to selecting nothing, the URL is already in the bar.
   }
@@ -636,6 +656,15 @@ async function toggleFullscreen() {
   }
 }
 
+// Esc closes from anywhere (focus may sit on the dialog root right after opening).
+function onKeydown(e) {
+  if (e.key !== "Escape" || e.defaultPrevented) return;
+  // Esc leaves browser fullscreen first; a second press closes.
+  if (document.fullscreenElement) return;
+  e.preventDefault();
+  requestClose();
+}
+
 let lastFocusedEl = null;
 
 watch(
@@ -651,12 +680,14 @@ watch(
       await nextTick();
       goTo(props.initialIndex, { instant: true });
       window.addEventListener("resize", realign);
+      window.addEventListener("keydown", onKeydown, true);
       animateOpenFromCard();
       return;
     }
 
     if (!wasOpen) return;
     window.removeEventListener("resize", realign);
+    window.removeEventListener("keydown", onKeydown, true);
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
 
     if (lastFocusedEl && lastFocusedEl.focus) {
@@ -671,8 +702,10 @@ watch(
 );
 
 onBeforeUnmount(() => {
+  clearTimeout(copiedTimer);
   if (scrollRaf) cancelAnimationFrame(scrollRaf);
   window.removeEventListener("resize", realign);
+  window.removeEventListener("keydown", onKeydown, true);
 });
 
 const titleId = `gallery-title-${Math.random().toString(36).slice(2)}`;
@@ -699,6 +732,35 @@ const internalOpen = computed({
   scrollbar-width: thin;
 }
 
+.gallery-thumbs {
+  scrollbar-width: none;
+}
+
+.gallery-thumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.gallery-kbd {
+  min-width: 1.375rem;
+  padding: 0.125rem 0.375rem;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 0.375rem;
+  background-color: rgb(255 255 255 / 0.05);
+  color: rgb(203 213 225);
+  font-family: inherit;
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  text-align: center;
+}
+
+/* Arrows sit over the image: ease colour, press-scale and the fade at either end. */
+.gallery-chrome.gallery-nav {
+  transition:
+    opacity 180ms ease-out,
+    background-color 200ms ease-out,
+    scale 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
 .gallery-panel {
   transition:
     transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -718,6 +780,10 @@ const internalOpen = computed({
   opacity: 0;
 }
 
+.gallery-panel.is-closing .gallery-stage-wrap {
+  background-color: transparent;
+}
+
 .gallery-panel.is-closing {
   background-color: transparent;
   border-color: transparent;
@@ -727,7 +793,8 @@ const internalOpen = computed({
 
 @media (prefers-reduced-motion: reduce) {
   .gallery-panel,
-  .gallery-chrome {
+  .gallery-chrome,
+  .gallery-chrome.gallery-nav {
     transition: none;
   }
 }
