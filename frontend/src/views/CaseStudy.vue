@@ -167,18 +167,51 @@
             <p v-else class="leading-relaxed text-slate-400">{{ s.hint }}</p>
           </div>
 
-          <!-- Screens that illustrate this section. Tapping one opens the lightbox on it. -->
+          <!-- Screens that illustrate this section. Gallery screens open the lightbox on tap. -->
           <div
             v-if="sectionFigures[i]?.length"
             class="grid gap-4 md:col-start-2"
-            :class="sectionFigures[i].length > 1 ? 'sm:grid-cols-2' : ''"
+            :class="
+              sectionFigures[i].length > 1 &&
+              sectionFigures[i].every((f) => f.kind === 'gallery')
+                ? 'sm:grid-cols-2'
+                : ''
+            "
           >
             <figure
-              v-for="(fig, fi) in sectionFigures[i]"
-              :key="fig.index"
+              v-for="fig in sectionFigures[i]"
+              :key="fig.key"
               class="flex flex-col gap-3"
             >
+              <div
+                v-if="fig.kind === 'compare'"
+                class="rounded-xl border border-white/10 bg-white/[0.03] p-1 shadow-xl shadow-black/30"
+              >
+                <BeforeAfter
+                  :before="fig.before"
+                  :after="fig.after"
+                  :before-alt="fig.beforeAlt"
+                  :after-alt="fig.afterAlt"
+                />
+              </div>
+
+              <div
+                v-else-if="fig.kind === 'image'"
+                class="rounded-xl border border-white/10 bg-white/[0.03] p-1 shadow-xl shadow-black/30"
+              >
+                <img
+                  class="aspect-video w-full rounded-lg object-cover object-top ring-1 ring-black/20"
+                  :src="fig.src"
+                  :alt="fig.alt"
+                  width="1280"
+                  height="720"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+
               <button
+                v-else
                 type="button"
                 class="kbd-focus group/fig relative block w-full cursor-zoom-in overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-1 text-left shadow-xl shadow-black/30 transition-[border-color] duration-200 hover:border-sky-300/40 focus-visible:border-sky-300/40 motion-reduce:transition-none"
                 :aria-label="`Open screenshot ${fig.index + 1} of ${project.projectName} in the lightbox`"
@@ -189,7 +222,11 @@
                   class="aspect-video w-full rounded-lg object-cover ring-1 ring-black/20 transition-transform duration-500 ease-out group-hover/fig:scale-[1.02] motion-reduce:transition-none"
                   :src="fig.img.src"
                   :srcset="fig.img.srcset || undefined"
-                  :sizes="sectionFigures[i].length > 1 ? '(min-width: 896px) 22rem, 100vw' : '(min-width: 896px) 40rem, 100vw'"
+                  :sizes="
+                    sectionFigures[i].length > 1
+                      ? '(min-width: 896px) 22rem, 100vw'
+                      : '(min-width: 896px) 40rem, 100vw'
+                  "
                   :alt="`${project.projectName} screen ${fig.index + 1}`"
                   width="1280"
                   height="720"
@@ -203,9 +240,10 @@
                   <AppIcon icon="fa-light fa-magnifying-glass-plus" />
                 </span>
               </button>
+
               <figcaption class="text-sm leading-relaxed text-slate-500">
                 {{
-                  content?.sections?.[s.title]?.captions?.[fi] ||
+                  fig.caption ||
                   "Caption to be added: what this screen shows and why it matters."
                 }}
               </figcaption>
@@ -259,6 +297,7 @@ import { computed, onBeforeUnmount, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import { ProjectsGalleryModal, useProjectGallery } from "@/composables/useProjectGallery.js";
+import BeforeAfter from "@/components/shared/before-after.vue";
 import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsLoadState from "@/components/shared/projects-load-state.vue";
 import TechTags from "@/components/shared/tech-tags.vue";
@@ -312,16 +351,23 @@ const hero = computed(() => {
 // Index 0 is the hero above, so figures start at the second image.
 const sectionFigures = computed(() => {
   const imgs = (project.value?.images || []).filter(Boolean);
-  const fig = (index) => ({
+  const fromGallery = (index) => ({
+    kind: "gallery",
+    key: `g-${index}`,
     index,
     img: buildResponsiveImageSourcesFromImageValue(imgs[index], {
       widths: [480, 960],
     }),
   });
   const byTitle = { Process: [1, 2], Outcome: [3] };
-  return SECTIONS.map((s) =>
-    (byTitle[s.title] || []).filter((n) => n < imgs.length).map(fig),
-  );
+  return SECTIONS.map((s) => {
+    // Written figures (static files) win; otherwise fall back to the project's gallery.
+    const written = content.value?.sections?.[s.title]?.figures;
+    if (written?.length) {
+      return written.map((f, n) => ({ ...f, key: `w-${s.title}-${n}` }));
+    }
+    return (byTitle[s.title] || []).filter((n) => n < imgs.length).map(fromGallery);
+  });
 });
 
 const {

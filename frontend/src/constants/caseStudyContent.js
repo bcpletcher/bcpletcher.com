@@ -4,8 +4,11 @@
 // Shape:
 //   role, timeline            strings for the Role / Timeline row
 //   summary                   optional; overrides the project's card summary at the top
-//   sections[<section title>] { body: string[], points?: { title, text }[], captions?: string[] }
-//   (captions line up with the screens shown in that section)
+//   sections[<section title>] { body: string[], points?: { title, text }[], figures?: Figure[] }
+//   Figure: { kind: "image", src, alt, caption } or
+//           { kind: "compare", before, after, beforeAlt, afterAlt, caption }
+//   Static files live in public/case-studies/<slug>/. Sections without figures fall back to
+//   the project's own gallery images.
 export const CASE_STUDY_CONTENT = {
   "community-transit": {
     role: "Senior Software Engineer, BlueModus",
@@ -22,6 +25,15 @@ export const CASE_STUDY_CONTENT = {
       "My role": {
         body: [
           "I joined the BlueModus team on this engagement in June 2024 and have worked on it continuously since. I build React and TypeScript features inside the Sitefinity CMS and take each ticket from implementation through review and merge.",
+        ],
+        figures: [
+          {
+            kind: "image",
+            src: "/case-studies/community-transit/plan-my-trip.webp",
+            alt: "The Plan My Trip page",
+            caption:
+              "Plan My Trip, one of the tools I built features for, including date and time entry and current-location support.",
+          },
         ],
         points: [
           {
@@ -64,17 +76,39 @@ export const CASE_STUDY_CONTENT = {
             text: "A click-to-load video preview removes the embed cost from page load, and a small vanilla JavaScript modal replaced a heavier legacy React one.",
           },
         ],
-        captions: [
-          "Maps & Schedules: route maps with the rebuilt landing and favorites experience.",
-          "Find My Bus: live arrivals beside a map, with updates announced to screen readers.",
+        figures: [
+          {
+            kind: "compare",
+            before: "/case-studies/community-transit/find-my-bus-before.webp",
+            after: "/case-studies/community-transit/find-my-bus-after.webp",
+            beforeAlt: "The previous Find My Bus page",
+            afterAlt: "The rebuilt Find My Bus page",
+            caption:
+              "Find My Bus, before and after. Drag the handle to compare the previous page with the rebuilt version.",
+          },
         ],
       },
       Outcome: {
         body: [
           "The redesigned trip planning, rider alerts and Maps & Schedules experiences moved through the client's review process, with the new Maps & Schedules available alongside the legacy pages for review before cutover. A broad accessibility backlog was closed across trip planning, the home page, news, the header and print flows.",
         ],
-        captions: [
-          "Rider Alerts: alerts grouped by route, with clear status and details.",
+        figures: [
+          {
+            kind: "compare",
+            before: "/case-studies/community-transit/maps-and-schedules-before.webp",
+            after: "/case-studies/community-transit/maps-and-schedules-after.webp",
+            beforeAlt: "The previous Maps & Schedules page",
+            afterAlt: "The rebuilt Maps & Schedules page",
+            caption:
+              "Maps & Schedules, before and after. The rebuilt version separates maps and guides from schedule search.",
+          },
+          {
+            kind: "image",
+            src: "/case-studies/community-transit/rider-alerts.webp",
+            alt: "The Rider Alerts page",
+            caption:
+              "Rider Alerts: current alerts for Community Transit and Sound Transit, with real-time and scheduled views.",
+          },
         ],
       },
     },
