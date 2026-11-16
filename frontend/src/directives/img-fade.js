@@ -27,11 +27,17 @@ const getObserver = () => {
 export default {
   mounted(el) {
     el.classList.add("img-fade");
-    const reveal = () => el.classList.add("is-loaded");
+    // The frame pulses like the project skeletons until the image has arrived.
+    const frame = el.parentElement;
+    const reveal = () => {
+      el.classList.add("is-loaded");
+      frame?.classList.remove("img-skeleton");
+    };
     if (el.complete && el.naturalWidth > 0) {
       reveal();
       return;
     }
+    frame?.classList.add("img-skeleton");
     el.addEventListener("load", reveal, { once: true });
     el.addEventListener("error", reveal, { once: true });
 
@@ -39,5 +45,6 @@ export default {
   },
   unmounted(el) {
     observer?.unobserve(el);
+    el.parentElement?.classList.remove("img-skeleton");
   },
 };
