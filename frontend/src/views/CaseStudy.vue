@@ -1,5 +1,6 @@
 <template>
-  <main class="mx-auto max-w-4xl px-6 py-12 sm:px-10 lg:py-24">
+  <!-- The app shell already provides the <main> landmark and the side padding. -->
+  <div class="mx-auto max-w-4xl lg:py-12">
     <PageHeader
       :title="project?.projectName || (loading ? '' : 'Case study')"
       back-label="Benjamin Pletcher"
@@ -318,7 +319,7 @@
       :get-origin-rect="getOriginRect"
       :autoplay="galleryAutoplay"
     />
-  </main>
+  </div>
 </template>
 
 <script setup>

@@ -8,9 +8,9 @@
     "
     :inert="!visible || undefined"
   >
-    <div
-      class="mx-auto flex h-14 max-w-4xl items-center gap-3 px-4 sm:gap-5 sm:px-10"
-    >
+    <!-- Same side padding and width as the page content below. -->
+    <div class="px-6 md:px-12">
+      <div class="mx-auto flex h-14 max-w-4xl items-center gap-3 sm:gap-5">
       <router-link
         to="/projects"
         class="kbd-focus group/back inline-flex h-11 shrink-0 items-center gap-2 text-sm font-medium text-sky-300 transition-colors hover:text-sky-200 motion-reduce:transition-none"
@@ -67,6 +67,7 @@
           aria-hidden="true"
         />
       </a>
+      </div>
     </div>
 
     <!-- Reading progress -->
