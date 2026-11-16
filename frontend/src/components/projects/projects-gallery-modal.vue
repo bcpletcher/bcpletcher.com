@@ -17,7 +17,7 @@
         ref="panelRef"
         data-modal-panel
         class="gallery-panel relative w-[98vw] max-w-[1600px] overflow-hidden rounded-2xl border border-white/10 bg-base-background/95 shadow-[0_32px_80px_-16px_rgb(0_0_0/0.75)] ring-1 ring-black/40 backdrop-blur"
-        :class="{ 'is-closing': closing, 'is-dragging': dragging, 'is-expanded': expanded }"
+        :class="{ 'is-closing': closing, 'is-dragging': dragging }"
         :style="panelStyle"
         @click.stop
         @pointerdown.capture="onPanelPointerDown"
@@ -85,30 +85,6 @@
                     ? 'fa-light fa-magnifying-glass-minus'
                     : 'fa-light fa-magnifying-glass-plus'
                 "
-                aria-hidden="true"
-              />
-            </button>
-            <button
-              v-if="canAutoplay"
-              type="button"
-              class="kbd-focus h-11 w-11 cursor-pointer items-center justify-center rounded-full text-slate-300 transition-[background-color,color,scale] duration-200 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white motion-reduce:transition-none md:h-10 md:w-10 inline-flex"
-              :aria-label="playing ? 'Pause slideshow' : 'Play slideshow'"
-              :aria-pressed="playing"
-              @click="togglePlaying"
-            >
-              <AppIcon
-                :icon="playing ? 'fa-light fa-pause' : 'fa-light fa-play'"
-                aria-hidden="true"
-              />
-            </button>
-            <button
-              type="button"
-              class="kbd-focus h-11 w-11 cursor-pointer items-center justify-center rounded-full text-slate-300 transition-[background-color,color,scale] duration-200 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white motion-reduce:transition-none md:h-10 md:w-10 hidden md:inline-flex"
-              :aria-label="isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'"
-              @click="toggleFullscreen"
-            >
-              <AppIcon
-                :icon="isFullscreen ? 'fa-light fa-compress' : 'fa-light fa-expand'"
                 aria-hidden="true"
               />
             </button>
@@ -239,6 +215,24 @@
               role="tablist"
               aria-label="Choose image"
             >
+              <button
+                v-if="canAutoplay"
+                type="button"
+                class="kbd-focus mr-1 flex h-11 w-9 cursor-pointer items-center justify-center rounded-full text-white/90 transition-colors hover:text-white focus-visible:text-white motion-reduce:transition-none sm:h-9 sm:w-8"
+                :aria-label="playing ? 'Pause slideshow' : 'Play slideshow'"
+                :aria-pressed="playing"
+                @click="togglePlaying"
+              >
+<svg
+                  viewBox="0 0 16 16"
+                  class="h-3.5 w-3.5"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path v-if="playing" d="M4 2h2.5a.5.5 0 0 1 .5.5v11a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5v-11A.5.5 0 0 1 4 2Zm5.5 0H12a.5.5 0 0 1 .5.5v11a.5.5 0 0 1-.5.5H9.5a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5Z" />
+                  <path v-else d="M4.5 2.4v11.2a.5.5 0 0 0 .77.42l8.4-5.6a.5.5 0 0 0 0-.84l-8.4-5.6a.5.5 0 0 0-.77.42Z" />
+                </svg>
+              </button>
               <template v-if="images.length <= MAX_DOTS">
                 <button
                   v-for="(_, i) in images"
@@ -254,9 +248,10 @@
                     class="relative block h-1.5 overflow-hidden rounded-full transition-[width,background-color] duration-300 ease-out motion-reduce:transition-none"
                     :class="
                       i === activeIndex
-                        ? showProgress
-                          ? 'w-9 bg-white/25'
-                          : 'w-6 bg-sky-300'
+                        ? [
+                            canAutoplay ? 'w-9' : 'w-6',
+                            showProgress ? 'bg-white/25' : 'bg-sky-300',
+                          ]
                         : 'w-1.5 bg-white/45 group-hover/dot:bg-white/90'
                     "
                   >
@@ -374,9 +369,6 @@ const closing = ref(false);
 const playing = ref(false);
 const hovering = ref(false);
 const pageHidden = ref(false);
-const nativeFullscreen = ref(false);
-const expanded = ref(false);
-const isFullscreen = computed(() => nativeFullscreen.value || expanded.value);
 const copied = ref(false);
 const zoomedIndex = ref(null);
 const isZoomed = computed(() => zoomedIndex.value === activeIndex.value);
@@ -459,7 +451,7 @@ const slideNext = () => {
   goTo(activeIndex.value + 1);
 };
 
-// Keep the current slide aligned if the viewport changes size (rotation, fullscreen).
+// Keep the current slide aligned if the viewport changes size (rotation).
 function realign() {
   goTo(activeIndex.value, { instant: true });
 }
@@ -515,10 +507,6 @@ function onVisibility() {
   pageHidden.value = document.hidden;
 }
 
-function onFullscreenChange() {
-  nativeFullscreen.value = document.fullscreenElement === panelRef.value;
-  nextTick(realign);
-}
 
 // Moving to another image leaves zoom, and brings its thumbnail into view.
 watch(activeIndex, async (i) => {
@@ -731,40 +719,10 @@ function onCaseStudyClick() {
   router.push(props.caseStudyHref);
 }
 
-// Native fullscreen where the browser allows it; otherwise (embedded panes, some webviews)
-// the panel simply fills the window.
-async function toggleFullscreen() {
-  const el = panelRef.value;
-  if (!el) return;
-
-  if (expanded.value) {
-    expanded.value = false;
-    nextTick(realign);
-    return;
-  }
-
-  try {
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
-    } else {
-      await el.requestFullscreen();
-    }
-  } catch {
-    expanded.value = true;
-    nextTick(realign);
-  }
-}
-
 // Esc closes from anywhere (focus may sit on the dialog root right after opening).
 function onKeydown(e) {
   if (e.key !== "Escape" || e.defaultPrevented) return;
-  // Esc leaves browser fullscreen first; a second press closes.
-  if (document.fullscreenElement) return;
   e.preventDefault();
-  if (expanded.value) {
-    toggleFullscreen();
-    return;
-  }
   requestClose();
 }
 
@@ -785,7 +743,6 @@ watch(
       window.addEventListener("resize", realign);
       window.addEventListener("keydown", onKeydown, true);
       document.addEventListener("visibilitychange", onVisibility);
-      document.addEventListener("fullscreenchange", onFullscreenChange);
       hovering.value = false;
       playing.value = canAutoplay.value && !prefersReducedMotion();
       animateOpenFromCard();
@@ -796,10 +753,7 @@ watch(
     window.removeEventListener("resize", realign);
     window.removeEventListener("keydown", onKeydown, true);
     document.removeEventListener("visibilitychange", onVisibility);
-    document.removeEventListener("fullscreenchange", onFullscreenChange);
     playing.value = false;
-    expanded.value = false;
-    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
 
     if (lastFocusedEl && lastFocusedEl.focus) {
       try {
@@ -818,7 +772,6 @@ onBeforeUnmount(() => {
   window.removeEventListener("resize", realign);
   window.removeEventListener("keydown", onKeydown, true);
   document.removeEventListener("visibilitychange", onVisibility);
-  document.removeEventListener("fullscreenchange", onFullscreenChange);
 });
 
 const titleId = `gallery-title-${Math.random().toString(36).slice(2)}`;
@@ -867,23 +820,6 @@ const internalOpen = computed({
   to {
     transform: scaleX(1);
   }
-}
-
-/* Browser fullscreen: use the whole screen instead of the windowed panel. */
-.gallery-panel:fullscreen,
-.gallery-panel.is-expanded {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  width: 100vw;
-  max-width: none;
-  height: 100vh;
-  height: 100dvh;
-  flex-direction: column;
-  justify-content: center;
-  border-radius: 0;
-  border: 0;
-  background-color: rgb(2 6 23);
 }
 
 /* Arrows sit over the image: ease colour, press-scale and the fade at either end. */
