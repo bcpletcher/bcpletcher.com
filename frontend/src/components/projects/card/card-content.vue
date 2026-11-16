@@ -105,8 +105,8 @@
 import { computed } from "vue";
 import CaseStudyLink from "@/components/shared/case-study-link.vue";
 import TechTags from "@/components/shared/tech-tags.vue";
-import { caseStudyPath as pathFor, hasCaseStudy } from "@/constants/caseStudies.js";
-import { slugify } from "@/utils/slug.js";
+import { useSettingsStore } from "@/stores/settings.js";
+import { caseStudyHrefFor } from "@/utils/caseStudyData.js";
 import { PROJECT_META_OPTIONS } from "@/constants/projectMetaIconOptions.js";
 
 const props = defineProps({
@@ -132,10 +132,10 @@ const props = defineProps({
 
 const emit = defineEmits(["open-gallery"]);
 
-const caseStudyPath = computed(() => {
-  const slug = slugify(props.projectName);
-  return hasCaseStudy(slug) ? pathFor(slug) : "";
-});
+const settingsStore = useSettingsStore();
+const caseStudyPath = computed(() =>
+  caseStudyHrefFor(settingsStore.projects, props.projectName),
+);
 
 const metaDisplay = computed(() => {
   const key = (props.meta ?? "").toString().trim();

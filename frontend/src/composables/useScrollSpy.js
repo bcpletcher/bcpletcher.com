@@ -18,7 +18,10 @@ export function useScrollSpy({
   // Fraction of the viewport height, measured from the top, where a section activates.
   activationLine = 0.3,
 } = {}) {
-  const activeSectionId = ref(sections?.[0] ?? null);
+  // `sections` may be a plain array, a ref/computed, or a getter, so lists that load later work.
+  const sectionIds = () =>
+    (typeof sections === "function" ? sections() : unref(sections)) || [];
+  const activeSectionId = ref(sectionIds()[0] ?? null);
 
   let scrollTarget = null;
   let frame = 0;
@@ -31,7 +34,7 @@ export function useScrollSpy({
 
   const compute = () => {
     frame = 0;
-    const ids = Array.isArray(sections) ? sections : [];
+    const ids = sectionIds();
     if (!ids.length) return;
 
     const rootEl = unref(root) || null;

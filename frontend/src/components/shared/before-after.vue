@@ -8,6 +8,8 @@
     <img
       class="absolute inset-0 h-full w-full object-cover object-top"
       :src="after"
+      :srcset="afterSet || undefined"
+      sizes="(min-width: 896px) 56rem, 100vw"
       :alt="afterAlt"
       width="1280"
       height="720"
@@ -18,6 +20,8 @@
     <img
       class="before-layer absolute inset-0 h-full w-full object-cover object-top"
       :src="before"
+      :srcset="beforeSet || undefined"
+      sizes="(min-width: 896px) 56rem, 100vw"
       :alt="beforeAlt"
       width="1280"
       height="720"
@@ -89,6 +93,9 @@ import { ref } from "vue";
 defineProps({
   before: { type: String, required: true },
   after: { type: String, required: true },
+  // Optional responsive candidates (src-set strings) for storage-hosted images.
+  beforeSet: { type: String, default: "" },
+  afterSet: { type: String, default: "" },
   beforeLabel: { type: String, default: "Before" },
   afterLabel: { type: String, default: "After" },
   beforeAlt: { type: String, default: "Before" },

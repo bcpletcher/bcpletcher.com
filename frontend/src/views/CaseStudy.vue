@@ -151,9 +151,9 @@
 
       <div class="flex flex-col">
         <section
-          v-for="(s, i) in SECTIONS"
+          v-for="(s, i) in sections"
           :id="s.id"
-          :key="s.title"
+          :key="s.id"
           class="scroll-mt-20 grid gap-x-8 gap-y-3 border-t border-white/10 py-8 first:border-t-0 first:pt-0 sm:py-10 md:grid-cols-[14rem_1fr]"
         >
           <div class="flex items-baseline gap-4 md:flex-col md:gap-2">
@@ -170,25 +170,22 @@
             </h2>
           </div>
           <div class="flex max-w-prose flex-col gap-5 md:pt-6">
-            <template v-if="content?.sections?.[s.title]">
+            <template v-if="s.body?.length || s.points?.length">
               <p
-                v-for="(para, pi) in content.sections[s.title].body"
+                v-for="(para, pi) in s.body"
                 :key="pi"
                 class="leading-relaxed text-slate-300"
               >
                 {{ para }}
               </p>
-              <dl
-                v-if="content.sections[s.title].points?.length"
-                class="flex flex-col gap-4"
-              >
+              <dl v-if="s.points?.length" class="flex flex-col gap-4">
                 <div
-                  v-for="pt in content.sections[s.title].points"
+                  v-for="pt in s.points"
                   :key="pt.title"
                   class="border-l-2 border-sky-300/30 pl-4"
                 >
                   <dt class="font-semibold text-slate-100">{{ pt.title }}</dt>
-                  <dd class="mt-1 leading-relaxed text-slate-400">
+                  <dd v-if="pt.text" class="mt-1 leading-relaxed text-slate-400">
                     {{ pt.text }}
                   </dd>
                 </div>
@@ -218,8 +215,10 @@
                 class="rounded-xl border border-white/10 bg-white/[0.03] p-1 shadow-xl shadow-black/30"
               >
                 <BeforeAfter
-                  :before="fig.before"
-                  :after="fig.after"
+                  :before="fig.before.src"
+                  :after="fig.after.src"
+                  :before-set="fig.before.srcset"
+                  :after-set="fig.after.srcset"
                   :before-alt="fig.beforeAlt"
                   :after-alt="fig.afterAlt"
                 />
@@ -232,6 +231,8 @@
                 <img
                   class="aspect-video w-full rounded-lg object-cover object-top ring-1 ring-black/20"
                   :src="fig.src"
+                  :srcset="fig.srcset || undefined"
+                  sizes="(min-width: 896px) 40rem, 100vw"
                   :alt="fig.alt"
                   width="1280"
                   height="720"
@@ -337,14 +338,10 @@ import { useSettingsStore } from "@/stores/settings.js";
 import { buildResponsiveImageSourcesFromImageValue } from "@/utils/mediaStorageImages.js";
 import { setNoIndex, setPageTitle } from "@/utils/pageMeta.js";
 import { getYearFromProjectDate } from "@/utils/projectDate.js";
-import { slugify } from "@/utils/slug.js";
-import { hasCaseStudy } from "@/constants/caseStudies.js";
-import {
-  DEFAULT_ROLE,
-  getCaseStudyContent,
-} from "@/constants/caseStudyContent.js";
+import { findProjectBySlug, resolveCaseStudy } from "@/utils/caseStudyData.js";
 
-const SECTIONS = [
+// Shown on projects that have no written case study yet.
+const STUB_SECTIONS = [
   {
     id: "the-problem",
     title: "The problem",
@@ -360,12 +357,31 @@ const SECTIONS = [
 ];
 
 const route = useRoute();
+const settingsStore = useSettingsStore();
+
+const loading = computed(() => settingsStore.projectsLoading);
+const error = computed(() => settingsStore.projectsError);
+
+const project = computed(() =>
+  findProjectBySlug(settingsStore.projects, String(route.params.slug || "")),
+);
+
+const content = computed(() =>
+  resolveCaseStudy(settingsStore.projects, String(route.params.slug || "")),
+);
+
+const sections = computed(() =>
+  content.value?.sections?.length ? content.value.sections : STUB_SECTIONS,
+);
+
 
 // Sticky bar: appears once the title has scrolled away, with a reading-progress line and
 // section links that follow the scroll position.
-const barSections = SECTIONS.map(({ id, title }) => ({ id, label: title }));
+const barSections = computed(() =>
+  sections.value.map(({ id, title }) => ({ id, label: title })),
+);
 const { activeSectionId, scrollTo } = useScrollSpy({
-  sections: SECTIONS.map((s) => s.id),
+  sections: () => sections.value.map((s) => s.id),
   activationLine: 0.35,
 });
 const barVisible = ref(false);
@@ -385,23 +401,6 @@ onMounted(() => {
   window.addEventListener("scroll", onBarScroll, { passive: true });
   window.addEventListener("resize", onBarScroll, { passive: true });
 });
-const settingsStore = useSettingsStore();
-
-const loading = computed(() => settingsStore.projectsLoading);
-const error = computed(() => settingsStore.projectsError);
-
-const project = computed(() => {
-  const all = settingsStore.projects;
-  if (!all) return null;
-  return (
-    Object.values(all).find(
-      (p) =>
-        !p?.hidden &&
-        slugify(p?.projectName || p?.title) === String(route.params.slug || ""),
-    ) || null
-  );
-});
-
 const hero = computed(() => {
   const first = project.value?.images?.filter(Boolean)?.[0];
   return first
@@ -409,8 +408,9 @@ const hero = computed(() => {
     : null;
 });
 
-// Screens woven into the story: Process gets up to two (side by side), Outcome gets one.
-// Index 0 is the hero above, so figures start at the second image.
+// Figures per section. Written case studies carry their own (stored images); a project
+// without one falls back to its gallery: Process gets up to two (side by side), Outcome one.
+// Index 0 is the hero above, so gallery figures start at the second image.
 const sectionFigures = computed(() => {
   const imgs = (project.value?.images || []).filter(Boolean);
   const fromGallery = (index) => ({
@@ -421,14 +421,10 @@ const sectionFigures = computed(() => {
       widths: [480, 960],
     }),
   });
-  const byTitle = { Process: [1, 2], Outcome: [3] };
-  return SECTIONS.map((s) => {
-    // Written figures (static files) win; otherwise fall back to the project's gallery.
-    const written = content.value?.sections?.[s.title]?.figures;
-    if (written?.length) {
-      return written.map((f, n) => ({ ...f, key: `w-${s.title}-${n}` }));
-    }
-    return (byTitle[s.title] || []).filter((n) => n < imgs.length).map(fromGallery);
+  const stubGallery = { 2: [1, 2], 3: [3] };
+  return sections.value.map((s, i) => {
+    if (content.value) return s.figures || [];
+    return (stubGallery[i] || []).filter((n) => n < imgs.length).map(fromGallery);
   });
 });
 
@@ -454,12 +450,8 @@ function openFigure(index) {
   });
 }
 
-const content = computed(() => getCaseStudyContent(String(route.params.slug || "")));
-
 // Written case studies default to the standing role; stubs have nothing to claim yet.
-const role = computed(() =>
-  content.value ? content.value.role || DEFAULT_ROLE : "",
-);
+const role = computed(() => (content.value ? content.value.role : ""));
 
 const stack = computed(() =>
   content.value?.stack?.length
@@ -472,8 +464,8 @@ const year = computed(() => getYearFromProjectDate(project.value?.date) || "");
 watchEffect(() => {
   const name = project.value?.projectName;
   setPageTitle(name ? `${name} · Case study · Benjamin Pletcher` : null);
-  // Stubs stay out of search results until the project is listed in constants/caseStudies.js.
-  setNoIndex(!hasCaseStudy(String(route.params.slug || "")));
+  // Stubs and unpublished drafts stay out of search results.
+  setNoIndex(!content.value?.published);
 });
 
 onBeforeUnmount(() => {

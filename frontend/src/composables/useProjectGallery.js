@@ -1,6 +1,6 @@
 import { computed, defineAsyncComponent, onMounted, ref, watch } from "vue";
 
-import { caseStudyPath, hasCaseStudy } from "@/constants/caseStudies.js";
+import { caseStudyPath, hasPublishedCaseStudy } from "@/utils/caseStudyData.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { slugify } from "@/utils/slug.js";
 
@@ -48,7 +48,9 @@ export function useProjectGallery({ preload = false, deepLink = false } = {}) {
       : "",
   );
   const galleryCaseStudyHref = computed(() =>
-    hasCaseStudy(gallerySlug.value) ? caseStudyPath(gallerySlug.value) : "",
+    hasPublishedCaseStudy(settingsStore.projects, gallerySlug.value)
+      ? caseStudyPath(gallerySlug.value)
+      : "",
   );
 
   if (preload) {

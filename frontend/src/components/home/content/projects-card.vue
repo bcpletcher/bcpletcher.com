@@ -117,8 +117,8 @@
 import CardWrapper from "@/components/home/content/card-wrapper.vue";
 import CaseStudyLink from "@/components/shared/case-study-link.vue";
 import TechTags from "@/components/shared/tech-tags.vue";
-import { caseStudyPath as pathFor, hasCaseStudy } from "@/constants/caseStudies.js";
-import { slugify } from "@/utils/slug.js";
+import { useSettingsStore } from "@/stores/settings.js";
+import { caseStudyHrefFor } from "@/utils/caseStudyData.js";
 import { computed } from "vue";
 import {
   buildResponsiveImageSourcesFromImageValue,
@@ -156,10 +156,10 @@ const props = defineProps({
   images: { type: Array, default: () => [] },
 });
 
-const caseStudyPath = computed(() => {
-  const slug = slugify(props.projectName);
-  return hasCaseStudy(slug) ? pathFor(slug) : "";
-});
+const settingsStore = useSettingsStore();
+const caseStudyPath = computed(() =>
+  caseStudyHrefFor(settingsStore.projects, props.projectName),
+);
 
 const stacked = computed(() => props.layout === "stacked");
 
