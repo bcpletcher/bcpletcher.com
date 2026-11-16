@@ -52,6 +52,71 @@
         </p>
       </div>
 
+      <!-- At a glance: who, when and with what, before the long read. -->
+      <dl
+        class="flex flex-col gap-6 border-y border-white/10 py-6 sm:py-8 lg:-mt-2"
+      >
+        <div class="grid gap-x-10 gap-y-6 sm:grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]">
+          <div class="min-w-0">
+            <dt class="text-xs font-bold uppercase tracking-widest text-slate-400">
+              Role
+            </dt>
+            <dd class="mt-2.5">
+              <span
+                :class="role ? 'font-medium text-slate-200' : 'text-slate-400'"
+              >
+                {{ role || "To be added" }}
+              </span>
+              <span v-if="content?.roleNote" class="mt-0.5 block text-sm text-slate-400">
+                {{ content.roleNote }}
+              </span>
+            </dd>
+          </div>
+          <div class="min-w-0">
+            <template v-if="content?.focus">
+              <dt class="text-xs font-bold uppercase tracking-widest text-slate-400">
+                Focus
+              </dt>
+              <dd class="mt-2.5 font-medium text-slate-200">
+                {{ content.focus }}
+              </dd>
+            </template>
+            <template v-else>
+              <dt class="text-xs font-bold uppercase tracking-widest text-slate-400">
+                Timeline
+              </dt>
+              <dd
+                class="mt-2.5 tabular-nums"
+                :class="year ? 'font-medium text-slate-200' : 'text-slate-400'"
+              >
+                {{ year || "To be added" }}
+              </dd>
+            </template>
+          </div>
+          <div v-if="content?.industry" class="min-w-0">
+            <dt class="text-xs font-bold uppercase tracking-widest text-slate-400">
+              Industry
+            </dt>
+            <dd class="mt-2.5 font-medium text-slate-200">
+              {{ content.industry }}
+            </dd>
+          </div>
+        </div>
+
+        <div class="border-t border-white/10 pt-6">
+          <dt class="text-xs font-bold uppercase tracking-widest text-slate-400">
+            Stack
+          </dt>
+          <dd class="mt-3">
+            <TechTags
+              v-if="stack.length"
+              :items="stack"
+            />
+            <span v-else class="text-slate-400">To be added</span>
+          </dd>
+        </div>
+      </dl>
+
       <div
         v-if="hero"
         class="rounded-2xl border border-white/10 bg-white/[0.03] p-1.5 shadow-2xl shadow-black/40 sm:p-2"
@@ -71,54 +136,6 @@
         />
       </div>
 
-      <dl
-        class="grid gap-x-8 gap-y-6 border-y border-white/10 py-6 sm:grid-cols-[1fr_1fr_2fr] sm:py-8"
-      >
-        <div>
-          <dt
-            class="text-xs font-bold uppercase tracking-widest text-slate-400"
-          >
-            Role
-          </dt>
-          <dd
-            class="mt-2.5"
-            :class="content?.role ? 'font-medium text-slate-200' : 'text-slate-400'"
-          >
-            {{ content?.role || "To be added" }}
-          </dd>
-        </div>
-        <div class="sm:border-l sm:border-white/10 sm:pl-8">
-          <dt
-            class="text-xs font-bold uppercase tracking-widest text-slate-400"
-          >
-            Timeline
-          </dt>
-          <dd
-            class="mt-2.5"
-            :class="
-              content?.timeline || year
-                ? 'font-medium text-slate-200'
-                : 'text-slate-400'
-            "
-          >
-            {{ content?.timeline || year || "To be added" }}
-          </dd>
-        </div>
-        <div class="sm:border-l sm:border-white/10 sm:pl-8">
-          <dt
-            class="text-xs font-bold uppercase tracking-widest text-slate-400"
-          >
-            Stack
-          </dt>
-          <dd class="mt-2.5">
-            <TechTags
-              v-if="project.technology?.length"
-              :items="project.technology"
-            />
-            <span v-else class="text-slate-400">To be added</span>
-          </dd>
-        </div>
-      </dl>
 
       <div class="flex flex-col">
         <section
@@ -307,7 +324,10 @@ import { setNoIndex, setPageTitle } from "@/utils/pageMeta.js";
 import { getYearFromProjectDate } from "@/utils/projectDate.js";
 import { slugify } from "@/utils/slug.js";
 import { hasCaseStudy } from "@/constants/caseStudies.js";
-import { getCaseStudyContent } from "@/constants/caseStudyContent.js";
+import {
+  DEFAULT_ROLE,
+  getCaseStudyContent,
+} from "@/constants/caseStudyContent.js";
 
 const SECTIONS = [
   {
@@ -393,6 +413,17 @@ function openFigure(index) {
 }
 
 const content = computed(() => getCaseStudyContent(String(route.params.slug || "")));
+
+// Written case studies default to the standing role; stubs have nothing to claim yet.
+const role = computed(() =>
+  content.value ? content.value.role || DEFAULT_ROLE : "",
+);
+
+const stack = computed(() =>
+  content.value?.stack?.length
+    ? content.value.stack
+    : project.value?.technology || [],
+);
 
 const year = computed(() => getYearFromProjectDate(project.value?.date) || "");
 

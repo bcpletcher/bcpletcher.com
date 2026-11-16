@@ -2,17 +2,36 @@
 // gets real copy on /work/<slug>; its page otherwise shows the "in progress" stub.
 //
 // Shape:
-//   role, timeline            strings for the Role / Timeline row
+//   role (defaults to DEFAULT_ROLE), roleNote, focus (or timeline), industry   strings for the summary row
+//   stack                     tags for the Stack row (falls back to the project's own tags)
 //   summary                   optional; overrides the project's card summary at the top
 //   sections[<section title>] { body: string[], points?: { title, text }[], figures?: Figure[] }
 //   Figure: { kind: "image", src, alt, caption } or
 //           { kind: "compare", before, after, beforeAlt, afterAlt, caption }
 //   Static files live in public/case-studies/<slug>/. Sections without figures fall back to
 //   the project's own gallery images.
+// Used for any written case study that doesn't set its own `role`.
+export const DEFAULT_ROLE = "Web Development Lead";
+
 export const CASE_STUDY_CONTENT = {
   "community-transit": {
-    role: "Senior Software Engineer, BlueModus",
-    timeline: "June 2024 to present",
+    role: DEFAULT_ROLE,
+    roleNote: "BlueModus, client engagement",
+    // Durable on purpose: dates would need editing when the engagement ends.
+    focus: "Accessibility, trip planning and schedules",
+    industry: "Public transit",
+    // Shown in the Stack row (the project card keeps its own tags from the admin data).
+    stack: [
+      "Sitefinity",
+      ".NET MVC",
+      "React",
+      "TypeScript",
+      "Vite",
+      "OpenTripPlanner",
+      "Mapbox",
+      "GTFS",
+      "WCAG",
+    ],
     summary:
       "Rider-facing features and accessibility work for the Community Transit website redesign: trip planning, rider alerts, global navigation and a rebuilt Maps & Schedules experience.",
     sections: {
