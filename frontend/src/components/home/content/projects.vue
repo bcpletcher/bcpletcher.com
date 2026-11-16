@@ -1,6 +1,19 @@
 <template>
   <div>
-    <ol class="group/list">
+    <ol v-if="isLoading" class="group/list" aria-hidden="true">
+      <li v-for="n in 3" :key="n" class="mb-12 grid gap-4 sm:grid-cols-8 sm:gap-8">
+        <div
+          class="aspect-video w-full animate-pulse rounded border border-white/10 bg-white/5 motion-reduce:animate-none sm:col-span-2"
+        />
+        <div class="space-y-3 sm:col-span-6">
+          <div class="h-4 w-1/3 animate-pulse rounded bg-white/10 motion-reduce:animate-none" />
+          <div class="h-3 w-full animate-pulse rounded bg-white/5 motion-reduce:animate-none" />
+          <div class="h-3 w-4/5 animate-pulse rounded bg-white/5 motion-reduce:animate-none" />
+        </div>
+      </li>
+    </ol>
+
+    <ol v-else class="group/list">
       <ProjectsCard
         v-for="(item, idx) in items"
         :key="item.projectName + '-' + idx"
@@ -17,6 +30,7 @@
             : `${item.projectName} (opens gallery)`
         "
         :is-last="idx === items.length - 1"
+        :priority="idx === 0"
         @open-gallery="openGallery"
       />
     </ol>
@@ -80,6 +94,9 @@ function openGallery(payload) {
   galleryMounted.value = true;
   isGalleryOpen.value = true;
 }
+
+// null until the first fetch (or fresh cache) lands.
+const isLoading = computed(() => settingsStore.projects === null);
 
 const items = computed(() => {
   const all = settingsStore.projects;

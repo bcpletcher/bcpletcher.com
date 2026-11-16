@@ -2,10 +2,6 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 
 import { useCloudflareStore } from "@/stores/cloudflare.js";
 import { useSettingsStore } from "@/stores/settings.js";
-import {
-  computeLoaderMinMs,
-  LOADER_DEFAULTS,
-} from "@/constants/loaderTiming.js";
 import { useOverlayScrollLock } from "@/composables/useOverlayScrollLock.js";
 import {
   clearProjectsCache,
@@ -19,8 +15,9 @@ import { withTimeout } from "@/utils/asyncTimeout.js";
  *
  * Contract:
  * - Hydrates stores from cache when fresh (skips network + loader).
- * - Otherwise fetches featured then full projects collection, writes caches (non-blocking).
- * - Exposes state to drive the fullscreen loader.
+ * - Otherwise fetches the projects collection and writes caches (non-blocking). The page
+ *   renders immediately while this runs; the project list shows placeholders until it lands.
+ * - The fullscreen loader is only used as the error state when the fetch fails.
  */
 export function useAppBoot() {
   const cloudflareStore = useCloudflareStore();
@@ -49,14 +46,10 @@ export function useAppBoot() {
     ? Math.max(0, CACHE_TTL_MINUTES) * 60 * 1000
     : 60 * 60 * 1000;
 
-  const MIN_LOADER_MS = computeLoaderMinMs(LOADER_DEFAULTS);
-
   const isReady = computed(() => !isBootLoading.value && !bootError.value);
   const hasError = computed(() => Boolean(bootError.value));
 
   const boot = async () => {
-    const bootStart = Date.now();
-
     // URL overrides for QA/debugging.
     const urlFlags = (() => {
       if (typeof window === "undefined") return { noCache: false, clearCache: false };
@@ -143,9 +136,9 @@ export function useAppBoot() {
         }
       }
 
-      // Cache not fresh (or disabled) – we will do an actual boot, so show loader now.
+      // Cache not fresh (or disabled): fetch while the page is already visible.
+      // Static sections render immediately; the project list shows placeholders.
       didDecideBoot.value = true;
-      showLoader.value = true;
 
       // 2) Full fetch (fatal if fails)
       const projectsFresh = await cloudflareStore.dataGetProjectsCollection();
@@ -171,6 +164,9 @@ export function useAppBoot() {
       }
     } catch (err) {
       console.error("App boot failed:", err);
+      // Only now do we cover the page: the loader doubles as the error screen.
+      didDecideBoot.value = true;
+      showLoader.value = true;
       if (!bootError.value) {
         bootError.value =
           "Couldn’t load site content. Please refresh, or try again in a moment.";
@@ -184,11 +180,7 @@ export function useAppBoot() {
         console.log("[boot] APIs finished");
       };
 
-      const elapsed = Date.now() - bootStart;
-      const remaining = Math.max(0, MIN_LOADER_MS - elapsed);
-
-      if (remaining > 0) setTimeout(finishBoot, remaining);
-      else finishBoot();
+      finishBoot();
     }
   };
 

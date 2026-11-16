@@ -16,7 +16,8 @@
         :alt="imageAlt"
         width="1280"
         height="720"
-        loading="lazy"
+        :loading="priority ? 'eager' : 'lazy'"
+        :fetchpriority="priority ? 'high' : undefined"
         decoding="async"
         @error="fallbackToOriginalImage"
       />
@@ -118,6 +119,8 @@ const props = defineProps({
   // Canonical project data stores `meta` as a preset key string.
   meta: { type: [String, null], default: null },
   isLast: { type: Boolean, default: false },
+  // First visible card: load its image eagerly so it isn't waiting on lazy-load.
+  priority: { type: Boolean, default: false },
 
   // Needed to open the modal when there is no external URL
   images: { type: Array, default: () => [] },
@@ -134,7 +137,7 @@ function onOpenGallery(index = 0) {
   if (!list.length) return;
 
   emit("open-gallery", {
-    title: props.title,
+    title: props.projectName,
     images: list,
     index: Number.isFinite(index) ? index : 0,
   });
