@@ -44,40 +44,42 @@
         </div>
 
         <ProjectsLoadState variant="page" :count="4">
-          <div v-for="y in years" :key="y">
-            <!-- Year anchor/section for timeline tracking -->
-            <div
-              :id="`year-${y}`"
-              data-project-year-section
-              :data-year="y"
-              class="scroll-mt-28"
-            />
-
-            <!-- Semantic heading so cards (h3) don't skip levels -->
-            <h2 class="sr-only">{{ y }}</h2>
-
-            <ul class="grid gap-4 list-none p-0 m-0">
-              <ProjectsCard
-                v-for="(project, idx) in projectsByYear[y]"
-                :key="project.id || `${y}-${idx}`"
-                :project-id="project.id"
-                :project-name="project.projectName"
-                :date="project.date"
-                :summary="project.description"
-                :images="project.images"
-                :href="project.url"
-                :technology="project.technology"
-                :featured="project.featured"
-                :meta="project.meta"
-                :show-date="false"
-                :show-featured="false"
-                :priority="project.id === projects[0]?.id"
-                :show-admin-controls="isAdmin"
-                :is-hidden="settingsStore.projects?.[project.id]?.hidden"
-                :on-edit="(id) => openEditById(id)"
-                @open-gallery="openGallery"
+          <div class="flex flex-col gap-6">
+            <div v-for="y in years" :key="y">
+              <!-- Year anchor/section for timeline tracking -->
+              <div
+                :id="`year-${y}`"
+                data-project-year-section
+                :data-year="y"
+                class="scroll-mt-28"
               />
-            </ul>
+
+              <!-- Semantic heading so cards (h3) don't skip levels -->
+              <h2 class="sr-only">{{ y }}</h2>
+
+              <ul class="grid gap-4 list-none p-0 m-0">
+                <ProjectsCard
+                  v-for="(project, idx) in projectsByYear[y]"
+                  :key="project.id || `${y}-${idx}`"
+                  :project-id="project.id"
+                  :project-name="project.projectName"
+                  :date="project.date"
+                  :summary="project.description"
+                  :images="project.images"
+                  :href="project.url"
+                  :technology="project.technology"
+                  :featured="project.featured"
+                  :meta="project.meta"
+                  :show-date="false"
+                  :show-featured="false"
+                  :priority="project.id === projects[0]?.id"
+                  :show-admin-controls="isAdmin"
+                  :is-hidden="settingsStore.projects?.[project.id]?.hidden"
+                  :on-edit="(id) => openEditById(id)"
+                  @open-gallery="openGallery"
+                />
+              </ul>
+            </div>
           </div>
         </ProjectsLoadState>
       </div>
