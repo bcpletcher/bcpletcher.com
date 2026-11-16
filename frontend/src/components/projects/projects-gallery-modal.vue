@@ -51,8 +51,9 @@
             <a
               v-if="caseStudyHref"
               :href="caseStudyHref"
+              target="_blank"
+              rel="noopener"
               class="kbd-focus relative mr-1.5 hidden h-9 items-center rounded-full border border-sky-300/30 bg-sky-300/10 px-3.5 text-[11px] font-semibold uppercase tracking-widest text-sky-200 transition-[background-color,border-color,scale] duration-200 after:absolute after:inset-x-0 after:-inset-y-1 hover:border-sky-300/50 hover:bg-sky-300/20 focus-visible:border-sky-300/50 focus-visible:bg-sky-300/20 motion-reduce:transition-none sm:inline-flex"
-              @click.prevent="onCaseStudyClick"
             >
               Case study
             </a>
@@ -328,7 +329,6 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
-import { useRouter } from "vue-router";
 
 import ModalWrapper from "@/components/shared/modal-wrapper.vue";
 import {
@@ -353,7 +353,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue", "close"]);
-const router = useRouter();
 
 const ZOOM_FACTOR = 2.2;
 const MAX_DOTS = 10;
@@ -711,12 +710,6 @@ async function copyLink() {
   } catch {
     // Clipboard unavailable: fall back to selecting nothing, the URL is already in the bar.
   }
-}
-
-function onCaseStudyClick() {
-  emit("update:modelValue", false);
-  emit("close");
-  router.push(props.caseStudyHref);
 }
 
 // Esc closes from anywhere (focus may sit on the dialog root right after opening).

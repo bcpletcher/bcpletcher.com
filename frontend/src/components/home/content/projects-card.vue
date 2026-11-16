@@ -53,6 +53,13 @@
           {{ projectName }}
         </h3>
 
+        <CaseStudyLink
+          v-if="caseStudyPath"
+          :to="caseStudyPath"
+          :name="projectName"
+          class="ml-auto"
+        />
+
         <!-- If there is an external url, show the "open in new" icon. -->
         <AppIcon
           v-if="href"
@@ -102,13 +109,6 @@
         <AppIcon v-else icon="fa-light fa-star" aria-hidden="true" />
         {{ metaDisplay.label }}
       </div>
-
-      <CaseStudyLink
-        v-if="caseStudyPath"
-        :to="caseStudyPath"
-        :name="projectName"
-        class="mt-4"
-      />
     </div>
   </CardWrapper>
 </template>

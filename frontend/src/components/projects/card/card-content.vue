@@ -12,7 +12,7 @@
         v-if="showProjectName"
         class="flex items-start justify-between gap-4"
       >
-        <div class="min-w-0 flex-1">
+        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
           <a
             v-if="href && showLink"
             :href="isHidden ? undefined : href"
@@ -39,6 +39,12 @@
           >
             {{ projectName }}
           </h3>
+
+          <CaseStudyLink
+            v-if="caseStudyPath && !isHidden"
+            :to="caseStudyPath"
+            :name="projectName"
+          />
         </div>
 
         <span
@@ -60,13 +66,6 @@
       </div>
 
       <TechTags v-if="showTechnology" :items="technology" class="mt-4" />
-
-      <CaseStudyLink
-        v-if="caseStudyPath && !isHidden"
-        :to="caseStudyPath"
-        :name="projectName"
-        class="mt-4"
-      />
 
       <!-- Meta row (bottom) -->
       <template v-if="showFeatured && featured">
