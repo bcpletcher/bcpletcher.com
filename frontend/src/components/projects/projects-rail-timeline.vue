@@ -37,8 +37,8 @@
               >
                 <span class="tracking-widest text-right pr-4">
                   <span
-                    class="inline-block tabular-nums transition-transform duration-300 ease-out motion-reduce:transition-none"
-                    :class="isActive(item) ? 'translate-x-1' : ''"
+                    class="rail-label relative inline-block tabular-nums"
+                    :class="isActive(item) ? 'rail-label-active text-sky-200' : ''"
                     >{{ item.label }}</span
                   >
                 </span>
@@ -229,26 +229,10 @@ function getEffectiveScrollerElForScrollTo() {
   return getEffectiveScrollerEl();
 }
 
-// While a click-to-jump scroll is running, the clicked item stays active.
-const navLockIndex = ref(null);
-function releaseNavLock() {
-  navLockIndex.value = null;
-  window.removeEventListener("wheel", releaseNavLock);
-  window.removeEventListener("touchmove", releaseNavLock);
-}
-
 function scrollToItem(item) {
   const year = item?.year;
   if (!year) return;
   pingDot(item.key);
-
-  const itemIdx = items.value.findIndex((it) => it.key === item.key);
-  if (itemIdx !== -1) {
-    navLockIndex.value = itemIdx;
-    activeIndex.value = itemIdx;
-    window.addEventListener("wheel", releaseNavLock, { passive: true });
-    window.addEventListener("touchmove", releaseNavLock, { passive: true });
-  }
 
   const target = document.getElementById(`year-${year}`);
   if (!target) return;
@@ -261,8 +245,6 @@ function scrollToItem(item) {
       ease: "power2.out",
       scrollTo: { y: target, offsetY: Number(props.scrollOffsetPx) },
       overwrite: "auto",
-      onComplete: releaseNavLock,
-      onInterrupt: releaseNavLock,
     });
     return;
   }
@@ -272,8 +254,6 @@ function scrollToItem(item) {
     ease: "power2.out",
     scrollTo: { y: target, offsetY: Number(props.scrollOffsetPx) },
     overwrite: "auto",
-    onComplete: releaseNavLock,
-    onInterrupt: releaseNavLock,
   });
 }
 
@@ -501,12 +481,8 @@ onMounted(async () => {
     }
     progress01.value = clamp01(p);
 
-    // While gliding to a clicked year, that year stays active (no flicker through the
-    // years in between).
-    activeIndex.value =
-      navLockIndex.value !== null
-        ? navLockIndex.value
-        : Math.max(0, Math.min(lastIdx, idx));
+    // Dots light up as the progress line reaches them, including during click-to-jump glides.
+    activeIndex.value = Math.max(0, Math.min(lastIdx, idx));
 
     if (progressRef.value) {
       gsap.to(progressRef.value, {
@@ -590,7 +566,6 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   clearTimeout(pingTimer);
-  releaseNavLock();
   cleanup();
 });
 </script>
@@ -619,6 +594,29 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: reduce) {
   .rail-dot {
     transition: none;
+  }
+}
+
+.rail-label::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -4px;
+  left: 0;
+  height: 2px;
+  border-radius: 9999px;
+  background-color: rgb(125 211 252);
+  transform: scaleX(0);
+  transform-origin: right center;
+}
+
+.rail-label-active::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rail-label::after {
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
