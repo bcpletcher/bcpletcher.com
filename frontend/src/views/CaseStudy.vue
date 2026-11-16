@@ -6,6 +6,17 @@
       :remove-top-padding="true"
     />
 
+    <CaseStudyBar
+      v-if="project"
+      :title="project.projectName"
+      :visit-href="project.url || ''"
+      :sections="barSections"
+      :active-id="activeSectionId"
+      :progress="progress"
+      :visible="barVisible"
+      @jump="(id) => scrollTo(id)"
+    />
+
     <ProjectsLoadState v-if="loading || error || !settingsStore.projects" variant="page" :count="1" />
 
     <p v-else-if="!project" class="text-slate-300">
@@ -140,8 +151,9 @@
       <div class="flex flex-col">
         <section
           v-for="(s, i) in SECTIONS"
+          :id="s.id"
           :key="s.title"
-          class="grid gap-x-8 gap-y-3 border-t border-white/10 py-8 first:border-t-0 first:pt-0 sm:py-10 md:grid-cols-[14rem_1fr]"
+          class="scroll-mt-20 grid gap-x-8 gap-y-3 border-t border-white/10 py-8 first:border-t-0 first:pt-0 sm:py-10 md:grid-cols-[14rem_1fr]"
         >
           <div class="flex items-baseline gap-4 md:flex-col md:gap-2">
             <span
@@ -310,10 +322,12 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, watchEffect } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import { ProjectsGalleryModal, useProjectGallery } from "@/composables/useProjectGallery.js";
+import CaseStudyBar from "@/components/shared/case-study-bar.vue";
+import { useScrollSpy } from "@/composables/useScrollSpy.js";
 import BeforeAfter from "@/components/shared/before-after.vue";
 import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsLoadState from "@/components/shared/projects-load-state.vue";
@@ -331,18 +345,45 @@ import {
 
 const SECTIONS = [
   {
+    id: "the-problem",
     title: "The problem",
     hint: "What needed solving, for whom, and why it mattered.",
   },
-  { title: "My role", hint: "What I owned and who I worked with." },
+  { id: "my-role", title: "My role", hint: "What I owned and who I worked with." },
   {
+    id: "process",
     title: "Process",
     hint: "Research, key decisions, and the trade-offs behind them.",
   },
-  { title: "Outcome", hint: "What shipped and the measurable result." },
+  { id: "outcome", title: "Outcome", hint: "What shipped and the measurable result." },
 ];
 
 const route = useRoute();
+
+// Sticky bar: appears once the title has scrolled away, with a reading-progress line and
+// section links that follow the scroll position.
+const barSections = SECTIONS.map(({ id, title }) => ({ id, label: title }));
+const { activeSectionId, scrollTo } = useScrollSpy({
+  sections: SECTIONS.map((s) => s.id),
+  activationLine: 0.35,
+});
+const barVisible = ref(false);
+const progress = ref(0);
+let barFrame = 0;
+const updateBar = () => {
+  barFrame = 0;
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  barVisible.value = window.scrollY > 260;
+  progress.value = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+};
+const onBarScroll = () => {
+  if (!barFrame) barFrame = requestAnimationFrame(updateBar);
+};
+onMounted(() => {
+  updateBar();
+  window.addEventListener("scroll", onBarScroll, { passive: true });
+  window.addEventListener("resize", onBarScroll, { passive: true });
+});
 const settingsStore = useSettingsStore();
 
 const loading = computed(() => settingsStore.projectsLoading);
@@ -435,6 +476,9 @@ watchEffect(() => {
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener("scroll", onBarScroll);
+  window.removeEventListener("resize", onBarScroll);
+  if (barFrame) cancelAnimationFrame(barFrame);
   setPageTitle(null);
   setNoIndex(false);
 });
