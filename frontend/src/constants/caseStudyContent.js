@@ -79,15 +79,6 @@ export const CASE_STUDY_CONTENT = {
         figures: [
           {
             kind: "compare",
-            before: "/case-studies/community-transit/find-my-bus-before.webp",
-            after: "/case-studies/community-transit/find-my-bus-after.webp",
-            beforeAlt: "The previous Find My Bus page",
-            afterAlt: "The rebuilt Find My Bus page",
-            caption:
-              "Find My Bus, before and after. Drag the handle to compare the previous page with the rebuilt version.",
-          },
-          {
-            kind: "compare",
             before: "/case-studies/community-transit/route-before.webp",
             after: "/case-studies/community-transit/route-after.webp",
             beforeAlt: "The previous route page for Route 201",
@@ -99,7 +90,7 @@ export const CASE_STUDY_CONTENT = {
       },
       Outcome: {
         body: [
-          "The redesigned trip planning, rider alerts and Maps & Schedules experiences moved through the client's review process, with the new Maps & Schedules available alongside the legacy pages for review before cutover. A broad accessibility backlog was closed across trip planning, the home page, news, the header and print flows.",
+          "The redesigned trip planning, Find My Bus and Maps & Schedules experiences moved through the client's review process, with the new Maps & Schedules available alongside the legacy pages for review before cutover. A broad accessibility backlog was closed across trip planning, the home page, news, the header and print flows.",
         ],
         figures: [
           {
@@ -113,19 +104,21 @@ export const CASE_STUDY_CONTENT = {
           },
           {
             kind: "compare",
+            before: "/case-studies/community-transit/find-my-bus-before.webp",
+            after: "/case-studies/community-transit/find-my-bus-after.webp",
+            beforeAlt: "The previous Find My Bus page",
+            afterAlt: "The rebuilt Find My Bus page",
+            caption:
+              "Find My Bus, before and after. Drag the handle to compare the previous page with the rebuilt version.",
+          },
+          {
+            kind: "compare",
             before: "/case-studies/community-transit/stop-before.webp",
             after: "/case-studies/community-transit/stop-after.webp",
             beforeAlt: "The previous stop page",
             afterAlt: "The rebuilt stop page",
             caption:
               "A stop page, before and after: serving routes, real-time and scheduled departures, and a map centred on the stop.",
-          },
-          {
-            kind: "image",
-            src: "/case-studies/community-transit/rider-alerts.webp",
-            alt: "The Rider Alerts page",
-            caption:
-              "Rider Alerts: current alerts for Community Transit and Sound Transit, with real-time and scheduled views.",
           },
         ],
       },
