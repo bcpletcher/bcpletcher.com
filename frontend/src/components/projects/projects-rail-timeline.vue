@@ -27,7 +27,7 @@
               v-for="(item, itemIdx) in items"
               :key="item.key"
               class="relative ml-auto flex w-full shrink-0 flex-col items-end"
-              :style="{ height: segmentHeight(item.count) + 'px' }"
+              :style="{ height: segmentHeight(item.count) - (itemIdx === items.length - 1 ? 3 : 0) + 'px' }"
             >
               <a
                 :href="item.href"
