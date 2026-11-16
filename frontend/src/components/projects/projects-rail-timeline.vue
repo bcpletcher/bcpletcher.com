@@ -27,7 +27,7 @@
               v-for="(item, itemIdx) in items"
               :key="item.key"
               class="relative ml-auto flex w-full shrink-0 flex-col items-end"
-              :style="{ height: segmentHeight(item.count) - (itemIdx === items.length - 1 ? 3 : 0) + 'px' }"
+              :style="{ height: segmentHeight(item) + 'px' }"
             >
               <a
                 :href="item.href"
@@ -59,7 +59,7 @@
                 aria-hidden="true"
               >
                 <span
-                  v-for="k in item.count"
+                  v-for="k in notchCount(item)"
                   :key="k"
                   class="rail-notch h-0.5 w-2.5 rounded-full"
                   :class="notchPassed(itemIdx, k) ? 'bg-sky-300' : 'bg-slate-500'"
@@ -318,7 +318,10 @@ function computeBubbleThresholds() {
 
 // Each project adds one notch (16px pitch) below its year dot.
 const NOTCH_PITCH = 16;
-const segmentHeight = (count) => 24 + count * NOTCH_PITCH;
+// The rail ends on the "Earlier" dot, so it carries no notches.
+const notchCount = (item) => (item.type === "earlier" ? 0 : item.count);
+const segmentHeight = (item) =>
+  item.type === "earlier" ? 18 : 24 + notchCount(item) * NOTCH_PITCH;
 
 // A notch is filled once the progress line has passed it. Notches sit evenly between this
 // item's dot and the next dot (or the end of the rail).
@@ -327,7 +330,7 @@ function notchPassed(itemIdx, k) {
   const start = dotTs.value[itemIdx];
   if (start === undefined) return false;
   const end = itemIdx + 1 < list.length ? (dotTs.value[itemIdx + 1] ?? 1) : 1;
-  const frac = (28 + (k - 1) * NOTCH_PITCH + 1 - 10) / segmentHeight(list[itemIdx].count);
+  const frac = (28 + (k - 1) * NOTCH_PITCH + 1 - 10) / segmentHeight(list[itemIdx]);
   return progress01.value + 1e-6 >= start + (end - start) * frac;
 }
 
