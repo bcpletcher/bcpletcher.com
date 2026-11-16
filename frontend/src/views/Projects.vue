@@ -71,6 +71,7 @@
                 :meta="project.meta"
                 :show-date="false"
                 :show-featured="false"
+                :priority="project.id === projects[0]?.id"
                 :show-admin-controls="isAdmin"
                 :is-hidden="settingsStore.projects?.[project.id]?.hidden"
                 :on-edit="(id) => openEditById(id)"

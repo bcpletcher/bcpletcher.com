@@ -3,6 +3,7 @@
   <ol
     v-if="settingsStore.projectsLoading"
     class="group/list list-none p-0"
+    :class="listClass"
     role="status"
     aria-label="Loading projects"
   >
@@ -11,6 +12,7 @@
       :key="n"
       :variant="variant"
       :is-last="n === count"
+      :lead="n === 1 || count < 3"
     />
   </ol>
 
@@ -44,9 +46,11 @@ defineProps({
   variant: {
     type: String,
     default: "home",
-    validator: (v) => ["home", "page"].includes(v),
+    validator: (v) => ["home", "page", "featured"].includes(v),
   },
   count: { type: Number, default: 3 },
+  // Extra classes for the skeleton list, so it can mirror a grid used by the loaded list.
+  listClass: { type: String, default: "" },
 });
 
 const settingsStore = useSettingsStore();

@@ -2,7 +2,7 @@
   <li class="overflow-visible mb-10">
     <article
       v-gsap-reveal="{ once: true, start: 'top 92%' }"
-      class="relative grid overflow-visible pb-1 md:grid-cols-12 md:items-center md:gap-8"
+      class="relative grid gap-4 overflow-visible pb-1 md:grid-cols-12 md:items-center md:gap-8"
     >
       <!-- Hidden stripe overlay (admin visual only) -->
       <div
@@ -50,6 +50,7 @@
         :project-name="projectName"
         :images="images"
         :is-hidden="isHidden"
+        :priority="priority"
         @open-gallery="emitOpenGallery"
       />
     </article>
@@ -86,6 +87,9 @@ const props = defineProps({
   showTechnology: { type: Boolean, default: true },
   showFeatured: { type: Boolean, default: true },
   showMeta: { type: Boolean, default: true },
+
+  // First visible card: load its image eagerly so it isn't waiting on lazy-load.
+  priority: { type: Boolean, default: false },
 
   // Admin-only controls
   showAdminControls: { type: Boolean, default: false },

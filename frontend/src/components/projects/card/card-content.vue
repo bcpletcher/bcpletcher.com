@@ -20,11 +20,11 @@
             :aria-disabled="isHidden || undefined"
             target="_blank"
             rel="noreferrer noopener"
-            class="kbd-focus group/title inline-flex min-w-0 items-start gap-2 text-slate-200 transition-colors motion-reduce:transition-none hover:text-sky-300 focus-visible:text-sky-300"
+            class="kbd-focus group/title inline-flex min-w-0 items-start gap-2 text-slate-100 transition-colors motion-reduce:transition-none hover:text-sky-300 focus-visible:text-sky-300"
             :class="isHidden ? 'cursor-default' : ''"
             :aria-label="`${projectName} (opens in a new tab)`"
           >
-            <h3 class="min-w-0 font-medium leading-snug wrap-break-word">
+            <h3 class="min-w-0 font-semibold leading-snug wrap-break-word">
               {{ projectName }}
             </h3>
             <AppIcon
@@ -35,7 +35,7 @@
 
           <h3
             v-else
-            class="min-w-0 font-medium leading-snug text-slate-200 wrap-break-word"
+            class="min-w-0 font-semibold leading-snug text-slate-100 wrap-break-word"
           >
             {{ projectName }}
           </h3>
@@ -54,24 +54,12 @@
         v-if="summary && showSummary"
         class="z-4 mt-3 rounded md:bg-slate-950/75 md:border md:border-slate-700 md:p-6 md:backdrop-blur md:-mr-16"
       >
-        <p class="text-sm leading-normal">
+        <p class="text-sm leading-relaxed text-slate-400 md:text-slate-300">
           {{ summary }}
         </p>
       </div>
 
-      <div
-        v-if="showTechnology && sortedTechnology?.length"
-        class="mt-2 flex flex-wrap"
-        aria-label="Technologies used"
-      >
-        <div v-for="tag in sortedTechnology" :key="tag" class="mr-1.5 mt-2">
-          <div
-            class="flex items-center rounded-full bg-sky-300/10 px-3 py-1 text-xs font-medium leading-5 text-sky-300"
-          >
-            {{ tag }}
-          </div>
-        </div>
-      </div>
+      <TechTags v-if="showTechnology" :items="technology" class="mt-4" />
 
       <!-- Meta row (bottom) -->
       <template v-if="showFeatured && featured">
@@ -107,6 +95,7 @@
 
 <script setup>
 import { computed } from "vue";
+import TechTags from "@/components/shared/tech-tags.vue";
 import { PROJECT_META_OPTIONS } from "@/constants/projectMetaIconOptions.js";
 
 const props = defineProps({
@@ -136,15 +125,6 @@ const metaDisplay = computed(() => {
   const key = (props.meta ?? "").toString().trim();
   if (!key) return null;
   return PROJECT_META_OPTIONS?.[key] || null;
-});
-
-const sortedTechnology = computed(() => {
-  const arr = Array.isArray(props.technology) ? props.technology : [];
-
-  return arr
-    .filter((t) => (t ?? "").toString().trim())
-    .map((t) => (t ?? "").toString().trim())
-    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 });
 
 function onOpenGallery(index) {

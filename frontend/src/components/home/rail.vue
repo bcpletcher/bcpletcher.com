@@ -8,19 +8,7 @@
 
     <div class="hidden lg:block">
       <div class="flex min-h-[calc(100vh-12rem)] flex-col">
-        <div class="pt-0">
-          <div class="flex flex-col">
-            <h1
-              class="text-3xl font-bold tracking-tight text-slate-200 sm:text-5xl"
-            >
-              {{ name }}
-            </h1>
-            <p class="max-w-sm mt-4 text-slate-100 text-xl">{{ title }}</p>
-            <p class="max-w-sm mt-6 leading-normal font-normal">
-              {{ description }}
-            </p>
-          </div>
-        </div>
+        <RailIntro :name="name" :title="title" :description="description" />
 
         <Navigation
           variant="desktop"
@@ -29,22 +17,18 @@
           @nav="onNav"
         />
 
-        <div class="mt-auto pb-0">
+        <div class="mt-auto pt-10">
           <SocialLinks />
         </div>
       </div>
     </div>
 
     <!-- Mobile rail content (normal flow) -->
-    <div class="pb-8 md:pb-16 lg:hidden">
-      <h1 class="text-3xl font-bold tracking-tight text-slate-200 sm:text-5xl">
-        {{ name }}
-      </h1>
-      <p class="max-w-sm mt-3 text-slate-100 text-xl">{{ title }}</p>
-      <p class="max-w-sm mt-4 leading-normal font-normal">
-        {{ description }}
-      </p>
-      <SocialLinks />
+    <div class="pb-10 md:pb-16 lg:hidden">
+      <RailIntro :name="name" :title="title" :description="description" />
+      <div class="mt-8">
+        <SocialLinks />
+      </div>
     </div>
   </aside>
 </template>
@@ -53,9 +37,11 @@
 import { useScrollSpy } from "@/composables/useScrollSpy.js";
 
 import Navigation from "@/components/home/rail/navigation.vue";
+import RailIntro from "@/components/home/rail/intro.vue";
 import SocialLinks from "@/components/home/rail/social-links.vue";
 import MobileSectionNav from "@/components/home/rail/mobile-section-nav.vue";
 
+// Hero copy lives here only; swap these three strings to change the headline.
 const name = "Benjamin Pletcher";
 const title = "Senior Software Engineer";
 const description =

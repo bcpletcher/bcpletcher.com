@@ -17,6 +17,7 @@ import MainContent from "@/components/home/content.vue";
 
 const navItems = [
   { id: "about", label: "About" },
+  { id: "work", label: "Work" },
   { id: "experience", label: "Experience" },
   { id: "projects", label: "Projects" },
 ];

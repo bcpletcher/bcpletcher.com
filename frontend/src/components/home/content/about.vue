@@ -1,22 +1,29 @@
 <template>
-  <section id="about" class="scroll-mt-24" :data-section="true">
-    <div class="space-y-4 text-sm sm:text-base leading-relaxed">
-      <h2 class="text-xl font-semibold sm:text-xl">
-        {{ content.heading }}
-      </h2>
+  <div class="max-w-[34rem]">
+    <h2
+      class="text-2xl font-semibold leading-tight text-slate-100 sm:text-3xl"
+    >
+      {{ content.heading }}
+    </h2>
 
+    <div class="mt-6 space-y-5">
       <p
         v-for="(item, index) in content.paragraphs"
         :key="index"
-        class="leading-relaxed text-slate-400"
+        :class="
+          index === 0
+            ? 'text-lg leading-8 text-slate-300'
+            : 'text-base leading-7 text-slate-400'
+        "
       >
         {{ item }}
       </p>
     </div>
-  </section>
+  </div>
 </template>
 
 <script setup>
+// Copy lives here only; swap the heading/paragraphs without touching the template.
 const content = {
   heading: "Creative. Intentional. Experienced.",
   paragraphs: [

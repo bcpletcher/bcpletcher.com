@@ -10,7 +10,7 @@
     <div class="z-10 sm:col-span-6">
       <div class="flex justify-between items-center">
         <span
-          class="font-medium leading-snug text-slate-200 transition-colors lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300"
+          class="font-semibold leading-snug text-slate-100 transition-colors lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300"
         >
           {{ title }}
         </span>
@@ -36,28 +36,16 @@
         {{ description }}
       </p>
 
-      <ul
-        v-if="sortedTechnology?.length"
-        class="mt-2 flex flex-wrap"
-        aria-label="Technologies used"
-      >
-        <li v-for="item in sortedTechnology" :key="item" class="mr-1.5 mt-2">
-          <div
-            class="flex items-center rounded-full bg-sky-300/10 px-3 py-1 text-xs font-medium leading-5 text-sky-300"
-          >
-            {{ item }}
-          </div>
-        </li>
-      </ul>
+      <TechTags :items="technology" class="mt-4" />
     </div>
   </CardWrapper>
 </template>
 
 <script setup>
 import CardWrapper from "@/components/home/content/card-wrapper.vue";
-import { computed } from "vue";
+import TechTags from "@/components/shared/tech-tags.vue";
 
-const props = defineProps({
+defineProps({
   rangeLabel: { type: String, required: true },
   title: { type: String, required: true },
   company: { type: String, required: true },
@@ -65,14 +53,5 @@ const props = defineProps({
   description: { type: String, default: "" },
   technology: { type: Array, default: () => [] },
   isLast: { type: Boolean, default: false },
-});
-
-const sortedTechnology = computed(() => {
-  const arr = Array.isArray(props.technology) ? props.technology : [];
-
-  return arr
-    .filter((t) => (t ?? "").toString().trim())
-    .map((t) => (t ?? "").toString().trim())
-    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 });
 </script>

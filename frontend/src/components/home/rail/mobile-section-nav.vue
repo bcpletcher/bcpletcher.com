@@ -9,20 +9,27 @@
     "
     :inert="!visible || undefined"
   >
-    <ul class="mx-auto flex max-w-7xl items-center gap-1 px-4 py-2 md:px-10">
-      <li v-for="item in navItems" :key="item.id">
+    <ul
+      class="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-3 md:px-10"
+    >
+      <li v-for="item in navItems" :key="item.id" class="shrink-0">
+        <!-- 44px tall hit area; the visible pill is the inner span. -->
         <button
           type="button"
-          class="kbd-focus cursor-pointer rounded-full px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors motion-reduce:transition-none"
-          :class="
-            activeSectionId === item.id
-              ? 'bg-white/10 text-slate-100'
-              : 'text-slate-400 hover:text-slate-100'
-          "
+          class="kbd-focus group/pill flex min-h-11 cursor-pointer items-center"
           :aria-current="activeSectionId === item.id ? 'true' : undefined"
           @click="$emit('nav', item.id)"
         >
-          {{ item.label }}
+          <span
+            class="rounded-full px-2.5 py-2 text-xs font-bold uppercase tracking-wider transition-colors motion-reduce:transition-none sm:px-4 sm:tracking-widest"
+            :class="
+              activeSectionId === item.id
+                ? 'bg-white/10 text-slate-100'
+                : 'text-slate-400 group-hover/pill:text-slate-100'
+            "
+          >
+            {{ item.label }}
+          </span>
         </button>
       </li>
     </ul>

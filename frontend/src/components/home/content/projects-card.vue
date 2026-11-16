@@ -3,31 +3,45 @@
     :href="href"
     :aria-label="ariaLabel"
     :is-last="isLast"
+    :grid-cols-class="
+      stacked ? 'grid-cols-1' : 'sm:grid-cols-8 sm:gap-6 md:gap-5'
+    "
     @open-gallery="onOpenGallery"
   >
-    <!-- Image column -->
-    <div class="z-10 mb-2 sm:col-span-2">
-      <img
-        v-img-fade
-        class="mt-1 w-full rounded border border-white/10 bg-white/5 object-cover"
-        :src="img.src"
-        :srcset="img.srcset || undefined"
-        sizes="(min-width: 640px) 16rem, 100vw"
-        :alt="imageAlt"
-        width="1280"
-        height="720"
-        :loading="priority ? 'eager' : 'lazy'"
-        :fetchpriority="priority ? 'high' : undefined"
-        decoding="async"
-        @error="fallbackToOriginalImage"
-      />
+    <!-- Image -->
+    <div class="z-10" :class="stacked ? 'mb-5' : 'mb-4 sm:col-span-3 sm:mb-0'">
+      <div
+        class="overflow-hidden rounded-md border border-white/10 bg-white/5 transition-colors duration-300 motion-reduce:transition-none lg:group-hover:border-sky-300/30 lg:group-focus-within:border-sky-300/30"
+        :class="stacked ? '' : 'sm:mt-1'"
+      >
+        <!-- Zoom lives on a wrapper: v-img-fade owns the <img> transition. -->
+        <div
+          class="transition-transform duration-500 ease-out motion-reduce:transition-none motion-safe:lg:group-hover:scale-[1.03] motion-safe:lg:group-focus-within:scale-[1.03]"
+        >
+          <img
+            v-img-fade
+            class="aspect-video w-full object-cover"
+            :src="img.src"
+            :srcset="img.srcset || undefined"
+            :sizes="sizes"
+            :alt="imageAlt"
+            width="1280"
+            height="720"
+            :loading="priority ? 'eager' : 'lazy'"
+            :fetchpriority="priority ? 'high' : undefined"
+            decoding="async"
+            @error="fallbackToOriginalImage"
+          />
+        </div>
+      </div>
     </div>
 
-    <!-- Content column -->
-    <div class="z-10 sm:col-span-6">
+    <!-- Content -->
+    <div class="z-10" :class="stacked ? '' : 'sm:col-span-5'">
       <div class="flex items-start justify-between gap-4">
         <h3
-          class="font-medium leading-snug text-slate-200 transition-colors lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300"
+          class="min-w-0 font-semibold leading-snug text-slate-100 transition-colors wrap-break-word lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300"
+          :class="titleClass"
         >
           {{ projectName }}
         </h3>
@@ -36,11 +50,11 @@
         <AppIcon
           v-if="href"
           icon="fa-light fa-arrow-up-right" :class="[
-            'ml-1 translate-y-px inline-block h-4 w-4 shrink-0',
+            'ml-1 mt-1 inline-block h-4 w-4 shrink-0',
             'text-slate-200 transition-[transform,color] motion-reduce:transition-none',
             'lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300',
-            'lg:group-hover:-translate-y-2 lg:group-hover:translate-x-3',
-            'lg:group-focus-within:-translate-y-2 lg:group-focus-within:translate-x-3',
+            'lg:group-hover:-translate-y-1 lg:group-hover:translate-x-1',
+            'lg:group-focus-within:-translate-y-1 lg:group-focus-within:translate-x-1',
           ]"
           aria-hidden="true"
         />
@@ -51,7 +65,7 @@
           type="button"
           :class="[
             // Keep baseline/size 1:1 with the external-link icon
-            'ml-1 translate-y-px inline-block h-4 w-4 shrink-0',
+            'ml-1 mt-1 inline-block h-4 w-4 shrink-0',
             'text-slate-200 transition-[color] motion-reduce:transition-none',
             'lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300',
             // button-specific
@@ -67,27 +81,15 @@
         </button>
       </div>
 
-      <p v-if="summary" class="mt-2 text-sm leading-normal text-slate-400">
+      <p v-if="summary" class="mt-2 text-sm leading-relaxed text-slate-400">
         {{ summary }}
       </p>
 
-      <ul
-        v-if="sortedTechnology?.length"
-        class="mt-3 flex flex-wrap"
-        aria-label="Technologies used"
-      >
-        <li v-for="tag in sortedTechnology" :key="tag" class="mr-1.5 mt-2">
-          <div
-            class="flex items-center rounded-full bg-sky-300/10 px-3 py-1 text-xs font-medium leading-5 text-sky-300"
-          >
-            {{ tag }}
-          </div>
-        </li>
-      </ul>
+      <TechTags :items="technology" class="mt-4" />
 
       <div
         v-if="metaDisplay?.label"
-        class="mt-3 flex items-center gap-2 text-xs text-font-primary/60"
+        class="mt-3 flex items-center gap-2 text-xs text-slate-400"
       >
         <AppIcon v-if="metaDisplay?.iconClass" :icon="metaDisplay.iconClass" />
         <AppIcon v-else icon="fa-light fa-star" aria-hidden="true" />
@@ -99,6 +101,7 @@
 
 <script setup>
 import CardWrapper from "@/components/home/content/card-wrapper.vue";
+import TechTags from "@/components/shared/tech-tags.vue";
 import { computed } from "vue";
 import {
   buildResponsiveImageSourcesFromImageValue,
@@ -122,8 +125,32 @@ const props = defineProps({
   // First visible card: load its image eagerly so it isn't waiting on lazy-load.
   priority: { type: Boolean, default: false },
 
+  // "row": compact card, image beside the text from sm up.
+  // "stacked": image-led card, large screenshot above the text ("Selected work").
+  layout: {
+    type: String,
+    default: "row",
+    validator: (v) => ["row", "stacked"].includes(v),
+  },
+  // Stacked only: the card spans the full column (bigger title, bigger image).
+  lead: { type: Boolean, default: false },
+
   // Needed to open the modal when there is no external URL
   images: { type: Array, default: () => [] },
+});
+
+const stacked = computed(() => props.layout === "stacked");
+
+const titleClass = computed(() => {
+  if (!stacked.value) return "text-base";
+  return props.lead ? "text-lg sm:text-xl" : "text-lg";
+});
+
+// Rendered image width per layout, so the browser picks the smallest sufficient candidate.
+const sizes = computed(() => {
+  if (!stacked.value) return "(min-width: 640px) 16rem, 100vw";
+  if (props.lead) return "(min-width: 1024px) 38rem, 100vw";
+  return "(min-width: 1024px) 18rem, (min-width: 640px) 50vw, 100vw";
 });
 
 const metaDisplay = computed(() => {
@@ -142,15 +169,6 @@ function onOpenGallery(index = 0) {
     index: Number.isFinite(index) ? index : 0,
   });
 }
-
-const sortedTechnology = computed(() => {
-  const arr = Array.isArray(props.technology) ? props.technology : [];
-
-  return arr
-    .filter((t) => (t ?? "").toString().trim())
-    .map((t) => (t ?? "").toString().trim())
-    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-});
 
 const img = computed(() =>
   buildResponsiveImageSourcesFromImageValue(props.hero, {

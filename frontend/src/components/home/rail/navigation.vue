@@ -1,5 +1,5 @@
 <template>
-  <nav aria-label="Page" class="hidden mt-16 lg:block" :class="wrapperClass">
+  <nav aria-label="Page" class="hidden lg:block" :class="wrapperClass">
     <component :is="isDesktop ? 'ul' : 'div'" :class="listClass">
       <component
         :is="isDesktop ? 'li' : 'span'"
@@ -52,7 +52,7 @@ defineEmits(["nav"]);
 
 const isDesktop = props.variant === "desktop";
 
-const wrapperClass = isDesktop ? "mt-16" : "mt-8";
+const wrapperClass = isDesktop ? "mt-12" : "mt-8";
 
 const listClass = isDesktop ? "space-y-4" : "flex flex-wrap gap-3";
 
