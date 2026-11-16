@@ -8,7 +8,7 @@
         class="relative flex-1 min-h-0 flex flex-col"
         aria-label="Projects timeline"
       >
-        <div ref="trackWrapRef" class="relative flex flex-1 min-h-0">
+        <div ref="trackWrapRef" class="relative flex">
           <!-- Align bar to the center of the dot column: right padding (pr-6) + half dot-lane width (1.25rem / 2).
                Use translate-x-1/2 so the bar is centered on that point (right positions the bar's right edge). -->
           <span
@@ -22,12 +22,12 @@
             style="transform: scaleY(0)"
           />
 
-          <ol class="flex flex-1 min-h-0 flex-col pr-6">
+          <ol class="flex flex-1 flex-col pr-6">
             <li
               v-for="(item, itemIdx) in items"
               :key="item.key"
-              class="relative ml-auto flex w-full flex-col items-end"
-              :style="{ flexGrow: item.count, flexBasis: 0, minHeight: 28 + item.count * 14 + 'px' }"
+              class="relative ml-auto flex w-full shrink-0 flex-col items-end"
+              :style="{ height: segmentHeight(item.count) + 'px' }"
             >
               <a
                 :href="item.href"
@@ -55,14 +55,14 @@
 
               <!-- One notch per project in this year, spaced along the rail below the year dot. -->
               <span
-                class="pointer-events-none absolute right-0 top-7 bottom-1 flex w-5 flex-col items-center justify-evenly"
+                class="pointer-events-none absolute right-0 top-7 flex w-5 flex-col items-center gap-3.5"
                 aria-hidden="true"
               >
                 <span
                   v-for="k in item.count"
                   :key="k"
-                  class="rail-notch h-0.5 w-2 rounded-full"
-                  :class="notchPassed(itemIdx, k) ? 'bg-sky-300' : 'bg-slate-600'"
+                  class="rail-notch h-0.5 w-2.5 rounded-full"
+                  :class="notchPassed(itemIdx, k) ? 'bg-sky-300' : 'bg-slate-500'"
                 />
               </span>
             </li>
@@ -316,6 +316,10 @@ function computeBubbleThresholds() {
   return { thresholds, trackTop, trackBottom };
 }
 
+// Each project adds one notch (16px pitch) below its year dot.
+const NOTCH_PITCH = 16;
+const segmentHeight = (count) => 24 + count * NOTCH_PITCH;
+
 // A notch is filled once the progress line has passed it. Notches sit evenly between this
 // item's dot and the next dot (or the end of the rail).
 function notchPassed(itemIdx, k) {
@@ -323,8 +327,8 @@ function notchPassed(itemIdx, k) {
   const start = dotTs.value[itemIdx];
   if (start === undefined) return false;
   const end = itemIdx + 1 < list.length ? (dotTs.value[itemIdx + 1] ?? 1) : 1;
-  const n = list[itemIdx].count;
-  return progress01.value + 1e-6 >= start + ((end - start) * k) / (n + 1);
+  const frac = (28 + (k - 1) * NOTCH_PITCH + 1 - 10) / segmentHeight(list[itemIdx].count);
+  return progress01.value + 1e-6 >= start + (end - start) * frac;
 }
 
 function isActive(item) {
