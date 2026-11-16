@@ -2,22 +2,6 @@
   <!-- Add top padding on mobile to make room for the fixed header -->
   <div class="flex flex-col">
     <section
-      id="about"
-      class="mb-16 scroll-mt-16 md:mb-24 lg:mb-0 lg:scroll-mt-24"
-      :data-section="true"
-    >
-      <h2
-        class="mb-8 text-sm font-bold uppercase tracking-widest text-slate-200 lg:hidden"
-      >
-        About
-      </h2>
-
-      <AboutSection />
-    </section>
-
-    <div class="hidden lg:block my-16 h-px w-full bg-white/10" />
-
-    <section
       id="work"
       class="scroll-mt-16 mb-16 md:mb-24 lg:mb-0 lg:scroll-mt-24"
       :data-section="true"
@@ -29,6 +13,22 @@
       </h2>
 
       <FeaturedWork />
+    </section>
+
+    <div class="hidden lg:block my-16 h-px w-full bg-white/10" />
+
+    <section
+      id="about"
+      class="mb-16 scroll-mt-16 md:mb-24 lg:mb-0 lg:scroll-mt-24"
+      :data-section="true"
+    >
+      <h2
+        class="mb-8 text-sm font-bold uppercase tracking-widest text-slate-200 lg:hidden"
+      >
+        About
+      </h2>
+
+      <AboutSection />
     </section>
 
     <div class="hidden lg:block my-16 h-px w-full bg-white/10" />
