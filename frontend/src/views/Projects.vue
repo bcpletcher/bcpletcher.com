@@ -43,7 +43,7 @@
           </p>
         </div>
 
-        <div>
+        <ProjectsLoadState variant="page" :count="4">
           <div v-for="y in years" :key="y">
             <!-- Year anchor/section for timeline tracking -->
             <div
@@ -78,7 +78,7 @@
               />
             </ul>
           </div>
-        </div>
+        </ProjectsLoadState>
       </div>
 
       <ProjectsGalleryModal
@@ -108,6 +108,7 @@ import RailLayout from "@/components/shared/rail-layout.vue";
 import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsRailTimeline from "@/components/projects/projects-rail-timeline.vue";
 import ProjectsCard from "@/components/projects/card/card.vue";
+import ProjectsLoadState from "@/components/shared/projects-load-state.vue";
 import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
 import { useSettingsStore } from "@/stores/settings.js";
 import {

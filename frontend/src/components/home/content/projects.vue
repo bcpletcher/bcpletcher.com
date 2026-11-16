@@ -1,39 +1,28 @@
 <template>
   <div>
-    <ol v-if="isLoading" class="group/list" aria-hidden="true">
-      <li v-for="n in 3" :key="n" class="mb-12 grid gap-4 sm:grid-cols-8 sm:gap-8">
-        <div
-          class="aspect-video w-full animate-pulse rounded border border-white/10 bg-white/5 motion-reduce:animate-none sm:col-span-2"
+    <ProjectsLoadState variant="home" :count="3">
+      <ol class="group/list">
+        <ProjectsCard
+          v-for="(item, idx) in items"
+          :key="item.projectName + '-' + idx"
+          :project-name="item.projectName"
+          :summary="item.summary"
+          :hero="item.hero"
+          :href="item.url"
+          :technology="item.technology"
+          :images="item.images"
+          :meta="item.meta"
+          :aria-label="
+            item.url
+              ? `${item.projectName} (opens in a new tab)`
+              : `${item.projectName} (opens gallery)`
+          "
+          :is-last="idx === items.length - 1"
+          :priority="idx === 0"
+          @open-gallery="openGallery"
         />
-        <div class="space-y-3 sm:col-span-6">
-          <div class="h-4 w-1/3 animate-pulse rounded bg-white/10 motion-reduce:animate-none" />
-          <div class="h-3 w-full animate-pulse rounded bg-white/5 motion-reduce:animate-none" />
-          <div class="h-3 w-4/5 animate-pulse rounded bg-white/5 motion-reduce:animate-none" />
-        </div>
-      </li>
-    </ol>
-
-    <ol v-else class="group/list">
-      <ProjectsCard
-        v-for="(item, idx) in items"
-        :key="item.projectName + '-' + idx"
-        :project-name="item.projectName"
-        :summary="item.summary"
-        :hero="item.hero"
-        :href="item.url"
-        :technology="item.technology"
-        :images="item.images"
-        :meta="item.meta"
-        :aria-label="
-          item.url
-            ? `${item.projectName} (opens in a new tab)`
-            : `${item.projectName} (opens gallery)`
-        "
-        :is-last="idx === items.length - 1"
-        :priority="idx === 0"
-        @open-gallery="openGallery"
-      />
-    </ol>
+      </ol>
+    </ProjectsLoadState>
 
     <ProjectsGalleryModal
       v-if="galleryMounted"
@@ -50,7 +39,8 @@
       >
         <span>View all projects</span>
         <AppIcon
-          icon="fa-light fa-arrow-right" class="transition-transform motion-reduce:transition-none group-hover/link:translate-x-1 group-focus-visible/link:translate-x-1"
+          icon="fa-light fa-arrow-right"
+          class="transition-transform motion-reduce:transition-none group-hover/link:translate-x-1 group-focus-visible/link:translate-x-1"
           aria-hidden="true"
         />
       </router-link>
@@ -64,6 +54,7 @@ import { useSettingsStore } from "@/stores/settings.js";
 import { normalizeProjectDate } from "@/utils/projectDate.js";
 
 import ProjectsCard from "@/components/home/content/projects-card.vue";
+import ProjectsLoadState from "@/components/shared/projects-load-state.vue";
 
 const settingsStore = useSettingsStore();
 
@@ -94,9 +85,6 @@ function openGallery(payload) {
   galleryMounted.value = true;
   isGalleryOpen.value = true;
 }
-
-// null until the first fetch (or fresh cache) lands.
-const isLoading = computed(() => settingsStore.projects === null);
 
 const items = computed(() => {
   const all = settingsStore.projects;

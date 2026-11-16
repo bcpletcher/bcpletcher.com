@@ -1,201 +1,100 @@
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { onMounted } from "vue";
 
 import { useCloudflareStore } from "@/stores/cloudflare.js";
 import { useSettingsStore } from "@/stores/settings.js";
-import { useOverlayScrollLock } from "@/composables/useOverlayScrollLock.js";
 import {
   clearProjectsCache,
   loadProjectsFromCache,
-  saveProjectsToCache,
 } from "@/utils/cache.js";
-import { withTimeout } from "@/utils/asyncTimeout.js";
+import { isProjectsCacheEnabled, loadProjects } from "@/utils/loadProjects.js";
 
 /**
  * App boot sequence.
  *
  * Contract:
- * - Hydrates stores from cache when fresh (skips network + loader).
- * - Otherwise fetches the projects collection and writes caches (non-blocking). The page
- *   renders immediately while this runs; the project list shows placeholders until it lands.
- * - The fullscreen loader is only used as the error state when the fetch fails.
+ * - The page renders immediately; nothing blocks on boot.
+ * - Hydrates the projects store from cache when fresh (skips the network).
+ * - Otherwise fetches the projects collection. Until it lands, project lists show
+ *   skeletons; on failure they show an inline error with a retry
+ *   (`settingsStore.projectsError`).
  */
 export function useAppBoot() {
   const cloudflareStore = useCloudflareStore();
   const settingsStore = useSettingsStore();
 
-  const isBootLoading = ref(true);
-  const bootError = ref("");
-  const showLoader = ref(false);
-  const didDecideBoot = ref(false);
-
-  const CACHE_ENABLED = (() => {
-    // Support both names (you currently have VITE_CACHE_ENABLED in .env).
-    const raw = import.meta.env.VITE_CACHE_ENABLED;
-
-    // Default: enabled unless explicitly set to false.
-    return String(raw).toLowerCase() !== "false";
-  })();
-
-  const SIMULATE_BOOT_ERROR =
-    String(import.meta.env.VITE_SIMULATE_BOOT_ERROR).toLowerCase() === "true";
-
   const CACHE_TTL_MINUTES = Number(
-    import.meta.env.VITE_CACHE_TTL_MINUTES || 60
+    import.meta.env.VITE_CACHE_TTL_MINUTES || 60,
   );
   const CACHE_TTL_MS = Number.isFinite(CACHE_TTL_MINUTES)
     ? Math.max(0, CACHE_TTL_MINUTES) * 60 * 1000
     : 60 * 60 * 1000;
 
-  const isReady = computed(() => !isBootLoading.value && !bootError.value);
-  const hasError = computed(() => Boolean(bootError.value));
-
   const boot = async () => {
     // URL overrides for QA/debugging.
-    const urlFlags = (() => {
-      if (typeof window === "undefined") return { noCache: false, clearCache: false };
-      const sp = new URLSearchParams(window.location.search);
-      const enabled = (v) => v === "1" || v === "true" || v === "yes";
-      return {
-        noCache: enabled((sp.get("nocache") || "").toLowerCase()),
-        clearCache: enabled((sp.get("clearcache") || "").toLowerCase()),
-      };
-    })();
+    const sp = new URLSearchParams(window.location.search);
+    const enabled = (v) => v === "1" || v === "true" || v === "yes";
+    const noCache = enabled((sp.get("nocache") || "").toLowerCase());
+    const clearCache = enabled((sp.get("clearcache") || "").toLowerCase());
 
-    const cacheEnabledThisBoot = CACHE_ENABLED && !urlFlags.noCache;
-    if (urlFlags.noCache) {
+    const cacheEnabledThisBoot = isProjectsCacheEnabled() && !noCache;
+    if (noCache) {
       console.log("[boot] nocache=1 -> bypassing projects cache read/write");
     }
-    if (urlFlags.clearCache) {
-      console.log("[boot] clearcache=1 -> clearing projects cache before boot");
+
+    if (cacheEnabledThisBoot && clearCache) {
+      try {
+        await clearProjectsCache();
+        console.log("[boot] projects cache cleared via URL flag");
+      } catch (e) {
+        console.warn("[boot] failed to clear projects cache", e);
+      }
     }
 
-    // Prevent scrollbar/layout jitter while the loader is animating.
-    // (We keep off until loader fades out OR we early-exit via fresh cache.)
+    // Validate a persisted admin session before the cache-first early exit. A
+    // definite 401 clears the session; transient failures retain it for later
+    // reconciliation instead of logging out.
     try {
-      // 0) Decide whether we need loader + network boot.
-      // We do this before showing the loader to avoid a brief flash.
+      await cloudflareStore.validateAdminSession();
+    } catch (error) {
+      console.warn(
+        "[boot] admin session validation unavailable; retaining local session state",
+        error,
+      );
+    }
 
-      // Optional: force-clear cache via URL.
-      if (cacheEnabledThisBoot && urlFlags.clearCache) {
-        try {
-          await clearProjectsCache();
-          console.log("[boot] projects cache cleared via URL flag");
-        } catch (e) {
-          console.warn("[boot] failed to clear projects cache", e);
-        }
-      }
-
-      // Validate a persisted admin session before cache-first early exit. A
-      // definite 401 clears the session; transient/status-less failures retain
-      // it and remain visible for later reconciliation instead of logging out.
+    // Cache-first: avoid unnecessary network calls within the TTL.
+    if (cacheEnabledThisBoot) {
       try {
-        await cloudflareStore.validateAdminSession();
-      } catch (error) {
-        console.warn("[boot] admin session validation unavailable; retaining local session state", error);
-      }
+        const cached = await loadProjectsFromCache();
 
-      // 1) Cache-first: avoid unnecessary network calls within TTL.
-      // Controlled via VITE_CACHE_ENABLED (default true).
-      if (cacheEnabledThisBoot) {
-        let cacheIsFresh = false;
-        try {
-          const cached = await loadProjectsFromCache();
-
-          // If deploy cache epoch changed, wipe the old cache now.
-          // Only do this when a deploy epoch is configured (i.e., not localhost/dev).
-          const deployEpochConfigured = Boolean(import.meta.env.VITE_CACHE_EPOCH);
-          if (deployEpochConfigured && cached?.reason === "epoch-mismatch") {
-            try {
-              await clearProjectsCache();
-              console.log("[boot] projects cache cleared (epoch mismatch)");
-            } catch (e) {
-              console.warn("[boot] failed to clear projects cache (epoch mismatch)", e);
-            }
+        // If the deploy cache epoch changed, wipe the old cache now (not on localhost/dev).
+        if (
+          Boolean(import.meta.env.VITE_CACHE_EPOCH) &&
+          cached?.reason === "epoch-mismatch"
+        ) {
+          try {
+            await clearProjectsCache();
+            console.log("[boot] projects cache cleared (epoch mismatch)");
+          } catch (e) {
+            console.warn("[boot] failed to clear projects cache (epoch mismatch)", e);
           }
-
-          const ageMs = cached?.updatedAt
-            ? Date.now() - cached.updatedAt
-            : Infinity;
-          cacheIsFresh =
-            Boolean(cached?.all) && ageMs >= 0 && ageMs <= CACHE_TTL_MS;
-
-          if (cacheIsFresh) {
-            settingsStore.projects = cached.all;
-          }
-        } catch (e) {
-          // Ignore cache failures (private mode / blocked storage / etc.)
-          console.warn("Projects cache unavailable:", e);
         }
 
-        if (cacheIsFresh) {
-          // Skip loader + skip network calls entirely.
-          didDecideBoot.value = true;
-          showLoader.value = false;
-          isBootLoading.value = false;
+        const ageMs = cached?.updatedAt ? Date.now() - cached.updatedAt : Infinity;
+        if (Boolean(cached?.all) && ageMs >= 0 && ageMs <= CACHE_TTL_MS) {
+          settingsStore.projects = cached.all;
           return;
         }
+      } catch (e) {
+        // Ignore cache failures (private mode / blocked storage / etc.)
+        console.warn("Projects cache unavailable:", e);
       }
-
-      // Cache not fresh (or disabled): fetch while the page is already visible.
-      // Static sections render immediately; the project list shows placeholders.
-      didDecideBoot.value = true;
-
-      // 2) Full fetch (fatal if fails)
-      const projectsFresh = await cloudflareStore.dataGetProjectsCollection();
-      console.log("[boot] projects API resolved", {
-        keys: projectsFresh ? Object.keys(projectsFresh).length : 0,
-      });
-
-      settingsStore.projects = projectsFresh;
-
-      if (cacheEnabledThisBoot) {
-        withTimeout(
-          saveProjectsToCache(projectsFresh),
-          1000,
-          "Projects cache write timed out"
-        ).catch((e) => {
-          console.warn("Failed to persist projects cache", e);
-        });
-      }
-
-      if (SIMULATE_BOOT_ERROR) {
-        // Don't throw (caught locally) — set the error state directly.
-        bootError.value = "[boot-test] Simulated boot error";
-      }
-    } catch (err) {
-      console.error("App boot failed:", err);
-      // Only now do we cover the page: the loader doubles as the error screen.
-      didDecideBoot.value = true;
-      showLoader.value = true;
-      if (!bootError.value) {
-        bootError.value =
-          "Couldn’t load site content. Please refresh, or try again in a moment.";
-      }
-    } finally {
-      const finishBoot = () => {
-        // If a boot error occurred, keep the overlay visible.
-        if (bootError.value) return;
-        if (!isBootLoading.value) return;
-        isBootLoading.value = false;
-        console.log("[boot] APIs finished");
-      };
-
-      finishBoot();
     }
-  };
 
-  const onLoaderDone = () => {
-    // If a boot error happened, we intentionally keep the overlay visible.
-    if (bootError.value) return;
-    showLoader.value = false;
+    await loadProjects({ persist: cacheEnabledThisBoot });
   };
 
   onMounted(() => {
-    // Lock scroll while loader is visible.
-    // The loader emits `done` only after its fade-out completes, so this avoids
-    // scrollbar/padding changes while the overlay is still on screen.
-    useOverlayScrollLock(() => showLoader.value);
-
     boot();
 
     // Keep the local admin session state in sync across the app.
@@ -203,18 +102,4 @@ export function useAppBoot() {
       settingsStore.user = user || {};
     });
   });
-
-  onUnmounted(() => {
-    // no-op: useOverlayScrollLock cleans up on unmount
-  });
-
-  return {
-    showLoader,
-    isBootLoading,
-    bootError,
-    isReady,
-    hasError,
-    onLoaderDone,
-    didDecideBoot,
-  };
 }
