@@ -132,6 +132,48 @@
           <p class="max-w-prose leading-relaxed text-slate-400 md:pt-6">
             {{ s.hint }}
           </p>
+
+          <!-- Screens that illustrate this section. Tapping one opens the lightbox on it. -->
+          <div
+            v-if="sectionFigures[i]?.length"
+            class="grid gap-4 md:col-start-2"
+            :class="sectionFigures[i].length > 1 ? 'sm:grid-cols-2' : ''"
+          >
+            <figure
+              v-for="fig in sectionFigures[i]"
+              :key="fig.index"
+              class="flex flex-col gap-3"
+            >
+              <button
+                type="button"
+                class="kbd-focus group/fig relative block w-full cursor-zoom-in overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-1 text-left shadow-xl shadow-black/30 transition-[border-color] duration-200 hover:border-sky-300/40 focus-visible:border-sky-300/40 motion-reduce:transition-none"
+                :aria-label="`Open screenshot ${fig.index + 1} of ${project.projectName} in the lightbox`"
+                @click="openFigure(fig.index)"
+              >
+                <img
+                  v-img-fade
+                  class="aspect-video w-full rounded-lg object-cover ring-1 ring-black/20 transition-transform duration-500 ease-out group-hover/fig:scale-[1.02] motion-reduce:transition-none"
+                  :src="fig.img.src"
+                  :srcset="fig.img.srcset || undefined"
+                  :sizes="sectionFigures[i].length > 1 ? '(min-width: 896px) 22rem, 100vw' : '(min-width: 896px) 40rem, 100vw'"
+                  :alt="`${project.projectName} screen ${fig.index + 1}`"
+                  width="1280"
+                  height="720"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span
+                  class="pointer-events-none absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-black/50 text-slate-100 opacity-0 backdrop-blur transition-opacity duration-200 group-hover/fig:opacity-100 group-focus-visible/fig:opacity-100 motion-reduce:transition-none"
+                  aria-hidden="true"
+                >
+                  <AppIcon icon="fa-light fa-magnifying-glass-plus" />
+                </span>
+              </button>
+              <figcaption class="text-sm leading-relaxed text-slate-500">
+                Caption to be added: what this screen shows and why it matters.
+              </figcaption>
+            </figure>
+          </div>
         </section>
       </div>
 
@@ -161,6 +203,16 @@
         </router-link>
       </div>
     </article>
+
+    <ProjectsGalleryModal
+      v-if="galleryMounted"
+      v-model="isGalleryOpen"
+      :title="galleryTitle"
+      :images="galleryImages"
+      :initial-index="galleryIndex"
+      :origin-rect="galleryOriginRect"
+      :get-origin-rect="getOriginRect"
+    />
   </main>
 </template>
 
@@ -168,6 +220,7 @@
 import { computed, onBeforeUnmount, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
+import { ProjectsGalleryModal, useProjectGallery } from "@/composables/useProjectGallery.js";
 import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsLoadState from "@/components/shared/projects-load-state.vue";
 import TechTags from "@/components/shared/tech-tags.vue";
@@ -215,6 +268,42 @@ const hero = computed(() => {
     ? buildResponsiveImageSourcesFromImageValue(first, { widths: [480, 960] })
     : null;
 });
+
+// Screens woven into the story: Process gets up to two (side by side), Outcome gets one.
+// Index 0 is the hero above, so figures start at the second image.
+const sectionFigures = computed(() => {
+  const imgs = (project.value?.images || []).filter(Boolean);
+  const fig = (index) => ({
+    index,
+    img: buildResponsiveImageSourcesFromImageValue(imgs[index], {
+      widths: [480, 960],
+    }),
+  });
+  const byTitle = { Process: [1, 2], Outcome: [3] };
+  return SECTIONS.map((s) =>
+    (byTitle[s.title] || []).filter((n) => n < imgs.length).map(fig),
+  );
+});
+
+const {
+  galleryMounted,
+  isGalleryOpen,
+  galleryTitle,
+  galleryImages,
+  galleryIndex,
+  galleryOriginRect,
+  getOriginRect,
+  openGallery,
+} = useProjectGallery();
+
+function openFigure(index) {
+  const imgs = (project.value?.images || []).filter(Boolean);
+  openGallery({
+    title: project.value?.projectName || "",
+    images: imgs,
+    index,
+  });
+}
 
 const year = computed(() => getYearFromProjectDate(project.value?.date) || "");
 
