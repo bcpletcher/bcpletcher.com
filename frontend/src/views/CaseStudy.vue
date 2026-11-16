@@ -324,12 +324,13 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
+import { computed, onBeforeUnmount, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 
 import { ProjectsGalleryModal, useProjectGallery } from "@/composables/useProjectGallery.js";
 import CaseStudyBar from "@/components/shared/case-study-bar.vue";
 import { useScrollSpy } from "@/composables/useScrollSpy.js";
+import { useStickyBar } from "@/composables/useStickyBar.js";
 import BeforeAfter from "@/components/shared/before-after.vue";
 import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsLoadState from "@/components/shared/projects-load-state.vue";
@@ -384,23 +385,8 @@ const { activeSectionId, scrollTo } = useScrollSpy({
   sections: () => sections.value.map((s) => s.id),
   activationLine: 0.35,
 });
-const barVisible = ref(false);
-const progress = ref(0);
-let barFrame = 0;
-const updateBar = () => {
-  barFrame = 0;
-  const max = document.documentElement.scrollHeight - window.innerHeight;
-  barVisible.value = window.scrollY > 260;
-  progress.value = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-};
-const onBarScroll = () => {
-  if (!barFrame) barFrame = requestAnimationFrame(updateBar);
-};
-onMounted(() => {
-  updateBar();
-  window.addEventListener("scroll", onBarScroll, { passive: true });
-  window.addEventListener("resize", onBarScroll, { passive: true });
-});
+const { visible: barVisible, progress } = useStickyBar({ threshold: 260 });
+
 const hero = computed(() => {
   const first = project.value?.images?.filter(Boolean)?.[0];
   return first
@@ -469,9 +455,6 @@ watchEffect(() => {
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("scroll", onBarScroll);
-  window.removeEventListener("resize", onBarScroll);
-  if (barFrame) cancelAnimationFrame(barFrame);
   setPageTitle(null);
   setNoIndex(false);
 });

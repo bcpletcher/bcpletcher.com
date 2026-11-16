@@ -20,6 +20,8 @@
     </template>
 
     <template #main>
+      <ProjectsMobileBar :years="years" />
+
       <div class="flex flex-col gap-6">
         <div class="block lg:hidden">
           <PageHeader
@@ -125,6 +127,7 @@ import {
 } from "@/composables/useProjectGallery.js";
 import ProjectsLoadState from "@/components/shared/projects-load-state.vue";
 import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
+import ProjectsMobileBar from "@/components/projects/projects-mobile-bar.vue";
 import AdminCaseStudyEditor from "@/components/admin/admin-case-study-editor.vue";
 import { useSettingsStore } from "@/stores/settings.js";
 import {
