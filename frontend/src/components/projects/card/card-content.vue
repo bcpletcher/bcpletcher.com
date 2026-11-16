@@ -20,7 +20,7 @@
             :aria-disabled="isHidden || undefined"
             target="_blank"
             rel="noreferrer noopener"
-            class="kbd-focus group/title inline-flex min-w-0 items-start gap-2 text-slate-100 transition-colors motion-reduce:transition-none hover:text-sky-300 focus-visible:text-sky-300"
+            class="kbd-focus group/title inline-flex min-h-7 min-w-0 items-center gap-2 text-slate-100 transition-colors motion-reduce:transition-none hover:text-sky-300 focus-visible:text-sky-300"
             :class="isHidden ? 'cursor-default' : ''"
             :aria-label="`${projectName} (opens in a new tab)`"
           >
@@ -28,7 +28,7 @@
               {{ projectName }}
             </h3>
             <AppIcon
-              icon="fa-light fa-arrow-up-right" class="mt-0.5 inline-block h-4 w-4 shrink-0 text-current transition-transform motion-reduce:transition-none group-hover/title:-translate-y-0.5 group-hover/title:translate-x-0.5 group-focus-visible/title:-translate-y-0.5 group-focus-visible/title:translate-x-0.5"
+              icon="fa-light fa-arrow-up-right" class="my-1.5 inline-block h-4 w-4 shrink-0 text-current transition-transform motion-reduce:transition-none group-hover/title:-translate-y-0.5 group-hover/title:translate-x-0.5 group-focus-visible/title:-translate-y-0.5 group-focus-visible/title:translate-x-0.5"
               aria-hidden="true"
             />
           </a>

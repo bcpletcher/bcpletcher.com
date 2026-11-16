@@ -47,7 +47,7 @@
     >
       <div class="flex items-start justify-between gap-4">
         <h3
-          class="min-w-0 font-semibold leading-snug text-slate-100 transition-colors wrap-break-word lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300"
+          class="flex min-h-7 min-w-0 items-center font-semibold leading-snug text-slate-100 transition-colors wrap-break-word lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300"
           :class="titleClass"
         >
           {{ projectName }}
@@ -64,11 +64,11 @@
         <AppIcon
           v-if="href"
           icon="fa-light fa-arrow-up-right" :class="[
-            'ml-1 mt-1 inline-block h-4 w-4 shrink-0',
+            'ml-1 block h-4 w-4 shrink-0 self-center',
             'text-slate-200 transition-[transform,color] motion-reduce:transition-none',
             'lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300',
-            'lg:group-hover:-translate-y-1 lg:group-hover:translate-x-1',
-            'lg:group-focus-within:-translate-y-1 lg:group-focus-within:translate-x-1',
+            'lg:group-hover:-translate-y-0.5 lg:group-hover:translate-x-0.5',
+            'lg:group-focus-within:-translate-y-0.5 lg:group-focus-within:translate-x-0.5',
           ]"
           aria-hidden="true"
         />
@@ -79,7 +79,7 @@
           type="button"
           :class="[
             // Keep baseline/size 1:1 with the external-link icon
-            'ml-1 mt-1 inline-block h-4 w-4 shrink-0',
+            'ml-1 block h-4 w-4 shrink-0 self-center',
             'text-slate-200 transition-[color] motion-reduce:transition-none',
             'lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300',
             // button-specific
