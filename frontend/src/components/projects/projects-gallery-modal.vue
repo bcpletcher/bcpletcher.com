@@ -350,6 +350,8 @@ const props = defineProps({
   getOriginRect: { type: Function, default: null },
   // Optional deep link / case-study targets.
   shareUrl: { type: String, default: "" },
+  // Start the slideshow timer on open (off when the viewer picked a specific image).
+  autoplay: { type: Boolean, default: true },
   caseStudyHref: { type: String, default: "" },
 });
 
@@ -750,7 +752,8 @@ watch(
       window.addEventListener("keydown", onKeydown, true);
       document.addEventListener("visibilitychange", onVisibility);
       hovering.value = false;
-      playing.value = canAutoplay.value && !prefersReducedMotion();
+      playing.value =
+        props.autoplay && canAutoplay.value && !prefersReducedMotion();
       animateOpenFromCard();
       return;
     }

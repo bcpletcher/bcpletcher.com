@@ -35,6 +35,8 @@ export function useProjectGallery({ preload = false, deepLink = false } = {}) {
   const galleryIndex = ref(0);
   const galleryOriginRect = ref(null);
   const gallerySlug = ref("");
+  // The slideshow timer is off when the viewer picked a specific image (payload.autoplay === false).
+  const galleryAutoplay = ref(true);
 
   let originEl = null;
   const getOriginRect = () =>
@@ -78,6 +80,7 @@ export function useProjectGallery({ preload = false, deepLink = false } = {}) {
     galleryImages.value = payload.images;
     galleryIndex.value = index;
     gallerySlug.value = slugify(payload.title);
+    galleryAutoplay.value = payload.autoplay !== false;
 
     // Only the first image has a matching card thumbnail to fly out of.
     originEl =
@@ -138,6 +141,7 @@ export function useProjectGallery({ preload = false, deepLink = false } = {}) {
     galleryImages,
     galleryIndex,
     galleryOriginRect,
+    galleryAutoplay,
     getOriginRect,
     galleryShareUrl,
     galleryCaseStudyHref,

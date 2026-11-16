@@ -212,6 +212,7 @@
       :initial-index="galleryIndex"
       :origin-rect="galleryOriginRect"
       :get-origin-rect="getOriginRect"
+      :autoplay="galleryAutoplay"
     />
   </main>
 </template>
@@ -292,6 +293,7 @@ const {
   galleryImages,
   galleryIndex,
   galleryOriginRect,
+  galleryAutoplay,
   getOriginRect,
   openGallery,
 } = useProjectGallery();
@@ -302,6 +304,7 @@ function openFigure(index) {
     title: project.value?.projectName || "",
     images: imgs,
     index,
+    autoplay: false,
   });
 }
 
