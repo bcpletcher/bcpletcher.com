@@ -25,6 +25,7 @@
         :project-id="projectId"
         :is-hidden="isHidden"
         :on-edit="onEdit"
+        :on-case-study="onCaseStudy"
       />
 
       <CardContent
@@ -97,6 +98,9 @@ const props = defineProps({
 
   // Optional handler to open edit modal (keeps logic out of the card)
   onEdit: { type: Function, default: null },
+
+  // Optional handler to open the case study editor (admin only)
+  onCaseStudy: { type: Function, default: null },
 });
 
 function emitOpenGallery(index) {

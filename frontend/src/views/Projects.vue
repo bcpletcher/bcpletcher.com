@@ -77,6 +77,7 @@
                   :show-admin-controls="isAdmin"
                   :is-hidden="settingsStore.projects?.[project.id]?.hidden"
                   :on-edit="(id) => openEditById(id)"
+                  :on-case-study="(id) => openCaseStudyById(id)"
                   @open-gallery="openGallery"
                 />
               </ul>
@@ -99,6 +100,9 @@
 
       <!-- Admin upsert modal for editing an existing project (admin only) -->
       <AdminUpsertProject ref="adminUpsertRef" />
+
+      <!-- Case study editor (admin only) -->
+      <AdminCaseStudyEditor ref="caseStudyEditorRef" />
     </template>
   </RailLayout>
 </template>
@@ -121,6 +125,7 @@ import {
 } from "@/composables/useProjectGallery.js";
 import ProjectsLoadState from "@/components/shared/projects-load-state.vue";
 import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
+import AdminCaseStudyEditor from "@/components/admin/admin-case-study-editor.vue";
 import { useSettingsStore } from "@/stores/settings.js";
 import {
   getYearFromProjectDate,
@@ -130,8 +135,14 @@ import {
 const settingsStore = useSettingsStore();
 
 const adminUpsertRef = ref(null);
+const caseStudyEditorRef = ref(null);
 
 const isAdmin = computed(() => settingsStore.isAdminView);
+
+function openCaseStudyById(projectId) {
+  if (!isAdmin.value) return;
+  caseStudyEditorRef.value?.open?.(projectId);
+}
 
 function openEditById(projectId) {
   if (!isAdmin.value) return;

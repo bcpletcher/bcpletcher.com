@@ -48,8 +48,10 @@
 // Font Awesome class strings the app still stores, e.g. "fa-light fa-arrow-up-right".
 import { computed } from "vue";
 import {
+  ArrowDown,
   ArrowLeft,
   ArrowRight,
+  ArrowUp,
   ArrowUpRight,
   Award,
   Check,
@@ -77,6 +79,7 @@ import {
   Star,
   X,
   ZoomIn,
+  Trash2,
   ZoomOut,
 } from "lucide-vue-next";
 import { siGithub } from "simple-icons";
@@ -87,7 +90,9 @@ const props = defineProps({
 
 const COMPONENTS = {
   "arrow-left": ArrowLeft,
+  "arrow-down": ArrowDown,
   "arrow-right": ArrowRight,
+  "arrow-up": ArrowUp,
   "arrow-up-right": ArrowUpRight,
   award: Award,
   check: Check,
@@ -114,6 +119,7 @@ const COMPONENTS = {
   newspaper: Newspaper,
   "pen-to-square": SquarePen,
   plus: Plus,
+  trash: Trash2,
   star: Star,
   xmark: X,
 };
