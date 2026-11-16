@@ -38,6 +38,10 @@
       :title="galleryTitle"
       :images="galleryImages"
       :initial-index="galleryIndex"
+      :origin-rect="galleryOriginRect"
+      :get-origin-rect="getOriginRect"
+      :share-url="galleryShareUrl"
+      :case-study-href="galleryCaseStudyHref"
     />
   </div>
 </template>
@@ -56,12 +60,14 @@ import {
 
 // One lead card across the column, the rest two-up from sm. Shared with the skeleton
 // (via ProjectsLoadState) so the loading state has the same footprint.
-const FEATURED_GRID_CLASS = "grid gap-y-12 sm:grid-cols-2 sm:gap-x-8 lg:gap-x-12";
+const FEATURED_GRID_CLASS =
+  "grid gap-y-12 sm:grid-cols-2 sm:gap-x-8 lg:gap-x-12";
 
 const { selected } = useFeaturedProjects();
 
 // The first card leads; with fewer than three there is no pair to sit side by side.
-const isLead = (idx) => idx === 0 || selected.value.length < SELECTED_WORK_COUNT;
+const isLead = (idx) =>
+  idx === 0 || selected.value.length < SELECTED_WORK_COUNT;
 
 const {
   galleryMounted,
@@ -69,6 +75,10 @@ const {
   galleryTitle,
   galleryImages,
   galleryIndex,
+  galleryOriginRect,
+  getOriginRect,
+  galleryShareUrl,
+  galleryCaseStudyHref,
   openGallery,
-} = useProjectGallery({ preload: true });
+} = useProjectGallery({ preload: true, deepLink: true });
 </script>

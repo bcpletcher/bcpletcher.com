@@ -6,14 +6,36 @@
     >
       {{ name }}
     </h1>
-    <p style="--enter-i: 1" class="enter mt-3 text-xl font-medium tracking-tight text-slate-200">
+    <p
+      style="--enter-i: 1"
+      class="enter mt-3 text-xl font-medium tracking-tight text-slate-200"
+    >
       {{ title }}
     </p>
-    <p style="--enter-i: 2" class="enter mt-4 max-w-xs leading-relaxed text-slate-400">
+    <p
+      style="--enter-i: 2"
+      class="enter mt-4 max-w-xs leading-relaxed text-slate-400"
+    >
       {{ description }}
     </p>
 
-    <div style="--enter-i: 3" class="enter mt-8 flex flex-wrap gap-3">
+    <p
+      v-if="AVAILABILITY_TEXT"
+      style="--enter-i: 3"
+      class="enter mt-6 inline-flex items-center gap-2 text-sm text-slate-300"
+    >
+      <span class="relative flex h-2 w-2" aria-hidden="true">
+        <span
+          class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/60 motion-reduce:animate-none"
+        />
+        <span
+          class="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"
+        />
+      </span>
+      {{ AVAILABILITY_TEXT }}
+    </p>
+
+    <div style="--enter-i: 4" class="enter mt-8 flex flex-wrap gap-3">
       <a
         :href="CONTACT_EMAIL_HREF"
         class="kbd-focus inline-flex min-h-11 items-center gap-2 rounded-full bg-sky-300 px-5 text-sm font-semibold text-slate-900 transition-colors motion-reduce:transition-none hover:bg-sky-200 focus-visible:bg-sky-200"
@@ -40,7 +62,11 @@
 </template>
 
 <script setup>
-import { CONTACT_EMAIL_HREF, RESUME_HREF } from "@/constants/contact.js";
+import {
+  AVAILABILITY_TEXT,
+  CONTACT_EMAIL_HREF,
+  RESUME_HREF,
+} from "@/constants/contact.js";
 
 defineProps({
   name: { type: String, required: true },

@@ -52,6 +52,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   Award,
+  Check,
   ChevronLeft,
   ChevronRight,
   CircleAlert,
@@ -63,6 +64,7 @@ import {
   FileText,
   Heart,
   Images,
+  Link as LinkIcon,
   Mail,
   Minus,
   Newspaper,
@@ -71,6 +73,8 @@ import {
   SquarePen,
   Star,
   X,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-vue-next";
 import { siGithub } from "simple-icons";
 
@@ -83,6 +87,7 @@ const COMPONENTS = {
   "arrow-right": ArrowRight,
   "arrow-up-right": ArrowUpRight,
   award: Award,
+  check: Check,
   "chevron-left": ChevronLeft,
   "chevron-right": ChevronRight,
   "circle-check": CircleCheck,
@@ -95,7 +100,10 @@ const COMPONENTS = {
   "file-lines": FileText,
   heart: Heart,
   images: Images,
+  link: LinkIcon,
   "magnifying-glass": Search,
+  "magnifying-glass-minus": ZoomOut,
+  "magnifying-glass-plus": ZoomIn,
   minus: Minus,
   newspaper: Newspaper,
   "pen-to-square": SquarePen,

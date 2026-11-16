@@ -30,6 +30,10 @@
       :title="galleryTitle"
       :images="galleryImages"
       :initial-index="galleryIndex"
+      :origin-rect="galleryOriginRect"
+      :get-origin-rect="getOriginRect"
+      :share-url="galleryShareUrl"
+      :case-study-href="galleryCaseStudyHref"
     />
 
     <div :class="remaining.length ? 'mt-12' : ''">
@@ -66,6 +70,10 @@ const {
   galleryTitle,
   galleryImages,
   galleryIndex,
+  galleryOriginRect,
+  getOriginRect,
+  galleryShareUrl,
+  galleryCaseStudyHref,
   openGallery,
 } = useProjectGallery();
 </script>

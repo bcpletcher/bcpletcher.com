@@ -90,6 +90,10 @@
         :title="galleryTitle"
         :images="galleryImages"
         :initial-index="galleryIndex"
+        :origin-rect="galleryOriginRect"
+        :get-origin-rect="getOriginRect"
+        :share-url="galleryShareUrl"
+        :case-study-href="galleryCaseStudyHref"
       />
 
       <!-- Admin upsert modal for editing an existing project (admin only) -->
@@ -101,7 +105,6 @@
 <script setup>
 import {
   computed,
-  defineAsyncComponent,
   nextTick,
   onBeforeUnmount,
   onMounted,
@@ -111,6 +114,10 @@ import RailLayout from "@/components/shared/rail-layout.vue";
 import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsRailTimeline from "@/components/projects/projects-rail-timeline.vue";
 import ProjectsCard from "@/components/projects/card/card.vue";
+import {
+  ProjectsGalleryModal,
+  useProjectGallery,
+} from "@/composables/useProjectGallery.js";
 import ProjectsLoadState from "@/components/shared/projects-load-state.vue";
 import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
 import { useSettingsStore } from "@/stores/settings.js";
@@ -259,21 +266,16 @@ onBeforeUnmount(() => {
   headerRo?.disconnect?.();
 });
 
-const loadGalleryModal = () =>
-  import("@/components/projects/projects-gallery-modal.vue");
-const ProjectsGalleryModal = defineAsyncComponent(loadGalleryModal);
-const galleryMounted = ref(false);
-const isGalleryOpen = ref(false);
-const galleryTitle = ref("");
-const galleryImages = ref([]);
-const galleryIndex = ref(0);
-
-function openGallery(payload) {
-  if (!payload?.images?.length) return;
-  galleryTitle.value = payload.title || "Project Gallery";
-  galleryImages.value = payload.images;
-  galleryIndex.value = Number.isFinite(payload.index) ? payload.index : 0;
-  galleryMounted.value = true;
-  isGalleryOpen.value = true;
-}
+const {
+  galleryMounted,
+  isGalleryOpen,
+  galleryTitle,
+  galleryImages,
+  galleryIndex,
+  galleryOriginRect,
+  getOriginRect,
+  galleryShareUrl,
+  galleryCaseStudyHref,
+  openGallery,
+} = useProjectGallery({ deepLink: true });
 </script>

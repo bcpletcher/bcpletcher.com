@@ -29,6 +29,11 @@ const routes = [
     component: () => import("@/views/Projects.vue"),
   },
   {
+    path: "/work/:slug",
+    name: "CaseStudy",
+    component: () => import("@/views/CaseStudy.vue"),
+  },
+  {
     path: "/:catchAll(.*)",
     component: () => import("@/views/Home.vue"),
   },
