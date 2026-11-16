@@ -38,7 +38,7 @@
                 <span class="tracking-widest text-right pr-4">
                   <span
                     class="rail-label relative inline-block tabular-nums"
-                    :class="isActive(item) ? 'rail-label-active text-sky-200' : ''"
+                    :class="isLabelActive(item) ? 'rail-label-active text-sky-200' : ''"
                     >{{ item.label }}</span
                   >
                 </span>
@@ -229,10 +229,28 @@ function getEffectiveScrollerElForScrollTo() {
   return getEffectiveScrollerEl();
 }
 
+// After a click, only the clicked year's label is underlined while the page glides there
+// (the dots still light up one by one as the line passes them).
+const navTargetKey = ref(null);
+function releaseNavTarget() {
+  navTargetKey.value = null;
+  window.removeEventListener("wheel", releaseNavTarget);
+  window.removeEventListener("touchmove", releaseNavTarget);
+}
+
+function isLabelActive(item) {
+  return navTargetKey.value !== null
+    ? navTargetKey.value === item.key
+    : isActive(item);
+}
+
 function scrollToItem(item) {
   const year = item?.year;
   if (!year) return;
   pingDot(item.key);
+  navTargetKey.value = item.key;
+  window.addEventListener("wheel", releaseNavTarget, { passive: true });
+  window.addEventListener("touchmove", releaseNavTarget, { passive: true });
 
   const target = document.getElementById(`year-${year}`);
   if (!target) return;
@@ -245,6 +263,8 @@ function scrollToItem(item) {
       ease: "power2.out",
       scrollTo: { y: target, offsetY: Number(props.scrollOffsetPx) },
       overwrite: "auto",
+      onComplete: releaseNavTarget,
+      onInterrupt: releaseNavTarget,
     });
     return;
   }
@@ -254,6 +274,8 @@ function scrollToItem(item) {
     ease: "power2.out",
     scrollTo: { y: target, offsetY: Number(props.scrollOffsetPx) },
     overwrite: "auto",
+    onComplete: releaseNavTarget,
+    onInterrupt: releaseNavTarget,
   });
 }
 
@@ -340,6 +362,7 @@ const pingKey = ref(null);
 let pingTimer = 0;
 async function pingDot(key) {
   clearTimeout(pingTimer);
+  releaseNavTarget();
   pingKey.value = null;
   await nextTick();
   pingKey.value = key;
