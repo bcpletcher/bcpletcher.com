@@ -5,21 +5,21 @@
       class="group relative grid overflow-visible pb-1 transition-all lg:hover:!opacity-100"
       :class="gridColsClass"
     >
-      <!-- Full-card link overlay (desktop only) -->
+      <!-- Full-card link overlay (all sizes, so cards are tappable on touch devices) -->
       <a
         v-if="href"
-        class="peer card-interactive-link absolute -inset-x-4 -inset-y-4 z-20 hidden rounded-md lg:block"
+        class="peer card-interactive-link absolute -inset-x-4 -inset-y-4 z-20 block rounded-md"
         :href="href"
         target="_blank"
         rel="noreferrer noopener"
         :aria-label="ariaLabel"
       />
 
-      <!-- Full-card button overlay (desktop only) for opening the gallery when there's no URL -->
+      <!-- Full-card button overlay for opening the gallery when there's no URL -->
       <button
         v-else
         type="button"
-        class="peer card-interactive-link absolute -inset-x-4 -inset-y-4 z-20 hidden rounded-md lg:block cursor-pointer"
+        class="peer card-interactive-link absolute -inset-x-4 -inset-y-4 z-20 block rounded-md cursor-pointer"
         :aria-label="ariaLabel"
         @click="$emit('open-gallery', 0)"
       />
