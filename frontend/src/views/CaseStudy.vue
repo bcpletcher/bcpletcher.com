@@ -57,6 +57,7 @@
       >
         <img
           v-img-fade
+          style="view-transition-name: case-hero"
           class="aspect-video w-full rounded-xl object-cover ring-1 ring-black/20"
           :src="hero.src"
           :srcset="hero.srcset || undefined"

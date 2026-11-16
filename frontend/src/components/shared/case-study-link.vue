@@ -1,10 +1,9 @@
 <template>
   <RouterLink
     :to="to"
-    target="_blank"
-    rel="noopener"
     class="kbd-focus pointer-events-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-sky-300/30 bg-sky-300/10 px-[11px] py-[3px] text-xs font-semibold leading-5 text-sky-200 transition-[background-color,border-color] hover:border-sky-300/50 hover:bg-sky-300/20 focus-visible:border-sky-300/50 focus-visible:bg-sky-300/20 motion-reduce:transition-none"
-    :aria-label="`Read the ${name} case study (opens in a new tab)`"
+    :aria-label="`Read the ${name} case study`"
+    @click="onClick"
   >
     <!-- Open book: two solid pages with a gap for the spine, so it keeps detail when filled. -->
     <svg
@@ -22,8 +21,16 @@
 </template>
 
 <script setup>
+import { findCardImage, markSharedHero } from "@/utils/sharedHero.js";
+
 defineProps({
   to: { type: String, required: true },
   name: { type: String, default: "project" },
 });
+
+function onClick(e) {
+  // Modified clicks open elsewhere, so there is nothing to animate.
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
+  markSharedHero(findCardImage(e.currentTarget));
+}
 </script>

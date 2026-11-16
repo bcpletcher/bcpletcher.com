@@ -51,9 +51,8 @@
             <a
               v-if="caseStudyHref"
               :href="caseStudyHref"
-              target="_blank"
-              rel="noopener"
               class="kbd-focus relative mr-1.5 hidden h-9 items-center rounded-full border border-sky-300/30 bg-sky-300/10 px-3.5 text-[11px] font-semibold uppercase tracking-widest text-sky-200 transition-[background-color,border-color,scale] duration-200 after:absolute after:inset-x-0 after:-inset-y-1 hover:border-sky-300/50 hover:bg-sky-300/20 focus-visible:border-sky-300/50 focus-visible:bg-sky-300/20 motion-reduce:transition-none sm:inline-flex"
+              @click.prevent="onCaseStudyClick"
             >
               Case study
             </a>
@@ -329,6 +328,8 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import { markSharedHero } from "@/utils/sharedHero.js";
 
 import ModalWrapper from "@/components/shared/modal-wrapper.vue";
 import {
@@ -364,6 +365,7 @@ const closeButtonRef = ref(null);
 const trackRef = ref(null);
 const thumbsRef = ref(null);
 const activeIndex = ref(0);
+const router = useRouter();
 const closing = ref(false);
 const playing = ref(false);
 const hovering = ref(false);
@@ -659,6 +661,17 @@ function animateOpenFromCard() {
   anim.finished.finally(() => {
     slide.style.zIndex = "";
   });
+}
+
+async function onCaseStudyClick() {
+  // The image on screen becomes the case-study hero.
+  markSharedHero(slideEls[activeIndex.value]?.querySelector("img"));
+  try {
+    await router.push(props.caseStudyHref);
+  } finally {
+    emit("update:modelValue", false);
+    emit("close");
+  }
 }
 
 async function requestClose({ skipFlip = false } = {}) {
