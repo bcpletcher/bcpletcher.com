@@ -1,5 +1,6 @@
 <template>
   <!-- One loading/error treatment for every project list. Renders the default slot once loaded. -->
+  <Transition name="swap" mode="out-in">
   <ol
     v-if="settingsStore.projectsLoading"
     class="group/list list-none p-0"
@@ -35,6 +36,7 @@
   </div>
 
   <slot v-else />
+  </Transition>
 </template>
 
 <script setup>

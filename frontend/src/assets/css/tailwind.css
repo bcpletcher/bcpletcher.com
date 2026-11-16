@@ -140,3 +140,35 @@
     animation: none !important;
   }
 }
+
+/* Hero entrance: short staggered rise on first paint. Order is set per element with
+   --enter-i. Opacity-only for reduced motion users is handled by not animating at all. */
+@media (prefers-reduced-motion: no-preference) {
+  .enter {
+    animation: enter-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--enter-i, 0) * 70ms);
+  }
+
+  @keyframes enter-rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Skeleton -> content swap (see shared/projects-load-state.vue). */
+  .swap-enter-active {
+    transition: opacity 220ms ease-out;
+  }
+  .swap-leave-active {
+    transition: opacity 120ms ease-in;
+  }
+  .swap-enter-from,
+  .swap-leave-to {
+    opacity: 0;
+  }
+}

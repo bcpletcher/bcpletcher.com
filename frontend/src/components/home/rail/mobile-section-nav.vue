@@ -10,6 +10,7 @@
     :inert="!visible || undefined"
   >
     <ul
+      ref="listEl"
       class="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-3 md:px-10"
     >
       <li v-for="item in navItems" :key="item.id" class="shrink-0">
@@ -37,14 +38,31 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
-defineProps({
+const props = defineProps({
   navItems: { type: Array, required: true },
   activeSectionId: { type: String, default: null },
 });
 
 defineEmits(["nav"]);
+
+// Keep the active pill in view when the bar scrolls horizontally.
+const listEl = ref(null);
+watch(
+  () => props.activeSectionId,
+  async () => {
+    await nextTick();
+    const el = listEl.value?.querySelector('[aria-current="true"]');
+    if (!el || !listEl.value) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({
+      behavior: reduce ? "auto" : "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  },
+);
 
 // Appears once the intro block has scrolled out of view.
 const visible = ref(false);

@@ -1,18 +1,19 @@
 <template>
   <div>
     <h1
-      class="text-4xl font-bold leading-[1.05] tracking-tight text-slate-100 sm:text-5xl"
+      style="--enter-i: 0"
+      class="enter text-4xl font-bold leading-[1.05] tracking-tight text-slate-100 sm:text-5xl"
     >
       {{ name }}
     </h1>
-    <p class="mt-3 text-xl font-medium tracking-tight text-slate-200">
+    <p style="--enter-i: 1" class="enter mt-3 text-xl font-medium tracking-tight text-slate-200">
       {{ title }}
     </p>
-    <p class="mt-4 max-w-xs leading-relaxed text-slate-400">
+    <p style="--enter-i: 2" class="enter mt-4 max-w-xs leading-relaxed text-slate-400">
       {{ description }}
     </p>
 
-    <div class="mt-8 flex flex-wrap gap-3">
+    <div style="--enter-i: 3" class="enter mt-8 flex flex-wrap gap-3">
       <a
         :href="CONTACT_EMAIL_HREF"
         class="kbd-focus inline-flex min-h-11 items-center gap-2 rounded-full bg-sky-300 px-5 text-sm font-semibold text-slate-900 transition-colors motion-reduce:transition-none hover:bg-sky-200 focus-visible:bg-sky-200"
