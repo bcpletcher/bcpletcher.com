@@ -61,6 +61,13 @@
 
       <TechTags v-if="showTechnology" :items="technology" class="mt-4" />
 
+      <CaseStudyLink
+        v-if="caseStudyPath && !isHidden"
+        :to="caseStudyPath"
+        :name="projectName"
+        class="mt-4"
+      />
+
       <!-- Meta row (bottom) -->
       <template v-if="showFeatured && featured">
         <div class="mt-3 flex items-center gap-3 text-xs text-slate-400">
@@ -95,7 +102,10 @@
 
 <script setup>
 import { computed } from "vue";
+import CaseStudyLink from "@/components/shared/case-study-link.vue";
 import TechTags from "@/components/shared/tech-tags.vue";
+import { caseStudyPath as pathFor, hasCaseStudy } from "@/constants/caseStudies.js";
+import { slugify } from "@/utils/slug.js";
 import { PROJECT_META_OPTIONS } from "@/constants/projectMetaIconOptions.js";
 
 const props = defineProps({
@@ -120,6 +130,11 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["open-gallery"]);
+
+const caseStudyPath = computed(() => {
+  const slug = slugify(props.projectName);
+  return hasCaseStudy(slug) ? pathFor(slug) : "";
+});
 
 const metaDisplay = computed(() => {
   const key = (props.meta ?? "").toString().trim();

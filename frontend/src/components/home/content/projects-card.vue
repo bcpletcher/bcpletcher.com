@@ -37,7 +37,14 @@
     </div>
 
     <!-- Content -->
-    <div class="z-10" :class="stacked ? '' : 'sm:col-span-5'">
+    <!-- With a case study link, the text sits above the full-card overlay but lets clicks
+         fall through to it; only the case study link itself is interactive. -->
+    <div
+      :class="[
+        caseStudyPath ? 'pointer-events-none z-30' : 'z-10',
+        stacked ? '' : 'sm:col-span-5',
+      ]"
+    >
       <div class="flex items-start justify-between gap-4">
         <h3
           class="min-w-0 font-semibold leading-snug text-slate-100 transition-colors wrap-break-word lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300"
@@ -95,13 +102,23 @@
         <AppIcon v-else icon="fa-light fa-star" aria-hidden="true" />
         {{ metaDisplay.label }}
       </div>
+
+      <CaseStudyLink
+        v-if="caseStudyPath"
+        :to="caseStudyPath"
+        :name="projectName"
+        class="mt-4"
+      />
     </div>
   </CardWrapper>
 </template>
 
 <script setup>
 import CardWrapper from "@/components/home/content/card-wrapper.vue";
+import CaseStudyLink from "@/components/shared/case-study-link.vue";
 import TechTags from "@/components/shared/tech-tags.vue";
+import { caseStudyPath as pathFor, hasCaseStudy } from "@/constants/caseStudies.js";
+import { slugify } from "@/utils/slug.js";
 import { computed } from "vue";
 import {
   buildResponsiveImageSourcesFromImageValue,
@@ -137,6 +154,11 @@ const props = defineProps({
 
   // Needed to open the modal when there is no external URL
   images: { type: Array, default: () => [] },
+});
+
+const caseStudyPath = computed(() => {
+  const slug = slugify(props.projectName);
+  return hasCaseStudy(slug) ? pathFor(slug) : "";
 });
 
 const stacked = computed(() => props.layout === "stacked");
