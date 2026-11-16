@@ -52,7 +52,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   Award,
-  BookOpen,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -91,7 +90,6 @@ const COMPONENTS = {
   "arrow-right": ArrowRight,
   "arrow-up-right": ArrowUpRight,
   award: Award,
-  "book-open": BookOpen,
   check: Check,
   "chevron-left": ChevronLeft,
   "chevron-right": ChevronRight,
@@ -121,7 +119,7 @@ const COMPONENTS = {
 };
 
 // Only these read as "filled" in their solid weight; other solid icons get a heavier stroke.
-const FILLED_WHEN_SOLID = new Set(["star", "heart", "book-open"]);
+const FILLED_WHEN_SOLID = new Set(["star", "heart"]);
 
 const resolved = computed(() => {
   const tokens = props.icon.split(/\s+/).filter(Boolean);
