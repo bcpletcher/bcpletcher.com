@@ -86,6 +86,15 @@ export const CASE_STUDY_CONTENT = {
             caption:
               "Find My Bus, before and after. Drag the handle to compare the previous page with the rebuilt version.",
           },
+          {
+            kind: "compare",
+            before: "/case-studies/community-transit/route-before.webp",
+            after: "/case-studies/community-transit/route-after.webp",
+            beforeAlt: "The previous route page for Route 201",
+            afterAlt: "The rebuilt route page for Route 201",
+            caption:
+              "A route page (Route 201), before and after. The rebuilt page leads with a timetable and a point-to-point view, with alerts, print and download close at hand.",
+          },
         ],
       },
       Outcome: {
@@ -101,6 +110,15 @@ export const CASE_STUDY_CONTENT = {
             afterAlt: "The rebuilt Maps & Schedules page",
             caption:
               "Maps & Schedules, before and after. The rebuilt version separates maps and guides from schedule search.",
+          },
+          {
+            kind: "compare",
+            before: "/case-studies/community-transit/stop-before.webp",
+            after: "/case-studies/community-transit/stop-after.webp",
+            beforeAlt: "The previous stop page",
+            afterAlt: "The rebuilt stop page",
+            caption:
+              "A stop page, before and after: serving routes, real-time and scheduled departures, and a map centred on the stop.",
           },
           {
             kind: "image",
