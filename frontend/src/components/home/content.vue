@@ -11,11 +11,9 @@
 
     <div class="hidden lg:block my-16 h-px w-full bg-white/10" />
 
-    <!-- Below lg About leads (a short intro right after the hero); from lg up the page keeps
-         Work first, with About second. -->
     <section
       id="about"
-      class="mb-16 scroll-mt-16 max-lg:-order-1 md:mb-24 lg:mb-0 lg:scroll-mt-24"
+      class="mb-16 scroll-mt-16 md:mb-24 lg:mb-0 lg:scroll-mt-24"
       :data-section="true"
     >
       <h2
