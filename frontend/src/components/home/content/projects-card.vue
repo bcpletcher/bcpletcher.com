@@ -4,12 +4,14 @@
     :aria-label="ariaLabel"
     :is-last="isLast"
     :grid-cols-class="
-      stacked ? 'grid-cols-1' : 'sm:grid-cols-8 sm:gap-6 md:gap-5'
+      stacked
+        ? 'grid-cols-1'
+        : 'max-sm:grid-cols-[7.5rem_1fr] max-sm:gap-x-4 sm:grid-cols-8 sm:gap-6 md:gap-5'
     "
     @open-gallery="onOpenGallery"
   >
     <!-- Image -->
-    <div class="z-10" :class="stacked ? 'mb-5' : 'mb-4 sm:col-span-3 sm:mb-0'">
+    <div class="z-10" :class="stacked ? 'mb-5' : 'sm:col-span-3 sm:mb-0'">
       <div
         class="overflow-hidden rounded-md border border-white/10 bg-white/5 transition-colors duration-300 motion-reduce:transition-none lg:group-hover:border-sky-300/30 lg:group-focus-within:border-sky-300/30"
         :class="stacked ? '' : 'sm:mt-1'"
@@ -98,16 +100,21 @@
       <p
         v-if="summary"
         class="mt-2 text-sm leading-relaxed text-slate-400"
-        :class="stacked ? 'max-sm:line-clamp-3' : ''"
+        :class="stacked ? 'max-sm:line-clamp-3' : 'max-sm:mt-1 max-sm:line-clamp-2 max-sm:text-[0.8rem]'"
       >
         {{ summary }}
       </p>
 
-      <TechTags :items="technology" class="mt-4" />
+      <TechTags
+        :items="technology"
+        :max-phone="stacked ? 0 : 1"
+        :class="stacked ? 'mt-4' : 'mt-4 max-sm:mt-2'"
+      />
 
       <div
         v-if="metaDisplay?.label"
         class="mt-3 flex items-center gap-2 text-xs text-slate-400"
+        :class="stacked ? '' : 'max-sm:hidden'"
       >
         <AppIcon v-if="metaDisplay?.iconClass" :icon="metaDisplay.iconClass" />
         <AppIcon v-else icon="fa-light fa-star" aria-hidden="true" />
@@ -168,7 +175,7 @@ const caseStudyPath = computed(() =>
 const stacked = computed(() => props.layout === "stacked");
 
 const titleClass = computed(() => {
-  if (!stacked.value) return "text-base";
+  if (!stacked.value) return "text-base max-sm:text-[0.95rem]";
   // Phones: text-base so a long name still fits beside the case study pill in a carousel card.
   return props.lead ? "text-base sm:text-xl" : "text-base sm:text-lg";
 });

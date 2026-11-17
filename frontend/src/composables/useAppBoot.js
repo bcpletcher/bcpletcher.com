@@ -13,7 +13,8 @@ import { isProjectsCacheEnabled, loadProjects } from "@/utils/loadProjects.js";
  *
  * Contract:
  * - The page renders immediately; nothing blocks on boot.
- * - Hydrates the projects store from cache when fresh (skips the network).
+ * - Hydrates the projects store from cache when fresh, then refreshes it in the background
+ *   if the cache is more than a minute old (stale-while-revalidate).
  * - Otherwise fetches the projects collection. Until it lands, project lists show
  *   skeletons; on failure they show an inline error with a retry
  *   (`settingsStore.projectsError`).
@@ -28,6 +29,8 @@ export function useAppBoot() {
   const CACHE_TTL_MS = Number.isFinite(CACHE_TTL_MINUTES)
     ? Math.max(0, CACHE_TTL_MINUTES) * 60 * 1000
     : 60 * 60 * 1000;
+
+  const REVALIDATE_AFTER_MS = 60 * 1000;
 
   const boot = async () => {
     // URL overrides for QA/debugging.
@@ -82,7 +85,14 @@ export function useAppBoot() {
 
         const ageMs = cached?.updatedAt ? Date.now() - cached.updatedAt : Infinity;
         if (Boolean(cached?.all) && ageMs >= 0 && ageMs <= CACHE_TTL_MS) {
+          // Paint from the cache right away...
           settingsStore.projects = cached.all;
+          // ...and quietly refresh when it is older than a minute, so edits made in the
+          // admin (a new case study, a hidden project) show up without waiting out the TTL.
+          // Failures are ignored here: the cached list is already on screen.
+          if (ageMs > REVALIDATE_AFTER_MS) {
+            loadProjects({ persist: true, quiet: true });
+          }
           return;
         }
       } catch (e) {

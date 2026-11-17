@@ -12,12 +12,18 @@ export const isProjectsCacheEnabled = () =>
  *
  * Sets `settings.projectsError` instead of throwing, so the UI can show an inline
  * error with a retry. Returns true on success.
+ *
+ * `quiet` is for a background refresh of a list that is already on screen: a failure then
+ * leaves the current list alone instead of replacing it with an error.
  */
-export async function loadProjects({ persist = isProjectsCacheEnabled() } = {}) {
+export async function loadProjects({
+  persist = isProjectsCacheEnabled(),
+  quiet = false,
+} = {}) {
   const settingsStore = useSettingsStore();
   const cloudflareStore = useCloudflareStore();
 
-  settingsStore.projectsError = false;
+  if (!quiet) settingsStore.projectsError = false;
 
   try {
     if (
@@ -41,7 +47,7 @@ export async function loadProjects({ persist = isProjectsCacheEnabled() } = {}) 
     return true;
   } catch (err) {
     console.error("Projects load failed:", err);
-    settingsStore.projectsError = true;
+    if (!quiet) settingsStore.projectsError = true;
     return false;
   }
 }

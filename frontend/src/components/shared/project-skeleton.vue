@@ -4,12 +4,12 @@
        (image on top). variant "page": /projects card (image right, on top below md). -->
   <li
     v-if="variant === 'home'"
-    class="grid sm:grid-cols-8 sm:gap-6 md:gap-5"
-    :class="isLast ? '' : 'mb-12'"
+    class="grid max-sm:grid-cols-[7.5rem_1fr] max-sm:gap-x-4 sm:grid-cols-8 sm:gap-6 md:gap-5"
+    :class="isLast ? '' : 'mb-12 max-sm:mb-7'"
     aria-hidden="true"
   >
     <div
-      class="mb-4 aspect-video w-full animate-pulse rounded-md border border-white/10 bg-white/5 motion-reduce:animate-none sm:col-span-3 sm:mb-0 sm:mt-1"
+      class="aspect-video w-full animate-pulse rounded-md border border-white/10 bg-white/5 motion-reduce:animate-none sm:col-span-3 sm:mb-0 sm:mt-1"
     />
     <div class="sm:col-span-5">
       <SkeletonBar class="h-5 w-2/5" />
