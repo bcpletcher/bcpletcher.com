@@ -5,7 +5,9 @@
     :progress="progress"
     max-width-class="max-w-7xl"
   >
+    <!-- Phones: the row fills the bar. Tablet: the lone pill group is centred. -->
     <SectionPills
+      class="md:flex-1 md:[&>ul]:justify-center"
       :items="pillItems"
       :active-id="activeSectionId"
       aria-label="Page sections"
