@@ -95,7 +95,11 @@
         </button>
       </div>
 
-      <p v-if="summary" class="mt-2 text-sm leading-relaxed text-slate-400">
+      <p
+        v-if="summary"
+        class="mt-2 text-sm leading-relaxed text-slate-400"
+        :class="stacked ? 'max-sm:line-clamp-3' : ''"
+      >
         {{ summary }}
       </p>
 
@@ -165,7 +169,8 @@ const stacked = computed(() => props.layout === "stacked");
 
 const titleClass = computed(() => {
   if (!stacked.value) return "text-base";
-  return props.lead ? "text-lg sm:text-xl" : "text-lg";
+  // Phones: text-base so a long name still fits beside the case study pill in a carousel card.
+  return props.lead ? "text-base sm:text-xl" : "text-base sm:text-lg";
 });
 
 // Rendered image width per layout, so the browser picks the smallest sufficient candidate.

@@ -6,12 +6,6 @@
       class="scroll-mt-16 mb-16 md:mb-24 lg:mb-0 lg:scroll-mt-24"
       :data-section="true"
     >
-      <h2
-        class="mb-8 text-sm font-bold uppercase tracking-widest text-slate-200 lg:sr-only"
-      >
-        Selected work
-      </h2>
-
       <FeaturedWork />
     </section>
 

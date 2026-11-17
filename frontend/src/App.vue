@@ -6,7 +6,7 @@
       >Skip to main content</a
     >
     <div class="min-h-screen w-full">
-      <AdminBanner />
+      <AdminDock />
       <mouse-glow-overlay />
       <notifications />
       <AdminAdminLoginModal />
@@ -25,7 +25,7 @@
 <script setup>
 import Notifications from "@/components/shared/notifications.vue";
 import MouseGlowOverlay from "@/components/shared/mouse-glow-overlay.vue";
-import AdminBanner from "@/components/admin/admin-banner.vue";
+import AdminDock from "@/components/admin/admin-dock.vue";
 import AdminAdminLoginModal from "@/components/admin/admin-login-modal.vue";
 import { useCloudflareStore } from "@/stores/cloudflare.js";
 import { useSettingsStore } from "@/stores/settings.js";

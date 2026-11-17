@@ -1,13 +1,9 @@
-// Case studies live on the project record (D1 `caseStudy`, images in R2) and are edited in
-// the admin. Until a project has one saved there, the static copy in
-// constants/caseStudyContent.js is used as a fallback so the site never loses a page.
-import {
-  CASE_STUDY_CONTENT,
-  DEFAULT_ROLE,
-} from "@/constants/caseStudyContent.js";
-import { CASE_STUDY_SLUGS } from "@/constants/caseStudies.js";
+// Case studies live on the project record (D1 `caseStudy`, images in R2) and are written in
+// the admin. This module resolves one into the shape the page renders.
 import { buildResponsiveImageSourcesFromImageValue } from "@/utils/mediaStorageImages.js";
 import { slugify } from "@/utils/slug.js";
+
+export const DEFAULT_ROLE = "Web Development Lead";
 
 export const caseStudyPath = (slug) => `/work/${slug}`;
 
@@ -70,67 +66,18 @@ function normalizeStored(cs) {
   };
 }
 
-const LEGACY_SECTION_ORDER = ["The problem", "My role", "Process", "Outcome"];
-
-function normalizeLegacy(content) {
-  const titles = LEGACY_SECTION_ORDER.filter((t) => content.sections?.[t]);
-  return {
-    source: "legacy",
-    published: true,
-    summary: content.summary || "",
-    role: content.role || DEFAULT_ROLE,
-    roleNote: content.roleNote || "",
-    focus: content.focus || "",
-    industry: content.industry || "",
-    stack: content.stack || [],
-    sections: titles.map((title, i) => {
-      const s = content.sections[title];
-      return {
-        id: sectionId(title, i),
-        title,
-        body: s.body || [],
-        points: s.points || [],
-        figures: (s.figures || []).map((f, n) =>
-          f.kind === "compare"
-            ? {
-                key: `f-${i}-${n}`,
-                kind: "compare",
-                before: { src: f.before, srcset: "" },
-                after: { src: f.after, srcset: "" },
-                beforeAlt: f.beforeAlt,
-                afterAlt: f.afterAlt,
-                caption: f.caption || "",
-              }
-            : {
-                key: `f-${i}-${n}`,
-                kind: "image",
-                src: f.src,
-                srcset: "",
-                alt: f.alt || "",
-                caption: f.caption || "",
-              },
-        ),
-      };
-    }),
-  };
-}
-
 /**
  * The case study for a slug, normalised for rendering, or null when the project has none.
  * `published` is false for a saved draft (the page exists but is not linked or indexed).
  */
 export function resolveCaseStudy(projects, slug) {
   const stored = findProjectBySlug(projects, slug)?.caseStudy;
-  if (stored && Array.isArray(stored.sections)) return normalizeStored(stored);
-  if (CASE_STUDY_CONTENT[slug]) return normalizeLegacy(CASE_STUDY_CONTENT[slug]);
-  return null;
+  return stored && Array.isArray(stored.sections) ? normalizeStored(stored) : null;
 }
 
 /** True when cards and the lightbox should link to the case study. */
 export function hasPublishedCaseStudy(projects, slug) {
-  const stored = findProjectBySlug(projects, slug)?.caseStudy;
-  if (stored) return Boolean(stored.published);
-  return CASE_STUDY_SLUGS.includes(slug);
+  return Boolean(findProjectBySlug(projects, slug)?.caseStudy?.published);
 }
 
 export function caseStudyHrefFor(projects, projectName) {

@@ -99,13 +99,7 @@
         :share-url="galleryShareUrl"
         :case-study-href="galleryCaseStudyHref"
       />
-
-      <!-- Admin upsert modal for editing an existing project (admin only) -->
-      <AdminUpsertProject ref="adminUpsertRef" />
-
-      <!-- Case study editor (admin only) -->
-      <AdminCaseStudyEditor ref="caseStudyEditorRef" />
-    </template>
+</template>
   </RailLayout>
 </template>
 
@@ -126,9 +120,8 @@ import {
   useProjectGallery,
 } from "@/composables/useProjectGallery.js";
 import ProjectsLoadState from "@/components/shared/projects-load-state.vue";
-import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
+import { useAdminActions } from "@/composables/useAdminActions.js";
 import ProjectsMobileBar from "@/components/projects/projects-mobile-bar.vue";
-import AdminCaseStudyEditor from "@/components/admin/admin-case-study-editor.vue";
 import { useSettingsStore } from "@/stores/settings.js";
 import {
   getYearFromProjectDate,
@@ -137,25 +130,16 @@ import {
 
 const settingsStore = useSettingsStore();
 
-const adminUpsertRef = ref(null);
-const caseStudyEditorRef = ref(null);
+const adminActions = useAdminActions();
 
 const isAdmin = computed(() => settingsStore.isAdminView);
 
 function openCaseStudyById(projectId) {
-  if (!isAdmin.value) return;
-  caseStudyEditorRef.value?.open?.(projectId);
+  if (isAdmin.value) adminActions.editCaseStudy(projectId);
 }
 
 function openEditById(projectId) {
-  if (!isAdmin.value) return;
-  const entry = settingsStore.projects?.[projectId];
-  if (!entry) return;
-
-  adminUpsertRef.value?.showModal?.({
-    name: projectId,
-    ...entry,
-  });
+  if (isAdmin.value) adminActions.editProject(projectId);
 }
 
 const projects = computed(() => {
