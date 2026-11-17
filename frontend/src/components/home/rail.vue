@@ -1,7 +1,7 @@
 <template>
   <aside class="relative">
     <MobileSectionNav
-      :nav-items="navItems"
+      :nav-items="phoneNavItems"
       :active-section-id="activeSectionId"
       @nav="onNav"
     />
@@ -34,6 +34,8 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
+
 import { useScrollSpy } from "@/composables/useScrollSpy.js";
 
 import Navigation from "@/components/home/rail/navigation.vue";
@@ -51,9 +53,20 @@ const props = defineProps({
   navItems: { type: Array, required: true },
 });
 
+// Below lg the About section leads the page (see content.vue), so the phone pills and the
+// scroll-spy follow that order; the desktop rail keeps the given order.
+const phoneNavItems = computed(() => {
+  const about = props.navItems.find((n) => n.id === "about");
+  return about
+    ? [about, ...props.navItems.filter((n) => n.id !== "about")]
+    : props.navItems;
+});
+const isDesktop = () => window.matchMedia("(min-width: 1024px)").matches;
+
 // Scroll-spy + smooth scrolling for this page.
 const { activeSectionId, scrollTo } = useScrollSpy({
-  sections: props.navItems.map((n) => n.id),
+  sections: () =>
+    (isDesktop() ? props.navItems : phoneNavItems.value).map((n) => n.id),
   root: null,
 });
 
