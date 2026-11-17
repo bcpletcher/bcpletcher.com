@@ -18,7 +18,25 @@
           index > 0 && !expanded ? 'max-lg:hidden' : '',
         ]"
       >
-        {{ item }}
+        <template v-for="(part, i) in item" :key="i">
+          <router-link
+            v-if="part.link === 'caseStudy' && caseStudyHref"
+            :to="caseStudyHref"
+            :class="LINK_CLASS"
+          >
+            {{ part.text }}
+          </router-link>
+          <a
+            v-else-if="part.link === 'coverlabs'"
+            :href="COVERLABS_URL"
+            target="_blank"
+            rel="noopener noreferrer"
+            :class="LINK_CLASS"
+          >
+            {{ part.text }}<span class="sr-only"> (opens in a new tab)</span>
+          </a>
+          <template v-else>{{ part.text }}</template>
+        </template>
       </p>
     </div>
 
@@ -42,19 +60,51 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 import AppIcon from "@/components/shared/app-icon.vue";
+import { useSettingsStore } from "@/stores/settings.js";
+import { caseStudyHrefFor } from "@/utils/caseStudyData.js";
 
 const expanded = ref(false);
 
-// Copy lives here only; swap the heading/paragraphs without touching the template.
+const settingsStore = useSettingsStore();
+
+// The rider-tools link only shows once that case study is published (see caseStudyData).
+const caseStudyHref = computed(() =>
+  caseStudyHrefFor(settingsStore.projects, "Community Transit"),
+);
+
+const COVERLABS_URL = "https://www.coverlabs.studio";
+const LINK_CLASS =
+  "kbd-focus font-medium text-slate-200 underline decoration-slate-600 underline-offset-4 transition-colors hover:text-sky-300 hover:decoration-sky-300 focus-visible:text-sky-300";
+
+// Copy lives here only. Each paragraph is a list of parts: plain text, or text with a
+// `link` key ("caseStudy" -> Community Transit page, "coverlabs" -> the live site).
+const t = (text, link) => ({ text, link });
+
 const content = {
   heading: "From technical discovery to launch",
   paragraphs: [
-    `I lead client projects from discovery through launch and ongoing support. I work with stakeholders to define what the project needs, choose the architecture, and guide developers while staying hands-on with the build.`,
-    `My background in UX shapes how I build software. I’ve worked on accessibility in rider tools, built interfaces in React and Vue, and connected enterprise CMS sites to other systems using C# and .NET. I help teams carry those decisions through testing and deployment.`,
-    `Outside client work, I built Coverlabs Studio, a React editor for creating custom movie and collection posters from templates.`,
+    [
+      t(
+        "With over a decade in web development, I lead client projects from discovery through launch and ongoing support. I work with stakeholders to define what the project needs, choose the architecture, and guide developers while staying hands-on with the build.",
+      ),
+    ],
+    [
+      t("My background in UX shapes how I build software. I’ve worked on accessibility in "),
+      t("rider tools", "caseStudy"),
+      t(
+        ", built interfaces in React and Vue, and connected enterprise CMS sites to other systems using C# and .NET. I help teams carry those decisions through testing and deployment.",
+      ),
+    ],
+    [
+      t("Outside client work I build my own products: "),
+      t("Coverlabs Studio", "coverlabs"),
+      t(
+        ", a React editor for creating custom movie and collection posters from templates, and a native iOS reader for books, comics, and PDFs that I’m preparing for release.",
+      ),
+    ],
   ],
 };
 </script>

@@ -46,7 +46,7 @@ import MobileSectionNav from "@/components/home/rail/mobile-section-nav.vue";
 const name = "Benjamin Pletcher";
 const title = "Senior Full-Stack Engineer & Technical Lead";
 const description =
-  "I lead and build enterprise websites, web applications, and internal tools.";
+  "I lead and build enterprise websites and web apps, with accessibility and UX built in.";
 
 const props = defineProps({
   navItems: { type: Array, required: true },
