@@ -2,7 +2,7 @@
   <div>
     <h1
       style="--enter-i: 0"
-      class="enter text-4xl font-bold leading-[1.05] tracking-tight text-slate-100 sm:text-5xl"
+      class="enter text-4xl font-bold leading-[1.05] tracking-tight text-slate-100 sm:text-5xl lg:-mt-2"
     >
       {{ name }}
     </h1>

@@ -1,5 +1,5 @@
 <template>
-  <RailLayout :rail-width-rem="32">
+  <RailLayout :rail-width-rem="26">
     <template #rail>
       <Rail :nav-items="navItems" />
     </template>

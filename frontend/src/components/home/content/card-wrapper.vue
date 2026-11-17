@@ -9,6 +9,7 @@
       <a
         v-if="href"
         class="peer card-interactive-link absolute -inset-x-4 -inset-y-4 z-20 block rounded-md"
+        :class="overlayFromLg ? 'max-lg:hidden' : ''"
         :href="href"
         target="_blank"
         rel="noreferrer noopener"
@@ -20,6 +21,7 @@
         v-else
         type="button"
         class="peer card-interactive-link absolute -inset-x-4 -inset-y-4 z-20 block rounded-md cursor-pointer"
+        :class="overlayFromLg ? 'max-lg:hidden' : ''"
         :aria-label="ariaLabel"
         @click="$emit('open-gallery', 0)"
       />
@@ -44,6 +46,9 @@ const props = defineProps({
   href: { type: String, default: null },
   ariaLabel: { type: String, default: "Opens in a new tab" },
   isLast: { type: Boolean, default: false },
+  // Text-heavy cards (experience): no full-card link below lg, so scrolling by thumb never
+  // opens another site. The card supplies its own explicit link there.
+  overlayFromLg: { type: Boolean, default: false },
   threshold: { type: Number, default: 0.45 },
   gridColsClass: {
     type: String,

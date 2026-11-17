@@ -11,6 +11,7 @@
         :description="job.description"
         :technology="job.technology"
         :is-last="idx === jobs.length - 1"
+        :collapsible="idx >= 2"
       />
     </ol>
   </div>
