@@ -112,13 +112,20 @@
       />
 
       <div
-        v-if="metaDisplay?.label"
-        class="mt-3 flex items-center gap-2 text-xs text-slate-400"
+        v-if="recognition || metaDisplay?.label"
+        class="mt-3 flex items-start gap-2 text-xs text-slate-400"
         :class="stacked ? '' : 'max-sm:hidden'"
       >
-        <AppIcon v-if="metaDisplay?.iconClass" :icon="metaDisplay.iconClass" />
-        <AppIcon v-else icon="fa-light fa-star" aria-hidden="true" />
-        {{ metaDisplay.label }}
+        <AppIcon
+          :icon="
+            recognition
+              ? 'fa-light fa-award'
+              : metaDisplay?.iconClass || 'fa-light fa-star'
+          "
+          class="mt-px shrink-0"
+          aria-hidden="true"
+        />
+        {{ recognition || metaDisplay.label }}
       </div>
     </div>
   </CardWrapper>
@@ -136,6 +143,7 @@ import {
   fallbackToOriginalImage,
 } from "@/utils/mediaStorageImages.js";
 import { PROJECT_META_OPTIONS } from "@/constants/projectMetaIconOptions.js";
+import { recognitionFor } from "@/constants/projectRecognition.js";
 
 const emit = defineEmits(["open-gallery"]);
 
@@ -186,6 +194,8 @@ const sizes = computed(() => {
   if (props.lead) return "(min-width: 1024px) 38rem, 100vw";
   return "(min-width: 1024px) 18rem, (min-width: 640px) 50vw, 100vw";
 });
+
+const recognition = computed(() => recognitionFor(props.projectName));
 
 const metaDisplay = computed(() => {
   const key = (props.meta ?? "").toString().trim();

@@ -7,7 +7,9 @@
       {{ rangeLabel }}
     </header>
 
-    <div class="z-10 sm:col-span-6">
+    <!-- Above the full-card link, but clicks fall through to it; only the links and the toggle
+         below take clicks (same pattern as the project cards). -->
+    <div class="pointer-events-none z-30 sm:col-span-6">
       <div class="flex justify-between items-center">
         <span
           class="font-semibold leading-snug text-slate-100 transition-colors lg:group-hover:text-sky-300 lg:group-focus-within:text-sky-300"
@@ -35,22 +37,32 @@
           :href="href"
           target="_blank"
           rel="noopener noreferrer"
-          class="kbd-focus -my-2.5 inline-flex items-center gap-1 py-2.5 transition-colors hover:text-sky-300 lg:hidden"
+          class="kbd-focus pointer-events-auto -my-2.5 inline-flex items-center gap-1 py-2.5 transition-colors hover:text-sky-300 lg:hidden"
         >
           {{ company }}
           <AppIcon icon="fa-light fa-arrow-up-right" class="h-3.5 w-3.5" aria-hidden="true" />
           <span class="sr-only">(opens in a new tab)</span>
         </a>
         <span :class="href ? 'max-lg:hidden' : ''">{{ company }}</span>
+        <span v-if="location" class="text-slate-500"> · {{ location }}</span>
       </p>
 
-      <p
-        v-if="description"
-        class="mt-2 text-sm leading-normal text-slate-400"
-        :class="collapsed ? 'max-sm:line-clamp-2' : ''"
+      <!-- Outcomes. Phones: older roles show the first line until expanded. -->
+      <ul
+        v-if="highlights.length"
+        class="mt-3 space-y-2 text-sm leading-normal text-slate-400"
+        :aria-label="`${title} highlights`"
       >
-        {{ description }}
-      </p>
+        <li
+          v-for="(line, i) in highlights"
+          :key="i"
+          class="relative pl-4"
+          :class="collapsed && i >= preview ? 'max-sm:hidden' : ''"
+        >
+          <span class="absolute left-0 top-[0.7em] h-px w-2 bg-slate-600" aria-hidden="true" />
+          {{ line }}
+        </li>
+      </ul>
 
       <TechTags
         :items="technology"
@@ -59,11 +71,31 @@
         :class="collapsed ? 'max-sm:hidden' : ''"
       />
 
-      <!-- Phones: older roles show a short summary; the rest is one tap away. -->
+      <!-- Links to this role's work on the site. Above the full-card link at lg. -->
+      <div
+        v-if="related.length"
+        class="pointer-events-auto relative mt-3 flex flex-wrap gap-x-5"
+      >
+        <router-link
+          v-for="link in related"
+          :key="link.to"
+          :to="link.to"
+          class="kbd-focus group/rel inline-flex min-h-9 items-center gap-1 text-xs font-semibold text-slate-300 transition-colors hover:text-sky-300 focus-visible:text-sky-300"
+        >
+          {{ link.label }}
+          <AppIcon
+            icon="fa-light fa-arrow-right"
+            class="h-3.5 w-3.5 transition-transform motion-reduce:transition-none group-hover/rel:translate-x-0.5"
+            aria-hidden="true"
+          />
+        </router-link>
+      </div>
+
+      <!-- Phones: roles show a short summary; the rest is one tap away. -->
       <button
         v-if="collapsible"
         type="button"
-        class="kbd-focus mt-2 inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-xs font-semibold tracking-widest text-slate-400 uppercase transition-colors hover:text-sky-300 focus-visible:text-sky-300 sm:hidden"
+        class="kbd-focus pointer-events-auto mt-2 inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-xs font-semibold tracking-widest text-slate-400 uppercase transition-colors hover:text-sky-300 focus-visible:text-sky-300 sm:hidden"
         :aria-expanded="expanded"
         @click="expanded = !expanded"
       >
@@ -89,12 +121,17 @@ const props = defineProps({
   rangeLabel: { type: String, required: true },
   title: { type: String, required: true },
   company: { type: String, required: true },
+  location: { type: String, default: "" },
   href: { type: String, default: null },
-  description: { type: String, default: "" },
+  // Short outcome lines (numbers where there are numbers).
+  highlights: { type: Array, default: () => [] },
   technology: { type: Array, default: () => [] },
+  // [{ label, to }]: this role's work elsewhere on the site.
+  related: { type: Array, default: () => [] },
   isLast: { type: Boolean, default: false },
-  // Phones: clamp the description (and hide the tags) until expanded.
+  // Phones: show only the first `preview` lines (and hide the tags) until expanded.
   collapsible: { type: Boolean, default: false },
+  preview: { type: Number, default: 1 },
 });
 
 const expanded = ref(false);

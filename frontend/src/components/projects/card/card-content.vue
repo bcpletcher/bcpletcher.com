@@ -78,12 +78,17 @@
       </template>
 
       <div
-        v-if="showMeta && metaDisplay?.label"
-        class="mt-3 flex items-center gap-2 text-xs text-slate-400"
+        v-if="showMeta && (recognition || metaDisplay?.label)"
+        class="mt-3 flex items-start gap-2 text-xs text-slate-400"
       >
-        <AppIcon v-if="metaDisplay?.iconClass" :icon="metaDisplay.iconClass" />
+        <AppIcon
+          v-if="recognition || metaDisplay?.iconClass"
+          :icon="recognition ? 'fa-light fa-award' : metaDisplay.iconClass"
+          class="mt-px shrink-0"
+          aria-hidden="true"
+        />
         <span v-else class="sr-only">Meta</span>
-        <span>{{ metaDisplay.label }}</span>
+        <span>{{ recognition || metaDisplay.label }}</span>
       </div>
 
       <div v-if="isHidden" class="mt-4 flex items-center gap-3">
@@ -108,6 +113,7 @@ import TechTags from "@/components/shared/tech-tags.vue";
 import { useSettingsStore } from "@/stores/settings.js";
 import { caseStudyHrefFor } from "@/utils/caseStudyData.js";
 import { PROJECT_META_OPTIONS } from "@/constants/projectMetaIconOptions.js";
+import { recognitionFor } from "@/constants/projectRecognition.js";
 
 const props = defineProps({
   projectName: { type: String, required: true },
@@ -136,6 +142,8 @@ const settingsStore = useSettingsStore();
 const caseStudyPath = computed(() =>
   caseStudyHrefFor(settingsStore.projects, props.projectName),
 );
+
+const recognition = computed(() => recognitionFor(props.projectName));
 
 const metaDisplay = computed(() => {
   const key = (props.meta ?? "").toString().trim();
