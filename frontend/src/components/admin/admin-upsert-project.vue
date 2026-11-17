@@ -831,6 +831,10 @@ const showModal = async (existingEntry) => {
         hidden: existingEntry.hidden ?? false,
 
         meta: existingEntry.meta ?? null,
+
+        // Not edited here, but saving replaces the whole record, so carry it through or the
+        // case study written in its own editor would be erased by any project edit.
+        ...(existingEntry.caseStudy ? { caseStudy: existingEntry.caseStudy } : {}),
       },
     };
   }

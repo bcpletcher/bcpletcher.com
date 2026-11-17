@@ -92,8 +92,8 @@ const content = {
       ),
     ],
     [
-      t("My background in UX shapes how I build software. I’ve worked on accessibility in "),
-      t("rider tools", "caseStudy"),
+      t("My background in UX shapes how I build software. I’ve worked on accessibility on "),
+      t("a public transit website", "caseStudy"),
       t(
         ", built interfaces in React and Vue, and connected enterprise CMS sites to other systems using C# and .NET. I help teams carry those decisions through testing and deployment.",
       ),

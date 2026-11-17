@@ -28,7 +28,7 @@ const jobs = [
     href: "https://www.bluemodus.com",
     subtitles: [],
     description:
-      "Lead architecture and delivery for enterprise CMS projects. Integrated React and TypeScript rider tools into Community Transit’s Sitefinity site and maintained its deployment pipelines. Built product catalog filters and contributed to comparison pages for Flow Waterjet’s Kentico sites.",
+      "Lead architecture and delivery for enterprise CMS projects. Integrated React and TypeScript features, including Plan My Trip and Maps & Schedules, into Community Transit’s Sitefinity site and maintained its deployment pipelines. Built product catalog filters and contributed to comparison pages for Flow Waterjet’s Kentico sites.",
     technology: ["C#", ".NET", "Kentico", "Sitefinity", "React", "TypeScript", "Azure DevOps"],
   },
   {
