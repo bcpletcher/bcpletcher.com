@@ -25,10 +25,11 @@
 
     <!-- Mobile rail content (normal flow) -->
     <div class="pb-2 md:pb-4 lg:hidden">
-      <RailIntro :name="name" :title="title" :description="description" />
-      <div class="mt-6">
-        <SocialLinks />
-      </div>
+      <RailIntro :name="name" :title="title" :description="description">
+        <template #after>
+          <SocialLinks />
+        </template>
+      </RailIntro>
     </div>
   </aside>
 </template>
