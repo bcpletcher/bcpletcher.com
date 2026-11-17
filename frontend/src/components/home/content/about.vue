@@ -102,7 +102,7 @@ const content = {
       t("Outside client work I build my own products: "),
       t("Coverlabs Studio", "coverlabs"),
       t(
-        ", a React editor for creating custom movie and collection posters from templates, and a native iOS reader for books, comics, and PDFs that I’m preparing for release.",
+        ", a React editor for creating custom movie and collection posters from templates, and Alcoves, a native iOS reader for books, comics, and PDFs that I’m preparing for release.",
       ),
     ],
   ],
