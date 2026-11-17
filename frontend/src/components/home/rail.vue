@@ -44,9 +44,9 @@ import MobileSectionNav from "@/components/home/rail/mobile-section-nav.vue";
 
 // Hero copy lives here only; swap these three strings to change the headline.
 const name = "Benjamin Pletcher";
-const title = "Senior Software Engineer";
+const title = "Senior Full-Stack Engineer & Technical Lead";
 const description =
-  "I build accessible, pixel-perfect digital experiences, from interface to production.";
+  "I lead and build enterprise websites, web applications, and internal tools.";
 
 const props = defineProps({
   navItems: { type: Array, required: true },

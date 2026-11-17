@@ -22,13 +22,13 @@ import ExperienceCard from "@/components/home/content/experience-card.vue";
 const jobs = [
   {
     rangeLabel: "2021 — Present",
-    title: "Senior Web Developer",
+    title: "Web Development Lead",
     company: "BlueModus",
     href: "https://www.bluemodus.com",
     subtitles: [],
     description:
-      "Lead frontend and full-stack development for enterprise-scale CMS and SPA projects, collaborating with designers, strategists, and engineers to deliver high-quality digital experiences for national and global clients.",
-    technology: ["TypeScript", "Vue", "React", "Tailwind", "CMS", ".NET"],
+      "Lead architecture and delivery for enterprise CMS projects. Integrated React and TypeScript rider tools into Community Transit’s Sitefinity site and maintained its deployment pipelines. Built product catalog filters and contributed to comparison pages for Flow Waterjet’s Kentico sites.",
+    technology: ["C#", ".NET", "Kentico", "Sitefinity", "React", "TypeScript", "Azure DevOps"],
   },
   {
     rangeLabel: "2019 — 2021",
@@ -37,8 +37,8 @@ const jobs = [
     href: "https://premiumdata360.com",
     subtitles: [],
     description:
-      "Designed and developed sites and applications for enterprise clients, owning UX/UI execution while contributing to full-stack delivery across CMS and SPA builds in varied tech environments.",
-    technology: ["Vue", "Blazor", "JavaScript", ".NET"],
+      "Led product design and built the Vue.js interface used by GIA Cloud and the CLIR suite for media order and invoice reconciliation. Set UI standards and led design reviews with developers and stakeholders.",
+    technology: ["Vue.js", "JavaScript"],
   },
   {
     rangeLabel: "2014 — 2019",
@@ -47,8 +47,8 @@ const jobs = [
     href: "https://hemispheredesignworks.com",
     subtitles: [],
     description:
-      "Started as a front-end developer and grew into lead UX/UI, setting design direction, improving site theming and structure, and helping build a Vue.js SPA for the commercial media industry.",
-    technology: ["Vue", "JavaScript", "MSSQL", "Crystal Reports"],
+      "Led a two-person team that replaced legacy .NET tools with Sandbar, an operations platform for more than 100 employees. Designed the SQL Server database and built workflows for purchasing, engineering changes, shipment tracking, and reporting.",
+    technology: ["Node.js", "Express", "Vue.js", "SQL Server", "Crystal Reports"],
   },
   {
     rangeLabel: "2012 — 2014",
@@ -57,8 +57,8 @@ const jobs = [
     href: "https://johnstonboiler.com",
     subtitles: [],
     description:
-      "Built and maintained internal web and desktop tools, including a replacement for legacy .NET apps, plus data-driven reporting and order/shipment tracking systems backed by MSSQL.",
-    technology: ["C#", ".NET", "MSSQL", "WPF"],
+      "Built a C# desktop quoting tool that read Excel price books and filtered out incompatible options as sales staff put together quotes for specialized orders.",
+    technology: ["C#", ".NET", "Excel"],
   },
 ];
 </script>

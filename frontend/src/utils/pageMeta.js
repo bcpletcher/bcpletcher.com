@@ -1,5 +1,5 @@
 // Per-route head tweaks that index.html can't know about (document title, robots).
-const DEFAULT_TITLE = "Benjamin Pletcher - UX/UI Designer & Full Stack Developer";
+const DEFAULT_TITLE = "Benjamin Pletcher - Senior Full-Stack Engineer & Technical Lead";
 
 export function setPageTitle(title) {
   if (typeof document === "undefined") return;
