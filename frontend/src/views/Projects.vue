@@ -91,6 +91,7 @@
 
       <ProjectsGalleryModal
         v-if="galleryMounted"
+        :key="galleryShareUrl"
         v-model="isGalleryOpen"
         :title="galleryTitle"
         :images="galleryImages"
