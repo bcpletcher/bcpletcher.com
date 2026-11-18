@@ -50,7 +50,7 @@ function resolveProjectsLink(job) {
   );
   return hasProjects
     ? {
-        label: job.projectsLabel || `View ${job.company} projects`,
+        label: job.projectsLabel || "View projects",
         to: projectsFilterLocation(company),
       }
     : null;
@@ -77,7 +77,7 @@ const jobs = [
       { caseStudy: "United Community", label: "United Community" },
       { caseStudy: "Lytx", label: "Lytx" },
     ],
-    projectsLabel: "More BlueModus client work",
+    projectsLabel: "More client work",
   },
   {
     rangeLabel: "2019 — 2021",

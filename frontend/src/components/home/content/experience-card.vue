@@ -93,6 +93,7 @@
       >
         <router-link
           :to="projectsLink.to"
+          :aria-label="`${projectsLink.label} for ${company}`"
           class="kbd-focus group/rel inline-flex min-h-9 items-center gap-1 text-xs font-semibold text-slate-300 transition-colors hover:text-sky-300 focus-visible:text-sky-300"
         >
           {{ projectsLink.label }}
