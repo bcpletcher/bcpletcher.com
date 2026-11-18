@@ -2,7 +2,7 @@
   <li class="overflow-visible" :class="isLast ? '' : 'mb-12 max-sm:mb-7'">
     <div
       v-gsap-reveal="{ once: true, start: gsapStart }"
-      class="group relative grid overflow-visible pb-1 transition-all lg:hover:!opacity-100"
+      class="group relative isolate grid overflow-visible pb-1 transition-all lg:hover:!opacity-100"
       :class="gridColsClass"
     >
       <!-- Full-card link overlay (all sizes, so cards are tappable on touch devices) -->
