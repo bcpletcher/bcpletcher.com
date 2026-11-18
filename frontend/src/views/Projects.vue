@@ -67,14 +67,13 @@
                   :key="project.id"
                   :project-id="project.id"
                   :project-name="project.projectName"
-                  :date="project.date"
+                  :date="project.dateLabel"
                   :summary="project.description"
                   :images="project.images"
                   :href="project.url"
                   :technology="project.technology"
                   :featured="project.featured"
                   :meta="project.meta"
-                  :show-date="!section.year"
                   :show-featured="false"
                   :priority="project.id === projectSections[0]?.projects[0]?.id"
                   :show-admin-controls="isAdmin"
@@ -126,6 +125,7 @@ import { useAdminActions } from "@/composables/useAdminActions.js";
 import ProjectsMobileBar from "@/components/projects/projects-mobile-bar.vue";
 import { useSettingsStore } from "@/stores/settings.js";
 import {
+  formatProjectDateLabel,
   getYearFromProjectDate,
   normalizeProjectDate,
 } from "@/utils/projectDate.js";
@@ -177,6 +177,7 @@ const projects = computed(() => {
         id: item.entryId,
         projectName,
         date: normalizedDate,
+        dateLabel: formatProjectDateLabel(item.entryId, normalizedDate),
         year: yearFromDate,
         description: item.description || "",
         images: Array.isArray(item.images) ? item.images : [],

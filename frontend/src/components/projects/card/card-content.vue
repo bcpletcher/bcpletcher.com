@@ -43,7 +43,7 @@
 
         <span
           v-if="date && showDate"
-          class="shrink-0 pt-0.5 text-xs font-semibold tracking-widest text-slate-400"
+          class="shrink-0 whitespace-nowrap pt-0.5 text-xs font-semibold tracking-wide text-slate-400"
         >
           {{ date }}
         </span>

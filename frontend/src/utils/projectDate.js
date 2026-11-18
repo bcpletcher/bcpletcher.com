@@ -67,3 +67,28 @@ export function getYearFromProjectDate(value) {
   return Number.isFinite(y) ? y : null;
 }
 
+const projectMonthFormat = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+// Replace these legacy sort dates with documented months of portfolio work.
+// These are contribution months, so they need not be the site's launch month.
+const documentedProjectMonths = {
+  communityTransit: { stored: "2026-01-02", month: "2026-11" },
+  flow: { stored: "2023-01-01", month: "2023-03" },
+  "alzheimers-association": { stored: "2025-01-01", month: "2025-10" },
+  "arthritis-foundation": { stored: "2024-01-01", month: "2024-07" },
+};
+
+export function formatProjectDateLabel(projectId, iso) {
+  if (!iso) return null;
+  const evidence = documentedProjectMonths[projectId];
+  if (iso === evidence?.stored) {
+    return projectMonthFormat.format(new Date(`${evidence.month}-01T00:00:00Z`));
+  }
+  if (iso.endsWith("-01-01")) return iso.slice(0, 4);
+  return projectMonthFormat.format(new Date(`${iso}T00:00:00Z`));
+}
+
