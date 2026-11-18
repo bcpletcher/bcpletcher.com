@@ -50,7 +50,7 @@
           <router-link
             v-for="filter in projectFilters"
             :key="filter.company"
-            :to="{ path: '/projects', query: filter.company ? { company: filter.company } : {} }"
+            :to="projectsFilterLocation(filter.company)"
             :aria-current="activeCompany === filter.company ? 'true' : undefined"
             class="kbd-focus inline-flex min-h-11 items-center rounded-full border border-white/10 px-4 text-sm font-semibold text-slate-300 transition-colors hover:border-sky-300/50 hover:text-sky-200 aria-[current=true]:border-sky-300/40 aria-[current=true]:bg-sky-300/10 aria-[current=true]:text-sky-200"
           >
@@ -144,7 +144,11 @@ import {
   getYearFromProjectDate,
   normalizeProjectDate,
 } from "@/utils/projectDate.js";
-import { slugify } from "@/utils/slug.js";
+import {
+  employerProjectFilters,
+  matchesProjectCompany,
+  projectsFilterLocation,
+} from "@/utils/projectCompany.js";
 
 const route = useRoute();
 const settingsStore = useSettingsStore();
@@ -155,10 +159,10 @@ const isAdmin = computed(() => settingsStore.isAdminView);
 
 const projectFilters = [
   { company: "", label: "All projects" },
-  { company: "bluemodus", label: "BlueModus clients" },
+  ...employerProjectFilters,
 ];
 const activeCompany = computed(() =>
-  route.query.company === "bluemodus" ? "bluemodus" : "",
+  employerProjectFilters.find(({ company }) => company === route.query.company)?.company || "",
 );
 
 const yearPriority = [
@@ -191,7 +195,7 @@ const projects = computed(() => {
     .filter((item) => {
       if (!isAdmin.value && item.hidden) return false;
       if (!activeCompany.value) return true;
-      return item.entryId !== "bluemodus" && slugify(item.companyName) === activeCompany.value;
+      return matchesProjectCompany(item.entryId, item, activeCompany.value);
     })
     .map((item) => {
       const normalizedDate = normalizeProjectDate(item.date);

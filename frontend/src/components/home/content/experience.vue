@@ -11,8 +11,8 @@
         :href="job.href"
         :highlights="job.highlights"
         :technology="job.technology"
-        :case-studies="resolveRelated(job.caseStudies)"
-        :related="resolveRelated(job.related)"
+        :case-studies="resolveCaseStudies(job.caseStudies)"
+        :projects-link="resolveProjectsLink(job)"
         :is-last="idx === jobs.length - 1"
         :collapsible="job.highlights.length > 1"
         :preview="idx === 0 ? 2 : 1"
@@ -27,29 +27,33 @@
 import ExperienceCard from "@/components/home/content/experience-card.vue";
 import ExperienceExtras from "@/components/home/content/experience-extras.vue";
 import { useSettingsStore } from "@/stores/settings.js";
-import { caseStudyHrefFor, findProjectBySlug } from "@/utils/caseStudyData.js";
+import { caseStudyHrefFor } from "@/utils/caseStudyData.js";
+import { matchesProjectCompany, projectsFilterLocation } from "@/utils/projectCompany.js";
+import { normalizeProjectDate } from "@/utils/projectDate.js";
 import { slugify } from "@/utils/slug.js";
 
 const settingsStore = useSettingsStore();
 
-// Related links point at this role's work on the site and only show while that work exists
-// (a published case study, or a visible project): { caseStudy | project | to, label }.
-function resolveRelated(specs = []) {
+function resolveCaseStudies(specs = []) {
   return specs
-    .map((spec) => {
-      if (spec.caseStudy) {
-        const to = caseStudyHrefFor(settingsStore.projects, spec.caseStudy);
-        return to ? { label: spec.label, to } : null;
-      }
-      if (spec.project) {
-        const slug = slugify(spec.project);
-        return findProjectBySlug(settingsStore.projects, slug)
-          ? { label: spec.label || spec.project, to: `/projects#project/${slug}` }
-          : null;
-      }
-      return { label: spec.label, to: spec.to };
+    .map(({ caseStudy, label }) => {
+      const to = caseStudyHrefFor(settingsStore.projects, caseStudy);
+      return to ? { label, to } : null;
     })
     .filter(Boolean);
+}
+
+function resolveProjectsLink(job) {
+  const company = slugify(job.company);
+  const hasProjects = Object.entries(settingsStore.projects ?? {}).some(([id, project]) =>
+    !project?.hidden && normalizeProjectDate(project?.date) && matchesProjectCompany(id, project, company),
+  );
+  return hasProjects
+    ? {
+        label: job.projectsLabel || `View ${job.company} projects`,
+        to: projectsFilterLocation(company),
+      }
+    : null;
 }
 
 // Outcome lines come from the résumé. Figures the company or agency reported say so.
@@ -73,7 +77,7 @@ const jobs = [
       { caseStudy: "United Community", label: "United Community" },
       { caseStudy: "Lytx", label: "Lytx" },
     ],
-    related: [{ to: "/projects?company=bluemodus", label: "More BlueModus client work" }],
+    projectsLabel: "More BlueModus client work",
   },
   {
     rangeLabel: "2019 — 2021",
@@ -87,7 +91,6 @@ const jobs = [
       "Promoted from Frontend Developer to Lead UX/UI Developer, taking ownership of product design direction, setting UI standards and leading design reviews.",
     ],
     technology: ["Vue.js", "JavaScript"],
-    related: [{ project: "GIACloud" }],
   },
   {
     rangeLabel: "2014 — 2019",
@@ -101,7 +104,6 @@ const jobs = [
       "Designed its SQL Server database and role-based approval workflows, built shipment tracking, and integrated a catalog of 150+ Crystal Reports.",
     ],
     technology: ["Node.js", "Express", "Vue.js", "SQL Server", "Crystal Reports"],
-    related: [{ project: "Sandbar" }, { project: "Harbor" }, { project: "Lighthouse" }],
   },
   {
     rangeLabel: "2012 — 2014",
@@ -113,7 +115,6 @@ const jobs = [
       "Built a C# desktop quoting tool that read Excel price books and filtered out incompatible options as sales staff built quotes for specialized orders, reducing ordering errors.",
     ],
     technology: ["C#", ".NET", "Excel"],
-    related: [{ project: "Sales Assistant" }],
   },
 ];
 </script>

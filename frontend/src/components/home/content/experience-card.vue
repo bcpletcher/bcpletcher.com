@@ -85,19 +85,17 @@
         </ul>
       </div>
 
-      <!-- Links to this role's work on the site. Above the full-card link at lg. -->
+      <!-- Keep the project link above the full-card link at lg. -->
       <div
-        v-if="related.length"
-        class="pointer-events-auto relative flex flex-wrap gap-x-5"
+        v-if="projectsLink"
+        class="pointer-events-auto relative"
         :class="caseStudies.length ? '' : 'mt-3'"
       >
         <router-link
-          v-for="link in related"
-          :key="link.to"
-          :to="link.to"
+          :to="projectsLink.to"
           class="kbd-focus group/rel inline-flex min-h-9 items-center gap-1 text-xs font-semibold text-slate-300 transition-colors hover:text-sky-300 focus-visible:text-sky-300"
         >
-          {{ link.label }}
+          {{ projectsLink.label }}
           <AppIcon
             icon="fa-light fa-arrow-right"
             class="h-3.5 w-3.5 transition-transform motion-reduce:transition-none group-hover/rel:translate-x-0.5"
@@ -142,8 +140,7 @@ const props = defineProps({
   highlights: { type: Array, default: () => [] },
   technology: { type: Array, default: () => [] },
   caseStudies: { type: Array, default: () => [] },
-  // [{ label, to }]: this role's work elsewhere on the site.
-  related: { type: Array, default: () => [] },
+  projectsLink: { type: Object, default: null },
   isLast: { type: Boolean, default: false },
   // Phones: show only the first `preview` lines (and hide the tags) until expanded.
   collapsible: { type: Boolean, default: false },
