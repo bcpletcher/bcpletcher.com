@@ -1,6 +1,7 @@
-import { computed, defineAsyncComponent, onMounted, ref, watch } from "vue";
+import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
-import { caseStudyPath, hasPublishedCaseStudy } from "@/utils/caseStudyData.js";
+import { caseStudyPath, findProjectBySlug, hasPublishedCaseStudy } from "@/utils/caseStudyData.js";
 import { useSettingsStore } from "@/stores/settings.js";
 import { slugify } from "@/utils/slug.js";
 
@@ -66,8 +67,10 @@ export function useProjectGallery({ preload = false, deepLink = false } = {}) {
 
   function setHash(slug) {
     try {
+      const hash = slug ? `${HASH_PREFIX}${slug}` : "";
+      if (window.location.hash === hash) return;
       const url = new URL(window.location.href);
-      url.hash = slug ? `${HASH_PREFIX}${slug}` : "";
+      url.hash = hash;
       window.history.replaceState(window.history.state, "", url);
     } catch {
       // no-op
@@ -94,46 +97,47 @@ export function useProjectGallery({ preload = false, deepLink = false } = {}) {
       : null;
 
     galleryMounted.value = true;
+    setHash(gallerySlug.value);
     isGalleryOpen.value = true;
   }
 
-  // Deep link bookkeeping: the URL shows which project's lightbox is open.
+  // Clear the URL on close only if it still refers to this gallery.
   watch(isGalleryOpen, (open) => {
-    if (open) {
-      setHash(gallerySlug.value);
-    } else if (window.location.hash.startsWith(HASH_PREFIX)) {
+    if (!open && window.location.hash === `${HASH_PREFIX}${gallerySlug.value}`) {
       setHash("");
     }
   });
 
   if (deepLink) {
-    // `/#project/<slug>` opens that project's lightbox once projects have loaded.
-    let handled = false;
+    const route = useRoute();
+    function syncGalleryToHash() {
+      if (!settingsStore.projects || typeof window === "undefined") return;
+      const hash = window.location.hash;
+      const slug = hash.startsWith(HASH_PREFIX) ? hash.slice(HASH_PREFIX.length) : "";
+      if (slug === gallerySlug.value && isGalleryOpen.value) return;
+
+      const project = findProjectBySlug(settingsStore.projects, slug);
+      const images = Array.isArray(project?.images) ? project.images.filter(Boolean) : [];
+      if (!images.length) {
+        isGalleryOpen.value = false;
+        return;
+      }
+      openGallery({
+        title: project.projectName || project.title,
+        images,
+        index: 0,
+        noOrigin: true,
+      });
+    }
+
+    // Handle both router navigation and hash links opened in the current page.
     watch(
-      () => settingsStore.projects,
-      (all) => {
-        if (handled || !all || typeof window === "undefined") return;
-        handled = true;
-        const hash = window.location.hash;
-        if (!hash.startsWith(HASH_PREFIX)) return;
-        const slug = hash.slice(HASH_PREFIX.length);
-        const match = Object.values(all).find(
-          (p) => !p?.hidden && slugify(p?.projectName || p?.title) === slug,
-        );
-        const images = Array.isArray(match?.images)
-          ? match.images.filter(Boolean)
-          : [];
-        if (images.length) {
-          openGallery({
-            title: match.projectName || match.title,
-            images,
-            index: 0,
-            noOrigin: true,
-          });
-        }
-      },
+      [() => settingsStore.projects, () => route.hash],
+      syncGalleryToHash,
       { immediate: true },
     );
+    onMounted(() => window.addEventListener("hashchange", syncGalleryToHash));
+    onUnmounted(() => window.removeEventListener("hashchange", syncGalleryToHash));
   }
 
   return {

@@ -48,22 +48,23 @@
 
         <ProjectsLoadState variant="page" :count="4">
           <div class="flex flex-col gap-6">
-            <div v-for="y in years" :key="y">
+            <div v-for="section in projectSections" :key="section.key">
               <!-- Year anchor/section for timeline tracking -->
               <div
-                :id="`year-${y}`"
+                v-if="section.year"
+                :id="`year-${section.year}`"
                 data-project-year-section
-                :data-year="y"
+                :data-year="section.year"
                 class="scroll-mt-28"
               />
 
               <!-- Semantic heading so cards (h3) don't skip levels -->
-              <h2 class="sr-only">{{ y }}</h2>
+              <h2 class="sr-only">{{ section.year || "Featured projects" }}</h2>
 
               <ul class="grid gap-4 list-none p-0 m-0">
                 <ProjectsCard
-                  v-for="(project, idx) in projectsByYear[y]"
-                  :key="project.id || `${y}-${idx}`"
+                  v-for="project in section.projects"
+                  :key="project.id"
                   :project-id="project.id"
                   :project-name="project.projectName"
                   :date="project.date"
@@ -73,9 +74,9 @@
                   :technology="project.technology"
                   :featured="project.featured"
                   :meta="project.meta"
-                  :show-date="false"
+                  :show-date="!section.year"
                   :show-featured="false"
-                  :priority="project.id === projects[0]?.id"
+                  :priority="project.id === projectSections[0]?.projects[0]?.id"
                   :show-admin-controls="isAdmin"
                   :is-hidden="settingsStore.projects?.[project.id]?.hidden"
                   :on-edit="(id) => openEditById(id)"
@@ -90,6 +91,7 @@
 
       <ProjectsGalleryModal
         v-if="galleryMounted"
+        :key="galleryShareUrl"
         v-model="isGalleryOpen"
         :title="galleryTitle"
         :images="galleryImages"
@@ -133,6 +135,16 @@ const settingsStore = useSettingsStore();
 const adminActions = useAdminActions();
 
 const isAdmin = computed(() => settingsStore.isAdminView);
+
+const featuredIds = ["communityTransit", "coverlabs", "lytx", "united-community-bank"];
+const yearPriority = [
+  "flow", "smartmove", "steinbach-credit-union", "pemco",
+  "american-society-for-microbiology", "asla", "samson-rope", "advancial",
+  "eastman-credit-union", "alzheimers-association", "livanova", "americanhealthlaw",
+  "arthritis-foundation", "innovage", "rasi", "iada", "bluemodus", "ads",
+  "mainfreight", "lexitaslegal", "union-heritage-credit-union", "broan", "ball", "opsdt",
+];
+const yearlyRank = new Map(yearPriority.map((id, index) => [id, index]));
 
 function openCaseStudyById(projectId) {
   if (isAdmin.value) adminActions.editCaseStudy(projectId);
@@ -179,6 +191,10 @@ const projects = computed(() => {
       (p) => typeof p.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.date),
     )
     .sort((a, b) => {
+      if (a.year !== b.year) return b.year - a.year;
+      const rank = (yearlyRank.get(a.id) ?? yearPriority.length) -
+        (yearlyRank.get(b.id) ?? yearPriority.length);
+      if (rank) return rank;
       const ad = a.date || "";
       const bd = b.date || "";
       if (ad !== bd) return bd.localeCompare(ad);
@@ -189,37 +205,30 @@ const projects = computed(() => {
     });
 });
 
-const years = computed(() => {
-  const ys = new Set();
-  projects.value.forEach((p) => {
-    if (p.year) ys.add(Number(p.year));
-  });
-  return Array.from(ys)
-    .filter((n) => Number.isFinite(n))
-    .sort((a, b) => b - a);
-});
-
-const yearCounts = computed(() =>
-  Object.fromEntries(
-    years.value.map((y) => [y, projectsByYear.value[y]?.length || 0]),
-  ),
+const featuredProjects = computed(() =>
+  featuredIds.map((id) => projects.value.find((project) => project.id === id)).filter(Boolean),
 );
 
+const pinnedIds = new Set(featuredIds);
+
 const projectsByYear = computed(() => {
-  const grouped = {};
-  years.value.forEach((y) => {
-    grouped[y] = [];
-  });
-
-  projects.value.forEach((p) => {
-    const y = Number(p.year);
-    if (!Number.isFinite(y)) return;
-    if (!grouped[y]) grouped[y] = [];
-    grouped[y].push(p);
-  });
-
+  const grouped = new Map();
+  for (const project of projects.value) {
+    if (pinnedIds.has(project.id)) continue;
+    if (!grouped.has(project.year)) grouped.set(project.year, []);
+    grouped.get(project.year).push(project);
+  }
   return grouped;
 });
+
+const years = computed(() => [...projectsByYear.value.keys()]);
+const yearCounts = computed(() =>
+  Object.fromEntries([...projectsByYear.value].map(([year, items]) => [year, items.length])),
+);
+const projectSections = computed(() => [
+  ...(featuredProjects.value.length ? [{ key: "featured", projects: featuredProjects.value }] : []),
+  ...[...projectsByYear.value].map(([year, items]) => ({ key: year, year, projects: items })),
+]);
 
 const pageHeaderMeasureRef = ref(null);
 const headerContentHeightPx = ref(0);
