@@ -11,6 +11,7 @@
         :href="job.href"
         :highlights="job.highlights"
         :technology="job.technology"
+        :case-studies="resolveRelated(job.caseStudies)"
         :related="resolveRelated(job.related)"
         :is-last="idx === jobs.length - 1"
         :collapsible="job.highlights.length > 1"
@@ -66,10 +67,13 @@ const jobs = [
       "Work on accessibility remediation (WCAG) across client sites, verifying fixes with keyboard and screen-reader testing.",
     ],
     technology: ["C#", ".NET", "Kentico", "Sitefinity", "React", "TypeScript", "Azure DevOps"],
-    related: [
-      { caseStudy: "Community Transit", label: "Community Transit case study" },
-      { to: "/projects", label: "More client work" },
+    caseStudies: [
+      { caseStudy: "Community Transit", label: "Community Transit" },
+      { caseStudy: "Flow", label: "Flow Waterjet" },
+      { caseStudy: "United Community", label: "United Community" },
+      { caseStudy: "Lytx", label: "Lytx" },
     ],
+    related: [{ to: "/projects?company=bluemodus", label: "More BlueModus client work" }],
   },
   {
     rangeLabel: "2019 — 2021",

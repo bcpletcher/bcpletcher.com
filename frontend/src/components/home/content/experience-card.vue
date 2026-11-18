@@ -71,10 +71,25 @@
         :class="collapsed ? 'max-sm:hidden' : ''"
       />
 
+      <div v-if="caseStudies.length" class="mt-4">
+        <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Case studies</p>
+        <ul class="flex flex-wrap gap-x-4" aria-label="Case studies">
+          <li v-for="study in caseStudies" :key="study.to">
+            <router-link
+              :to="study.to"
+              class="kbd-focus pointer-events-auto inline-flex min-h-11 items-center rounded text-xs font-semibold text-sky-300 underline underline-offset-4 decoration-sky-300/40 hover:decoration-sky-300 focus-visible:decoration-sky-300 sm:min-h-9"
+            >
+              {{ study.label }}
+            </router-link>
+          </li>
+        </ul>
+      </div>
+
       <!-- Links to this role's work on the site. Above the full-card link at lg. -->
       <div
         v-if="related.length"
-        class="pointer-events-auto relative mt-3 flex flex-wrap gap-x-5"
+        class="pointer-events-auto relative flex flex-wrap gap-x-5"
+        :class="caseStudies.length ? '' : 'mt-3'"
       >
         <router-link
           v-for="link in related"
@@ -126,6 +141,7 @@ const props = defineProps({
   // Short outcome lines (numbers where there are numbers).
   highlights: { type: Array, default: () => [] },
   technology: { type: Array, default: () => [] },
+  caseStudies: { type: Array, default: () => [] },
   // [{ label, to }]: this role's work elsewhere on the site.
   related: { type: Array, default: () => [] },
   isLast: { type: Boolean, default: false },

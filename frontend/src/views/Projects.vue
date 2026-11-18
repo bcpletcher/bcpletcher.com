@@ -46,8 +46,21 @@
           </p>
         </div>
 
+        <nav aria-label="Filter projects" class="flex flex-wrap gap-2">
+          <router-link
+            v-for="filter in projectFilters"
+            :key="filter.company"
+            :to="{ path: '/projects', query: filter.company ? { company: filter.company } : {} }"
+            :aria-current="activeCompany === filter.company ? 'true' : undefined"
+            class="kbd-focus inline-flex min-h-11 items-center rounded-full border border-white/10 px-4 text-sm font-semibold text-slate-300 transition-colors hover:border-sky-300/50 hover:text-sky-200 aria-[current=true]:border-sky-300/40 aria-[current=true]:bg-sky-300/10 aria-[current=true]:text-sky-200"
+          >
+            {{ filter.label }}
+          </router-link>
+        </nav>
+
         <ProjectsLoadState variant="page" :count="4">
           <div class="flex flex-col gap-6">
+            <p v-if="!projects.length" class="text-sm text-slate-400">No projects in this view.</p>
             <section
               v-for="[year, entries] in projectsByYear"
               :key="year"
@@ -113,6 +126,7 @@ import {
   onMounted,
   ref,
 } from "vue";
+import { useRoute } from "vue-router";
 import RailLayout from "@/components/shared/rail-layout.vue";
 import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsRailTimeline from "@/components/projects/projects-rail-timeline.vue";
@@ -130,12 +144,22 @@ import {
   getYearFromProjectDate,
   normalizeProjectDate,
 } from "@/utils/projectDate.js";
+import { slugify } from "@/utils/slug.js";
 
+const route = useRoute();
 const settingsStore = useSettingsStore();
 
 const adminActions = useAdminActions();
 
 const isAdmin = computed(() => settingsStore.isAdminView);
+
+const projectFilters = [
+  { company: "", label: "All projects" },
+  { company: "bluemodus", label: "BlueModus clients" },
+];
+const activeCompany = computed(() =>
+  route.query.company === "bluemodus" ? "bluemodus" : "",
+);
 
 const yearPriority = [
   "communityTransit", "coverlabs", "lytx", "united-community-bank",
@@ -165,8 +189,9 @@ const projects = computed(() => {
       ...(item || {}),
     }))
     .filter((item) => {
-      if (isAdmin.value) return true;
-      return !item?.hidden;
+      if (!isAdmin.value && item.hidden) return false;
+      if (!activeCompany.value) return true;
+      return item.entryId !== "bluemodus" && slugify(item.companyName) === activeCompany.value;
     })
     .map((item) => {
       const normalizedDate = normalizeProjectDate(item.date);

@@ -1,5 +1,5 @@
 import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 import { caseStudyPath, findProjectBySlug, hasPublishedCaseStudy } from "@/utils/caseStudyData.js";
 import { useSettingsStore } from "@/stores/settings.js";
@@ -28,6 +28,7 @@ function findOriginImage(title) {
 
 export function useProjectGallery({ preload = false, deepLink = false } = {}) {
   const settingsStore = useSettingsStore();
+  const router = useRouter();
 
   const galleryMounted = ref(false);
   const isGalleryOpen = ref(false);
@@ -71,7 +72,8 @@ export function useProjectGallery({ preload = false, deepLink = false } = {}) {
       if (window.location.hash === hash) return;
       const url = new URL(window.location.href);
       url.hash = hash;
-      window.history.replaceState(window.history.state, "", url);
+      // Keep Vue Router's history entry in sync without triggering a scroll reset.
+      router.options.history.replace(`${url.pathname}${url.search}${url.hash}`);
     } catch {
       // no-op
     }
@@ -132,7 +134,7 @@ export function useProjectGallery({ preload = false, deepLink = false } = {}) {
 
     // Handle both router navigation and hash links opened in the current page.
     watch(
-      [() => settingsStore.projects, () => route.hash],
+      [() => settingsStore.projects, () => route.fullPath],
       syncGalleryToHash,
       { immediate: true },
     );
