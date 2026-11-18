@@ -41,10 +41,28 @@ export async function readProjects() {
 const slug = (name) => name.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase()
   .replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
+function reviseGallery(id, mode, data, live, gallery) {
+  if (mode !== "update" || Object.hasOwn(data, "images") ||
+      !Array.isArray(gallery.before) || !Array.isArray(gallery.after) ||
+      gallery.after.length < 3 || new Set(gallery.after).size !== gallery.after.length ||
+      gallery.before.some((path) =>
+        typeof path !== "string" || !path.startsWith(`Projects/${id}/`) ||
+        !/^[\w.-]+\.webp$/.test(path.slice(`Projects/${id}/`.length)),
+      ) ||
+      gallery.after.some((path) => !gallery.before.includes(path) && imageKey.exec(path)?.[1] !== id)) {
+    throw new Error(`Invalid gallery revision for ${id}`);
+  }
+  const current = (live?.images || []).map(({ path }) => path);
+  if (!isDeepStrictEqual(current, gallery.before) && !isDeepStrictEqual(current, gallery.after)) {
+    throw new Error(`Gallery changed since review for ${id}`);
+  }
+  return gallery.after.map((path) => ({ path }));
+}
+
 export function planProjects(live, manifest) {
   const ids = new Set();
   const projects = { ...live };
-  return manifest.records.map(({ id, mode, data }) => {
+  return manifest.records.map(({ id, mode, data, gallery }) => {
     if (!projectId.test(id) || Object.hasOwn(Object.prototype, id) || ids.has(id) ||
         !["create", "update"].includes(mode)) {
       throw new Error(`Invalid or duplicate target: ${id}`);
@@ -56,6 +74,7 @@ export function planProjects(live, manifest) {
     }
     const before = Object.hasOwn(live, id) ? live[id] : null;
     const after = mode === "create" ? data : { ...before, ...data };
+    if (gallery) after.images = reviseGallery(id, mode, data, before, gallery);
     const unchanged = isDeepStrictEqual(before, after);
     if ((mode === "create" && before && !unchanged) || (mode === "update" && !before)) {
       throw new Error(`Live record does not match ${mode} precondition for ${id}`);
@@ -81,10 +100,11 @@ function mediaKeys(key) {
 }
 
 function mediaReferences(row) {
-  const { data } = row;
+  const { data, gallery } = row;
   const figures = (data.caseStudy?.sections || []).flatMap(({ figures }) => figures);
   return [
     ...(data.images || []),
+    ...(gallery?.after || []).filter((path) => !gallery.before.includes(path)).map((path) => ({ path })),
     ...figures.flatMap((figure) => figure.kind === "compare" ? [figure.before, figure.after] : [figure.image]),
   ].map(({ path }) => {
     if (imageKey.exec(path)?.[1] !== row.id) throw new Error(`Media path does not belong to ${row.id}`);
