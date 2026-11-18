@@ -93,7 +93,7 @@ const jobs = [
     href: "https://hemispheredesignworks.com",
     highlights: [
       "Led a two-person team that replaced legacy .NET tools with Sandbar, an operations platform for 100+ employees covering purchasing, engineering changes, expenditure tracking, and reporting.",
-      "Sandbar tracked 14,000+ purchase requests over its lifetime and coordinated 15,000+ dock appointments tied to 10,000+ distinct sales orders across four locations in a single year.",
+      "In a typical year, Sandbar tracked 14,000+ purchase requests and coordinated 15,000+ dock appointments across four locations.",
       "Designed its SQL Server database and role-based approval workflows, built shipment tracking, and integrated a catalog of 150+ Crystal Reports.",
     ],
     technology: ["Node.js", "Express", "Vue.js", "SQL Server", "Crystal Reports"],
