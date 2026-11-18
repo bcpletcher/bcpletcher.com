@@ -149,6 +149,125 @@ function toBoolInt(value) {
   return value ? 1 : 0;
 }
 
+const CASE_STUDY_LIMITS = {
+  summary: 1000,
+  role: 120,
+  roleNote: 160,
+  focus: 200,
+  industry: 100,
+  stackItems: 30,
+  stackItem: 60,
+  sections: 12,
+  sectionTitle: 120,
+  bodyParagraphs: 20,
+  paragraph: 4000,
+  points: 12,
+  pointTitle: 120,
+  pointText: 1000,
+  figures: 12,
+  alt: 300,
+  caption: 600,
+};
+
+function caseStudyString(value, field, max, { required = false } = {}) {
+  if (value == null || value === "") {
+    if (required) throw new ValidationError(`Case study ${field} is required`);
+    return "";
+  }
+  if (typeof value !== "string") {
+    throw new ValidationError(`Case study ${field} must be a string`);
+  }
+  const trimmed = value.trim();
+  if (required && !trimmed) throw new ValidationError(`Case study ${field} is required`);
+  if (trimmed.length > max) {
+    throw new ValidationError(`Case study ${field} must be at most ${max} characters`);
+  }
+  return trimmed;
+}
+
+function caseStudyList(value, field, max) {
+  if (value == null) return [];
+  if (!Array.isArray(value)) throw new ValidationError(`Case study ${field} must be an array`);
+  if (value.length > max) {
+    throw new ValidationError(`Case study ${field} cannot have more than ${max} items`);
+  }
+  return value;
+}
+
+function caseStudyImage(value, field, docId) {
+  if (!isPlainObject(value) || !isValidStoragePath(value.path)) {
+    throw new ValidationError(`Case study ${field} image path is invalid`);
+  }
+  if (value.path.split("/")[1] !== docId || isResizedStoragePath(value.path)) {
+    throw new ValidationError(`Case study ${field} image path does not match the document`);
+  }
+  return { path: value.path };
+}
+
+function validateCaseStudy(input, docId) {
+  if (!isPlainObject(input)) throw new ValidationError("Case study must be a plain object");
+  const L = CASE_STUDY_LIMITS;
+
+  if (input.published != null && typeof input.published !== "boolean") {
+    throw new ValidationError("Case study published must be a boolean");
+  }
+
+  const stack = caseStudyList(input.stack, "stack", L.stackItems).map((item) =>
+    caseStudyString(item, "stack item", L.stackItem, { required: true }),
+  );
+
+  const sections = caseStudyList(input.sections, "sections", L.sections).map((section) => {
+    if (!isPlainObject(section)) throw new ValidationError("Case study section is invalid");
+    return {
+      title: caseStudyString(section.title, "section title", L.sectionTitle, { required: true }),
+      body: caseStudyList(section.body, "section body", L.bodyParagraphs).map((para) =>
+        caseStudyString(para, "paragraph", L.paragraph, { required: true }),
+      ),
+      points: caseStudyList(section.points, "section points", L.points).map((point) => {
+        if (!isPlainObject(point)) throw new ValidationError("Case study point is invalid");
+        return {
+          title: caseStudyString(point.title, "point title", L.pointTitle, { required: true }),
+          text: caseStudyString(point.text, "point text", L.pointText),
+        };
+      }),
+      figures: caseStudyList(section.figures, "section figures", L.figures).map((figure) => {
+        if (!isPlainObject(figure)) throw new ValidationError("Case study figure is invalid");
+        const caption = caseStudyString(figure.caption, "figure caption", L.caption);
+        if (figure.kind === "image") {
+          return {
+            kind: "image",
+            image: caseStudyImage(figure.image, "figure", docId),
+            alt: caseStudyString(figure.alt, "figure alt text", L.alt),
+            caption,
+          };
+        }
+        if (figure.kind === "compare") {
+          return {
+            kind: "compare",
+            before: caseStudyImage(figure.before, "before", docId),
+            after: caseStudyImage(figure.after, "after", docId),
+            beforeAlt: caseStudyString(figure.beforeAlt, "before alt text", L.alt),
+            afterAlt: caseStudyString(figure.afterAlt, "after alt text", L.alt),
+            caption,
+          };
+        }
+        throw new ValidationError("Case study figure kind is invalid");
+      }),
+    };
+  });
+
+  return {
+    published: Boolean(input.published),
+    summary: caseStudyString(input.summary, "summary", L.summary),
+    role: caseStudyString(input.role, "role", L.role),
+    roleNote: caseStudyString(input.roleNote, "role note", L.roleNote),
+    focus: caseStudyString(input.focus, "focus", L.focus),
+    industry: caseStudyString(input.industry, "industry", L.industry),
+    stack,
+    sections,
+  };
+}
+
 function validateProjectData(input, docId) {
   if (!isPlainObject(input)) {
     throw new ValidationError("Project data must be a plain object");
@@ -199,6 +318,8 @@ function validateProjectData(input, docId) {
     return { path: image.path };
   });
 
+  const caseStudy = data.caseStudy == null ? null : validateCaseStudy(data.caseStudy, docId);
+
   const normalized = {
     ...data,
     summary: data.summary == null ? "" : data.summary,
@@ -207,6 +328,8 @@ function validateProjectData(input, docId) {
     hidden: Boolean(data.hidden),
     images,
   };
+  if (caseStudy) normalized.caseStudy = caseStudy;
+  else delete normalized.caseStudy;
 
   if (new TextEncoder().encode(JSON.stringify(normalized)).byteLength > MAX_PROJECT_DATA_BYTES) {
     throw new ValidationError("Project data is too large");

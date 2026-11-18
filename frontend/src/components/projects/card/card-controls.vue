@@ -16,6 +16,16 @@
       </button>
 
       <button
+        v-if="onCaseStudy"
+        type="button"
+        class="kbd-focus cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 hover:text-sky-300 transition-standard"
+        aria-label="Edit case study"
+        @click.stop="handleCaseStudy"
+      >
+        <AppIcon icon="fa-light fa-file-lines" aria-hidden="true" />
+      </button>
+
+      <button
         type="button"
         class="kbd-focus cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 transition-standard"
         :class="
@@ -54,6 +64,9 @@ const props = defineProps({
   // Optional: parent can provide a handler to open the edit modal.
   // This avoids emitting and keeps the control self-contained.
   onEdit: { type: Function, default: null },
+
+  // Optional handler to open the case study editor.
+  onCaseStudy: { type: Function, default: null },
 });
 
 const settingsStore = useSettingsStore();
@@ -67,6 +80,11 @@ function handleEdit() {
   if (typeof props.onEdit === "function") {
     props.onEdit(props.projectId);
   }
+}
+
+function handleCaseStudy() {
+  if (!isAdmin.value) return;
+  props.onCaseStudy?.(props.projectId);
 }
 
 async function handleToggleHidden() {

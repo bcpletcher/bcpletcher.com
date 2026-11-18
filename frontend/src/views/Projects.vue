@@ -3,6 +3,7 @@
     <template #rail>
       <ProjectsRailTimeline
         :years="years"
+        :counts="yearCounts"
         :collapse-before-year="2019"
         collapsed-label="Earlier"
       >
@@ -19,6 +20,8 @@
     </template>
 
     <template #main>
+      <ProjectsMobileBar :years="years" />
+
       <div class="flex flex-col gap-6">
         <div class="block lg:hidden">
           <PageHeader
@@ -43,42 +46,46 @@
           </p>
         </div>
 
-        <div>
-          <div v-for="y in years" :key="y">
-            <!-- Year anchor/section for timeline tracking -->
-            <div
-              :id="`year-${y}`"
-              data-project-year-section
-              :data-year="y"
-              class="scroll-mt-28"
-            />
-
-            <!-- Semantic heading so cards (h3) don't skip levels -->
-            <h2 class="sr-only">{{ y }}</h2>
-
-            <ul class="grid gap-4 list-none p-0 m-0">
-              <ProjectsCard
-                v-for="(project, idx) in projectsByYear[y]"
-                :key="project.id || `${y}-${idx}`"
-                :project-id="project.id"
-                :project-name="project.projectName"
-                :date="project.date"
-                :summary="project.description"
-                :images="project.images"
-                :href="project.url"
-                :technology="project.technology"
-                :featured="project.featured"
-                :meta="project.meta"
-                :show-date="false"
-                :show-featured="false"
-                :show-admin-controls="isAdmin"
-                :is-hidden="settingsStore.projects?.[project.id]?.hidden"
-                :on-edit="(id) => openEditById(id)"
-                @open-gallery="openGallery"
+        <ProjectsLoadState variant="page" :count="4">
+          <div class="flex flex-col gap-6">
+            <div v-for="y in years" :key="y">
+              <!-- Year anchor/section for timeline tracking -->
+              <div
+                :id="`year-${y}`"
+                data-project-year-section
+                :data-year="y"
+                class="scroll-mt-28"
               />
-            </ul>
+
+              <!-- Semantic heading so cards (h3) don't skip levels -->
+              <h2 class="sr-only">{{ y }}</h2>
+
+              <ul class="grid gap-4 list-none p-0 m-0">
+                <ProjectsCard
+                  v-for="(project, idx) in projectsByYear[y]"
+                  :key="project.id || `${y}-${idx}`"
+                  :project-id="project.id"
+                  :project-name="project.projectName"
+                  :date="project.date"
+                  :summary="project.description"
+                  :images="project.images"
+                  :href="project.url"
+                  :technology="project.technology"
+                  :featured="project.featured"
+                  :meta="project.meta"
+                  :show-date="false"
+                  :show-featured="false"
+                  :priority="project.id === projects[0]?.id"
+                  :show-admin-controls="isAdmin"
+                  :is-hidden="settingsStore.projects?.[project.id]?.hidden"
+                  :on-edit="(id) => openEditById(id)"
+                  :on-case-study="(id) => openCaseStudyById(id)"
+                  @open-gallery="openGallery"
+                />
+              </ul>
+            </div>
           </div>
-        </div>
+        </ProjectsLoadState>
       </div>
 
       <ProjectsGalleryModal
@@ -87,18 +94,18 @@
         :title="galleryTitle"
         :images="galleryImages"
         :initial-index="galleryIndex"
+        :origin-rect="galleryOriginRect"
+        :get-origin-rect="getOriginRect"
+        :share-url="galleryShareUrl"
+        :case-study-href="galleryCaseStudyHref"
       />
-
-      <!-- Admin upsert modal for editing an existing project (admin only) -->
-      <AdminUpsertProject ref="adminUpsertRef" />
-    </template>
+</template>
   </RailLayout>
 </template>
 
 <script setup>
 import {
   computed,
-  defineAsyncComponent,
   nextTick,
   onBeforeUnmount,
   onMounted,
@@ -108,7 +115,13 @@ import RailLayout from "@/components/shared/rail-layout.vue";
 import PageHeader from "@/components/shared/page-header.vue";
 import ProjectsRailTimeline from "@/components/projects/projects-rail-timeline.vue";
 import ProjectsCard from "@/components/projects/card/card.vue";
-import AdminUpsertProject from "@/components/admin/admin-upsert-project.vue";
+import {
+  ProjectsGalleryModal,
+  useProjectGallery,
+} from "@/composables/useProjectGallery.js";
+import ProjectsLoadState from "@/components/shared/projects-load-state.vue";
+import { useAdminActions } from "@/composables/useAdminActions.js";
+import ProjectsMobileBar from "@/components/projects/projects-mobile-bar.vue";
 import { useSettingsStore } from "@/stores/settings.js";
 import {
   getYearFromProjectDate,
@@ -117,19 +130,16 @@ import {
 
 const settingsStore = useSettingsStore();
 
-const adminUpsertRef = ref(null);
+const adminActions = useAdminActions();
 
 const isAdmin = computed(() => settingsStore.isAdminView);
 
-function openEditById(projectId) {
-  if (!isAdmin.value) return;
-  const entry = settingsStore.projects?.[projectId];
-  if (!entry) return;
+function openCaseStudyById(projectId) {
+  if (isAdmin.value) adminActions.editCaseStudy(projectId);
+}
 
-  adminUpsertRef.value?.showModal?.({
-    name: projectId,
-    ...entry,
-  });
+function openEditById(projectId) {
+  if (isAdmin.value) adminActions.editProject(projectId);
 }
 
 const projects = computed(() => {
@@ -188,6 +198,12 @@ const years = computed(() => {
     .filter((n) => Number.isFinite(n))
     .sort((a, b) => b - a);
 });
+
+const yearCounts = computed(() =>
+  Object.fromEntries(
+    years.value.map((y) => [y, projectsByYear.value[y]?.length || 0]),
+  ),
+);
 
 const projectsByYear = computed(() => {
   const grouped = {};
@@ -255,21 +271,16 @@ onBeforeUnmount(() => {
   headerRo?.disconnect?.();
 });
 
-const loadGalleryModal = () =>
-  import("@/components/projects/projects-gallery-modal.vue");
-const ProjectsGalleryModal = defineAsyncComponent(loadGalleryModal);
-const galleryMounted = ref(false);
-const isGalleryOpen = ref(false);
-const galleryTitle = ref("");
-const galleryImages = ref([]);
-const galleryIndex = ref(0);
-
-function openGallery(payload) {
-  if (!payload?.images?.length) return;
-  galleryTitle.value = payload.title || "Project Gallery";
-  galleryImages.value = payload.images;
-  galleryIndex.value = Number.isFinite(payload.index) ? payload.index : 0;
-  galleryMounted.value = true;
-  isGalleryOpen.value = true;
-}
+const {
+  galleryMounted,
+  isGalleryOpen,
+  galleryTitle,
+  galleryImages,
+  galleryIndex,
+  galleryOriginRect,
+  getOriginRect,
+  galleryShareUrl,
+  galleryCaseStudyHref,
+  openGallery,
+} = useProjectGallery({ deepLink: true });
 </script>

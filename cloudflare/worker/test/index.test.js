@@ -843,3 +843,115 @@ test("archive v1 projects are served in order, and archive media is read-only", 
   assert.equal(upload.status, 401);
   assert.equal(artwork.objects.size, 1);
 });
+
+const makeCaseStudy = (overrides = {}) => ({
+  published: true,
+  summary: "A short summary.",
+  role: "Web Development Lead",
+  roleNote: "Client engagement",
+  focus: "Accessibility",
+  industry: "Public transit",
+  stack: ["React", "Vite"],
+  sections: [
+    {
+      title: "The problem",
+      body: ["First paragraph.", "Second paragraph."],
+      points: [{ title: "Point", text: "Detail" }],
+      figures: [
+        {
+          kind: "image",
+          image: { path: "Projects/demo/one.webp" },
+          alt: "Screen",
+          caption: "A screen",
+        },
+        {
+          kind: "compare",
+          before: { path: "Projects/demo/before.webp" },
+          after: { path: "Projects/demo/after.webp" },
+          beforeAlt: "Before",
+          afterAlt: "After",
+          caption: "Before and after",
+        },
+      ],
+    },
+  ],
+  ...overrides,
+});
+
+test("project upsert stores and returns a valid case study unchanged", async () => {
+  const id = "demo";
+  const db = new StatefulD1();
+  const env = makeEnv({ DB: db });
+  const token = await login(env);
+  const data = { ...makeProjectData(id), caseStudy: makeCaseStudy() };
+
+  const response = await worker.fetch(upsertRequest(token, { id, data }), env);
+  assert.equal(response.status, 200);
+  assert.deepEqual(JSON.parse(db.projects.get(id).data_json).caseStudy, makeCaseStudy());
+});
+
+test("case study text is trimmed and a null case study removes it", async () => {
+  const id = "demo";
+  const db = new StatefulD1();
+  const env = makeEnv({ DB: db });
+  const token = await login(env);
+
+  const withStudy = {
+    ...makeProjectData(id),
+    caseStudy: makeCaseStudy({ role: "  Lead  " }),
+  };
+  await worker.fetch(upsertRequest(token, { id, data: withStudy }), env);
+  assert.equal(JSON.parse(db.projects.get(id).data_json).caseStudy.role, "Lead");
+
+  const cleared = { ...makeProjectData(id), caseStudy: null };
+  await worker.fetch(upsertRequest(token, { id, data: cleared }), env);
+  assert.equal("caseStudy" in JSON.parse(db.projects.get(id).data_json), false);
+});
+
+test("invalid case studies are rejected before any D1 side effect", async () => {
+  const id = "demo";
+  const bad = [
+    "not an object",
+    makeCaseStudy({ published: "yes" }),
+    makeCaseStudy({ role: "x".repeat(500) }),
+    makeCaseStudy({ stack: ["ok", 7] }),
+    makeCaseStudy({ sections: [{ title: "", body: [] }] }),
+    makeCaseStudy({ sections: [{ title: "T", figures: [{ kind: "video" }] }] }),
+    makeCaseStudy({
+      sections: [
+        {
+          title: "T",
+          figures: [{ kind: "image", image: { path: "Projects/other/x.webp" }, alt: "", caption: "" }],
+        },
+      ],
+    }),
+    makeCaseStudy({
+      sections: [
+        {
+          title: "T",
+          figures: [
+            {
+              kind: "image",
+              image: { path: "Projects/demo/resized/x_480x9999.webp" },
+              alt: "",
+              caption: "",
+            },
+          ],
+        },
+      ],
+    }),
+    makeCaseStudy({ sections: Array.from({ length: 13 }, () => ({ title: "T" })) }),
+  ];
+
+  for (const caseStudy of bad) {
+    const db = new StatefulD1();
+    const env = makeEnv({ DB: db });
+    const token = await login(env);
+    const response = await worker.fetch(
+      upsertRequest(token, { id, data: { ...makeProjectData(id), caseStudy } }),
+      env,
+    );
+    assert.equal(response.status, 400, JSON.stringify(caseStudy).slice(0, 80));
+    assert.equal(db.batchCalls, 0);
+  }
+});

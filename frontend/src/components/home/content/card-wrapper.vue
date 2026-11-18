@@ -1,25 +1,27 @@
 <template>
-  <li class="overflow-visible" :class="isLast ? '' : 'mb-12'">
+  <li class="overflow-visible" :class="isLast ? '' : 'mb-12 max-sm:mb-7'">
     <div
       v-gsap-reveal="{ once: true, start: gsapStart }"
       class="group relative grid overflow-visible pb-1 transition-all lg:hover:!opacity-100"
       :class="gridColsClass"
     >
-      <!-- Full-card link overlay (desktop only) -->
+      <!-- Full-card link overlay (all sizes, so cards are tappable on touch devices) -->
       <a
         v-if="href"
-        class="peer card-interactive-link absolute -inset-x-4 -inset-y-4 z-20 hidden rounded-md lg:block"
+        class="peer card-interactive-link absolute -inset-x-4 -inset-y-4 z-20 block rounded-md"
+        :class="overlayFromLg ? 'max-lg:hidden' : ''"
         :href="href"
         target="_blank"
         rel="noreferrer noopener"
         :aria-label="ariaLabel"
       />
 
-      <!-- Full-card button overlay (desktop only) for opening the gallery when there's no URL -->
+      <!-- Full-card button overlay for opening the gallery when there's no URL -->
       <button
         v-else
         type="button"
-        class="peer card-interactive-link absolute -inset-x-4 -inset-y-4 z-20 hidden rounded-md lg:block cursor-pointer"
+        class="peer card-interactive-link absolute -inset-x-4 -inset-y-4 z-20 block rounded-md cursor-pointer"
+        :class="overlayFromLg ? 'max-lg:hidden' : ''"
         :aria-label="ariaLabel"
         @click="$emit('open-gallery', 0)"
       />
@@ -44,6 +46,9 @@ const props = defineProps({
   href: { type: String, default: null },
   ariaLabel: { type: String, default: "Opens in a new tab" },
   isLast: { type: Boolean, default: false },
+  // Text-heavy cards (experience): no full-card link below lg, so scrolling by thumb never
+  // opens another site. The card supplies its own explicit link there.
+  overlayFromLg: { type: Boolean, default: false },
   threshold: { type: Number, default: 0.45 },
   gridColsClass: {
     type: String,

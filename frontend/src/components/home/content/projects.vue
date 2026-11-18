@@ -1,25 +1,28 @@
 <template>
   <div>
-    <ol class="group/list">
-      <ProjectsCard
-        v-for="(item, idx) in items"
-        :key="item.projectName + '-' + idx"
-        :project-name="item.projectName"
-        :summary="item.summary"
-        :hero="item.hero"
-        :href="item.url"
-        :technology="item.technology"
-        :images="item.images"
-        :meta="item.meta"
-        :aria-label="
-          item.url
-            ? `${item.projectName} (opens in a new tab)`
-            : `${item.projectName} (opens gallery)`
-        "
-        :is-last="idx === items.length - 1"
-        @open-gallery="openGallery"
-      />
-    </ol>
+    <ProjectsLoadState variant="home" :count="2">
+      <ol v-if="remaining.length" class="group/list">
+        <ProjectsCard
+          v-for="(item, idx) in remaining"
+          :key="item.projectName + '-' + idx"
+          :project-name="item.projectName"
+          :summary="item.summary"
+          :hero="item.hero"
+          :href="item.url"
+          :technology="item.technology"
+          :images="item.images"
+          :meta="item.meta"
+          :aria-label="
+            item.url
+              ? `${item.projectName} (opens in a new tab)`
+              : `${item.projectName} (opens gallery)`
+          "
+          :image-alt="`${item.projectName} screenshot`"
+          :is-last="idx === remaining.length - 1"
+          @open-gallery="openGallery"
+        />
+      </ol>
+    </ProjectsLoadState>
 
     <ProjectsGalleryModal
       v-if="galleryMounted"
@@ -27,16 +30,21 @@
       :title="galleryTitle"
       :images="galleryImages"
       :initial-index="galleryIndex"
+      :origin-rect="galleryOriginRect"
+      :get-origin-rect="getOriginRect"
+      :share-url="galleryShareUrl"
+      :case-study-href="galleryCaseStudyHref"
     />
 
-    <div class="mt-12">
+    <div :class="remaining.length ? 'mt-12' : ''">
       <router-link
         to="/projects"
-        class="kbd-focus group/link inline-flex items-baseline gap-2 text-sm font-semibold tracking-widest uppercase text-slate-400 hover:text-sky-300 focus-visible:text-sky-300 transition-standard"
+        class="kbd-focus group/link inline-flex min-h-11 items-center gap-2 text-sm font-semibold tracking-widest uppercase text-slate-400 hover:text-sky-300 focus-visible:text-sky-300 transition-standard"
       >
         <span>View all projects</span>
         <AppIcon
-          icon="fa-light fa-arrow-right" class="transition-transform motion-reduce:transition-none group-hover/link:translate-x-1 group-focus-visible/link:translate-x-1"
+          icon="fa-light fa-arrow-right"
+          class="transition-transform motion-reduce:transition-none group-hover/link:translate-x-1 group-focus-visible/link:translate-x-1"
           aria-hidden="true"
         />
       </router-link>
@@ -45,73 +53,27 @@
 </template>
 
 <script setup>
-import { computed, defineAsyncComponent, onMounted, ref } from "vue";
-import { useSettingsStore } from "@/stores/settings.js";
-import { normalizeProjectDate } from "@/utils/projectDate.js";
-
 import ProjectsCard from "@/components/home/content/projects-card.vue";
+import ProjectsLoadState from "@/components/shared/projects-load-state.vue";
+import { useFeaturedProjects } from "@/composables/useFeaturedProjects.js";
+import {
+  ProjectsGalleryModal,
+  useProjectGallery,
+} from "@/composables/useProjectGallery.js";
 
-const settingsStore = useSettingsStore();
+// Featured projects not already shown in the "Selected work" band.
+const { remaining } = useFeaturedProjects();
 
-const loadGalleryModal = () =>
-  import("@/components/projects/projects-gallery-modal.vue");
-const ProjectsGalleryModal = defineAsyncComponent(loadGalleryModal);
-const galleryMounted = ref(false);
-
-// Fetch the gallery code after first paint (idle) so it never competes with the initial load.
-onMounted(() => {
-  if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(loadGalleryModal, { timeout: 4000 });
-  } else {
-    setTimeout(loadGalleryModal, 2500);
-  }
-});
-
-const isGalleryOpen = ref(false);
-const galleryTitle = ref("");
-const galleryImages = ref([]);
-const galleryIndex = ref(0);
-
-function openGallery(payload) {
-  if (!payload?.images?.length) return;
-  galleryTitle.value = payload.title || "Project Gallery";
-  galleryImages.value = payload.images;
-  galleryIndex.value = Number.isFinite(payload.index) ? payload.index : 0;
-  galleryMounted.value = true;
-  isGalleryOpen.value = true;
-}
-
-const items = computed(() => {
-  const all = settingsStore.projects;
-  if (!all) return [];
-
-  return (
-    Object.values(all)
-      .filter((p) => !p?.hidden)
-      .filter((p) => !!p?.featured)
-      .map((p) => {
-        const images = Array.isArray(p?.images) ? p.images.filter(Boolean) : [];
-        const projectName = p?.projectName || p?.title || "Untitled";
-
-        return {
-          hero: images[0] || "",
-          images,
-          projectName,
-          summary: p?.summary || "",
-          technology: p?.technology || [],
-          url: p?.url || null,
-          date: normalizeProjectDate(p?.date) || null,
-          meta: p.meta,
-        };
-      })
-      // Date is required, but keep a safe fallback so the section doesn't explode on legacy entries.
-      .sort((a, b) => {
-        const ad = a.date || "";
-        const bd = b.date || "";
-        if (ad !== bd) return bd.localeCompare(ad);
-        return (a.projectName || "").localeCompare(b.projectName || "");
-      })
-      .filter((p) => Boolean(p.hero))
-  );
-});
+const {
+  galleryMounted,
+  isGalleryOpen,
+  galleryTitle,
+  galleryImages,
+  galleryIndex,
+  galleryOriginRect,
+  getOriginRect,
+  galleryShareUrl,
+  galleryCaseStudyHref,
+  openGallery,
+} = useProjectGallery();
 </script>

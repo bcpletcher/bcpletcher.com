@@ -20,22 +20,22 @@
             :aria-disabled="isHidden || undefined"
             target="_blank"
             rel="noreferrer noopener"
-            class="kbd-focus group/title inline-flex min-w-0 items-start gap-2 text-slate-200 transition-colors motion-reduce:transition-none hover:text-sky-300 focus-visible:text-sky-300"
+            class="kbd-focus group/title inline-flex min-h-7 min-w-0 items-center gap-2 text-slate-100 transition-colors motion-reduce:transition-none hover:text-sky-300 focus-visible:text-sky-300"
             :class="isHidden ? 'cursor-default' : ''"
             :aria-label="`${projectName} (opens in a new tab)`"
           >
-            <h3 class="min-w-0 font-medium leading-snug wrap-break-word">
+            <h3 class="min-w-0 font-semibold leading-snug wrap-break-word">
               {{ projectName }}
             </h3>
             <AppIcon
-              icon="fa-light fa-arrow-up-right" class="mt-0.5 inline-block h-4 w-4 shrink-0 text-current transition-transform motion-reduce:transition-none group-hover/title:-translate-y-0.5 group-hover/title:translate-x-0.5 group-focus-visible/title:-translate-y-0.5 group-focus-visible/title:translate-x-0.5"
+              icon="fa-light fa-arrow-up-right" class="my-1.5 inline-block h-4 w-4 shrink-0 text-current transition-transform motion-reduce:transition-none group-hover/title:-translate-y-0.5 group-hover/title:translate-x-0.5 group-focus-visible/title:-translate-y-0.5 group-focus-visible/title:translate-x-0.5"
               aria-hidden="true"
             />
           </a>
 
           <h3
             v-else
-            class="min-w-0 font-medium leading-snug text-slate-200 wrap-break-word"
+            class="min-w-0 font-semibold leading-snug text-slate-100 wrap-break-word"
           >
             {{ projectName }}
           </h3>
@@ -54,23 +54,19 @@
         v-if="summary && showSummary"
         class="z-4 mt-3 rounded md:bg-slate-950/75 md:border md:border-slate-700 md:p-6 md:backdrop-blur md:-mr-16"
       >
-        <p class="text-sm leading-normal">
+        <p class="text-sm leading-relaxed text-slate-400 md:text-slate-300">
           {{ summary }}
         </p>
       </div>
 
-      <div
-        v-if="showTechnology && sortedTechnology?.length"
-        class="mt-2 flex flex-wrap"
-        aria-label="Technologies used"
-      >
-        <div v-for="tag in sortedTechnology" :key="tag" class="mr-1.5 mt-2">
-          <div
-            class="flex items-center rounded-full bg-sky-300/10 px-3 py-1 text-xs font-medium leading-5 text-sky-300"
-          >
-            {{ tag }}
-          </div>
-        </div>
+      <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-3">
+        <TechTags v-if="showTechnology" :items="technology" />
+        <CaseStudyLink
+          v-if="caseStudyPath && !isHidden"
+          :to="caseStudyPath"
+          :name="projectName"
+          class="ml-auto"
+        />
       </div>
 
       <!-- Meta row (bottom) -->
@@ -82,12 +78,17 @@
       </template>
 
       <div
-        v-if="showMeta && metaDisplay?.label"
-        class="mt-3 flex items-center gap-2 text-xs text-slate-400"
+        v-if="showMeta && (recognition || metaDisplay?.label)"
+        class="mt-3 flex items-start gap-2 text-xs text-slate-400"
       >
-        <AppIcon v-if="metaDisplay?.iconClass" :icon="metaDisplay.iconClass" />
+        <AppIcon
+          v-if="recognition || metaDisplay?.iconClass"
+          :icon="recognition ? 'fa-light fa-award' : metaDisplay.iconClass"
+          class="mt-px shrink-0"
+          aria-hidden="true"
+        />
         <span v-else class="sr-only">Meta</span>
-        <span>{{ metaDisplay.label }}</span>
+        <span>{{ recognition || metaDisplay.label }}</span>
       </div>
 
       <div v-if="isHidden" class="mt-4 flex items-center gap-3">
@@ -107,7 +108,12 @@
 
 <script setup>
 import { computed } from "vue";
+import CaseStudyLink from "@/components/shared/case-study-link.vue";
+import TechTags from "@/components/shared/tech-tags.vue";
+import { useSettingsStore } from "@/stores/settings.js";
+import { caseStudyHrefFor } from "@/utils/caseStudyData.js";
 import { PROJECT_META_OPTIONS } from "@/constants/projectMetaIconOptions.js";
+import { recognitionFor } from "@/constants/projectRecognition.js";
 
 const props = defineProps({
   projectName: { type: String, required: true },
@@ -132,19 +138,17 @@ const props = defineProps({
 
 const emit = defineEmits(["open-gallery"]);
 
+const settingsStore = useSettingsStore();
+const caseStudyPath = computed(() =>
+  caseStudyHrefFor(settingsStore.projects, props.projectName),
+);
+
+const recognition = computed(() => recognitionFor(props.projectName));
+
 const metaDisplay = computed(() => {
   const key = (props.meta ?? "").toString().trim();
   if (!key) return null;
   return PROJECT_META_OPTIONS?.[key] || null;
-});
-
-const sortedTechnology = computed(() => {
-  const arr = Array.isArray(props.technology) ? props.technology : [];
-
-  return arr
-    .filter((t) => (t ?? "").toString().trim())
-    .map((t) => (t ?? "").toString().trim())
-    .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 });
 
 function onOpenGallery(index) {

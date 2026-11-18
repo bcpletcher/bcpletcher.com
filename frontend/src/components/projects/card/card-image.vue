@@ -1,15 +1,15 @@
 <template>
   <div
-    class="hidden relative md:z-10 z-0 -mt-8 transition-standard md:col-span-5 md:order-2 md:flex md:items-center"
+    class="relative z-0 order-first flex items-center transition-standard md:z-10 md:order-2 md:col-span-5 md:-mt-8"
     :class="[
-      isHidden ? 'opacity-40' : 'opacity-25 md:opacity-100',
+      isHidden ? 'opacity-40' : 'opacity-100',
       isHidden ? 'pointer-events-none select-none' : '',
     ]"
     :aria-disabled="isHidden || undefined"
   >
     <div
       ref="imageStackEl"
-      class="relative w-full group md:cursor-pointer md:-translate-y-3"
+      class="relative w-full group cursor-pointer md:-translate-y-3"
       :class="[isHidden ? 'pointer-events-none cursor-default' : '']"
     >
       <!-- Mask = exactly the visible stack bounds (base area + peek offsets) -->
@@ -34,7 +34,7 @@
 
         <button
           type="button"
-          class="kbd-focus absolute inset-0 z-50 hidden md:block md:cursor-pointer"
+          class="kbd-focus absolute inset-0 z-50 block cursor-pointer"
           aria-label="Open gallery"
           :disabled="isHidden"
           :tabindex="isHidden ? -1 : undefined"
@@ -49,12 +49,13 @@
           class="absolute top-0 right-0 left-0"
           :data-stack-index="i"
           :class="[
-            i === 0 ? 'z-3 md:w-full' : '',
+            i === 0 ? 'z-3 w-full' : '',
+            // Below md only the first image shows; the peeking stack is a desktop detail.
             i === 1
-              ? 'z-2 w-[94%] translate-x-[3%] translate-y-12 md:w-full md:-translate-x-4 md:translate-y-4'
+              ? 'z-2 hidden w-full md:block md:-translate-x-4 md:translate-y-4'
               : '',
             i === 2
-              ? 'z-1 w-[88%] translate-x-[6%] translate-y-24 md:w-full md:-translate-x-8 md:translate-y-8'
+              ? 'z-1 hidden w-full md:block md:-translate-x-8 md:translate-y-8'
               : '',
           ]"
         >
@@ -68,7 +69,8 @@
               :alt="`${projectName} screenshot`"
               width="1280"
               height="720"
-              loading="lazy"
+              :loading="priority && i === 0 ? 'eager' : 'lazy'"
+              :fetchpriority="priority && i === 0 ? 'high' : undefined"
               decoding="async"
               @error="fallbackToOriginalImage"
             />
@@ -81,9 +83,9 @@
           </div>
         </div>
 
-        <!-- Base size + padding for peek offsets (mobile needs extra height for stacked offsets) -->
+        <!-- Base size; from md, padding makes room for the peek offsets -->
         <div
-          class="w-full aspect-video pb-32 md:pb-14 md:pr-6"
+          class="w-full aspect-video md:pb-14 md:pr-6"
           aria-hidden="true"
         />
       </div>
@@ -103,6 +105,8 @@ const props = defineProps({
   projectName: { type: String, required: true },
   images: { type: Array, required: true },
   isHidden: { type: Boolean, default: false },
+  // First visible card: load its first image eagerly.
+  priority: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["open-gallery"]);

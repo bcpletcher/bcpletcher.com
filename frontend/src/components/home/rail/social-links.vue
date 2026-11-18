@@ -1,41 +1,22 @@
 <template>
-  <div
-    class="mt-16 lg:mt-auto flex flex-row justify-between lg:flex-col gap-14 lg:gap-10"
-  >
-    <a
-      href="/resume.pdf"
-      class="kbd-focus group/link my-auto mr-auto inline-flex items-baseline leading-tight text-slate-400 hover:text-sky-300 focus-visible:text-sky-300 font-semibold text-sm tracking-[0.25em] uppercase"
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Resume PDF (opens in a new tab)"
-    >
-      <span>
-        Resume
-        <span class="inline-block">
-          <AppIcon
-            icon="fa-solid fa-arrow-up-right" class="ml-1 translate-y-px inline-block h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none group-hover/link:-translate-y-1 group-hover/link:translate-x-1 group-focus-visible/link:-translate-y-1 group-focus-visible/link:translate-x-1"
-            aria-hidden="true"
-          />
-        </span>
-      </span>
-    </a>
-    <div class="flex items-center gap-5 text-slate-400 text-2xl">
+  <ul class="flex items-center gap-3 text-2xl text-slate-400">
+    <li v-for="link in links" :key="link.label">
       <a
-        v-for="link in links"
-        :key="link.label"
-        class="kbd-focus cursor-pointer hover:text-slate-100 transition-standard"
+        class="kbd-focus -m-2.5 flex cursor-pointer p-2.5 hover:text-slate-100 transition-standard"
         :href="link.href"
         :target="link.external ? '_blank' : undefined"
         :rel="link.external ? 'noopener noreferrer' : undefined"
-        :aria-label="link.label"
+        :aria-label="link.external ? `${link.label} (opens in a new tab)` : link.label"
       >
         <AppIcon :icon="link.iconClass" />
       </a>
-    </div>
-  </div>
+    </li>
+  </ul>
 </template>
 
 <script setup>
+import { CONTACT_EMAIL_HREF } from "@/constants/contact.js";
+
 const links = [
   {
     label: "GitHub",
@@ -51,7 +32,7 @@ const links = [
   },
   {
     label: "Email",
-    href: "mailto:connect@bcpletcher.com",
+    href: CONTACT_EMAIL_HREF,
     iconClass: "fa fa-regular fa-envelope",
     external: false,
   },

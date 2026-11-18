@@ -2,7 +2,7 @@
   <li class="overflow-visible mb-10">
     <article
       v-gsap-reveal="{ once: true, start: 'top 92%' }"
-      class="relative grid overflow-visible pb-1 md:grid-cols-12 md:items-center md:gap-8"
+      class="relative grid gap-4 overflow-visible pb-1 md:grid-cols-12 md:items-center md:gap-8"
     >
       <!-- Hidden stripe overlay (admin visual only) -->
       <div
@@ -25,6 +25,7 @@
         :project-id="projectId"
         :is-hidden="isHidden"
         :on-edit="onEdit"
+        :on-case-study="onCaseStudy"
       />
 
       <CardContent
@@ -50,6 +51,7 @@
         :project-name="projectName"
         :images="images"
         :is-hidden="isHidden"
+        :priority="priority"
         @open-gallery="emitOpenGallery"
       />
     </article>
@@ -87,12 +89,18 @@ const props = defineProps({
   showFeatured: { type: Boolean, default: true },
   showMeta: { type: Boolean, default: true },
 
+  // First visible card: load its image eagerly so it isn't waiting on lazy-load.
+  priority: { type: Boolean, default: false },
+
   // Admin-only controls
   showAdminControls: { type: Boolean, default: false },
   isHidden: { type: Boolean, default: false },
 
   // Optional handler to open edit modal (keeps logic out of the card)
   onEdit: { type: Function, default: null },
+
+  // Optional handler to open the case study editor (admin only)
+  onCaseStudy: { type: Function, default: null },
 });
 
 function emitOpenGallery(index) {

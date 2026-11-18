@@ -5,19 +5,11 @@
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-slate-100 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-slate-900"
       >Skip to main content</a
     >
-    <!-- App content mounts immediately behind the loader so there's no repaint/jump when loader disappears -->
     <div class="min-h-screen w-full">
-      <AdminBanner />
+      <AdminDock />
       <mouse-glow-overlay />
       <notifications />
       <AdminAdminLoginModal />
-
-      <fullscreen-loader
-        v-if="didDecideBoot && showLoader"
-        :is-ready="!isBootLoading && !bootError"
-        :has-error="Boolean(bootError)"
-        @done="onLoaderDone"
-      />
 
       <main
         id="main"
@@ -31,10 +23,9 @@
 </template>
 
 <script setup>
-import FullscreenLoader from "@/components/shared/fullscreen-loader.vue";
 import Notifications from "@/components/shared/notifications.vue";
 import MouseGlowOverlay from "@/components/shared/mouse-glow-overlay.vue";
-import AdminBanner from "@/components/admin/admin-banner.vue";
+import AdminDock from "@/components/admin/admin-dock.vue";
 import AdminAdminLoginModal from "@/components/admin/admin-login-modal.vue";
 import { useCloudflareStore } from "@/stores/cloudflare.js";
 import { useSettingsStore } from "@/stores/settings.js";
@@ -43,7 +34,6 @@ import { useAppBoot } from "@/composables/useAppBoot.js";
 useCloudflareStore();
 useSettingsStore();
 
-const { showLoader, isBootLoading, bootError, onLoaderDone, didDecideBoot } =
-  useAppBoot();
+useAppBoot();
 
 </script>

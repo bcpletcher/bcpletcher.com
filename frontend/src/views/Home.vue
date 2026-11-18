@@ -1,5 +1,5 @@
 <template>
-  <RailLayout :rail-width-rem="32">
+  <RailLayout :rail-width-rem="26">
     <template #rail>
       <Rail :nav-items="navItems" />
     </template>
@@ -16,6 +16,7 @@ import Rail from "@/components/home/rail.vue";
 import MainContent from "@/components/home/content.vue";
 
 const navItems = [
+  { id: "work", label: "Work" },
   { id: "about", label: "About" },
   { id: "experience", label: "Experience" },
   { id: "projects", label: "Projects" },

@@ -8,7 +8,7 @@
         class="relative flex-1 min-h-0 flex flex-col"
         aria-label="Projects timeline"
       >
-        <div ref="trackWrapRef" class="relative flex flex-1 min-h-0">
+        <div ref="trackWrapRef" class="relative flex">
           <!-- Align bar to the center of the dot column: right padding (pr-6) + half dot-lane width (1.25rem / 2).
                Use translate-x-1/2 so the bar is centered on that point (right positions the bar's right edge). -->
           <span
@@ -22,8 +22,13 @@
             style="transform: scaleY(0)"
           />
 
-          <ol class="flex flex-1 min-h-0 flex-col justify-between pr-6">
-            <li v-for="item in items" :key="item.key" class="relative ml-auto">
+          <ol class="flex flex-1 flex-col pr-6">
+            <li
+              v-for="(item, itemIdx) in items"
+              :key="item.key"
+              class="relative ml-auto flex w-full shrink-0 flex-col items-end"
+              :style="{ height: segmentHeight(item) + 'px' }"
+            >
               <a
                 :href="item.href"
                 class="kbd-focus group grid grid-cols-[1fr_1.25rem] items-center text-sm text-slate-400 hover:text-slate-200 focus-visible:text-slate-200 transition-standard"
@@ -31,18 +36,35 @@
                 @click.prevent="scrollToItem(item)"
               >
                 <span class="tracking-widest text-right pr-4">
-                  <span class="tabular-nums">{{ item.label }}</span>
+                  <span
+                    class="rail-label relative inline-block tabular-nums"
+                    :class="isLabelActive(item) ? 'rail-label-active text-sky-200' : ''"
+                    >{{ item.label }}</span
+                  >
                 </span>
 
                 <!-- Track column: dot is centered over the global line -->
                 <span class="relative h-full flex items-center justify-center" aria-hidden="true">
                   <span
                     :ref="(el) => setBubbleEl(item.key, el)"
-                    class="relative z-10 inline-flex h-4 w-4 rounded-full border bg-base-background transition-standard"
-                    :class="dotClasses(item)"
+                    class="rail-dot relative z-10 inline-flex h-4 w-4 rounded-full border bg-base-background"
+                    :class="[dotClasses(item), pingKey === item.key ? 'rail-dot-ping' : '']"
                   />
                 </span>
               </a>
+
+              <!-- One notch per project in this year, spaced along the rail below the year dot. -->
+              <span
+                class="pointer-events-none absolute right-0 top-7 flex w-5 flex-col items-center gap-3.5"
+                aria-hidden="true"
+              >
+                <span
+                  v-for="k in notchCount(item)"
+                  :key="k"
+                  class="rail-notch h-0.5 w-2.5 rounded-full"
+                  :class="notchPassed(itemIdx, k) ? 'bg-sky-300' : 'bg-slate-500'"
+                />
+              </span>
             </li>
           </ol>
         </div>
@@ -78,6 +100,12 @@ const props = defineProps({
    */
   scroller: { type: String, default: null },
   yearSectionSelector: { type: String, default: "[data-project-year-section]" },
+
+  /**
+   * Projects per year ({ 2025: 3, ... }). Each year's stretch of the rail is as long as its
+   * share of work, with one notch per project.
+   */
+  counts: { type: Object, default: () => ({}) },
 });
 
 const activeYear = ref(null);
@@ -121,6 +149,7 @@ const items = computed(() => {
     year: y,
     label: String(y),
     href: `#year-${y}`,
+    count: Math.max(1, Number(props.counts?.[y]) || 1),
   }));
 
   if (useCollapse && collapsedYears.length) {
@@ -132,6 +161,10 @@ const items = computed(() => {
       label: props.collapsedLabel,
       href: target ? `#year-${target}` : "#",
       collapsedYears,
+      count: Math.max(
+        1,
+        collapsedYears.reduce((n, y) => n + (Number(props.counts?.[y]) || 0), 0),
+      ),
     });
   }
 
@@ -196,9 +229,28 @@ function getEffectiveScrollerElForScrollTo() {
   return getEffectiveScrollerEl();
 }
 
+// After a click, only the clicked year's label is underlined while the page glides there
+// (the dots still light up one by one as the line passes them).
+const navTargetKey = ref(null);
+function releaseNavTarget() {
+  navTargetKey.value = null;
+  window.removeEventListener("wheel", releaseNavTarget);
+  window.removeEventListener("touchmove", releaseNavTarget);
+}
+
+function isLabelActive(item) {
+  return navTargetKey.value !== null
+    ? navTargetKey.value === item.key
+    : isActive(item);
+}
+
 function scrollToItem(item) {
   const year = item?.year;
   if (!year) return;
+  pingDot(item.key);
+  navTargetKey.value = item.key;
+  window.addEventListener("wheel", releaseNavTarget, { passive: true });
+  window.addEventListener("touchmove", releaseNavTarget, { passive: true });
 
   const target = document.getElementById(`year-${year}`);
   if (!target) return;
@@ -211,6 +263,8 @@ function scrollToItem(item) {
       ease: "power2.out",
       scrollTo: { y: target, offsetY: Number(props.scrollOffsetPx) },
       overwrite: "auto",
+      onComplete: releaseNavTarget,
+      onInterrupt: releaseNavTarget,
     });
     return;
   }
@@ -220,6 +274,8 @@ function scrollToItem(item) {
     ease: "power2.out",
     scrollTo: { y: target, offsetY: Number(props.scrollOffsetPx) },
     overwrite: "auto",
+    onComplete: releaseNavTarget,
+    onInterrupt: releaseNavTarget,
   });
 }
 
@@ -235,6 +291,8 @@ function setBubbleEl(key, el) {
 }
 
 const progress01 = ref(0);
+// Dot positions along the track (0..1), refreshed on every update; drives notch fill.
+const dotTs = ref([]);
 
 function computeBubbleThresholds() {
   const wrap = trackWrapRef.value;
@@ -260,16 +318,22 @@ function computeBubbleThresholds() {
   return { thresholds, trackTop, trackBottom };
 }
 
-function getPassedIndexByIntersection() {
-  const meta = computeBubbleThresholds();
-  if (!meta) return 0;
+// Each project adds one notch (16px pitch) below its year dot.
+const NOTCH_PITCH = 16;
+// The rail ends on the "Earlier" dot, so it carries no notches.
+const notchCount = (item) => (item.type === "earlier" ? 0 : item.count);
+const segmentHeight = (item) =>
+  item.type === "earlier" ? 18 : 24 + notchCount(item) * NOTCH_PITCH;
 
-  const p = clamp01(progress01.value);
-  let idx = 0;
-  for (let i = 0; i < meta.thresholds.length; i++) {
-    if (p + 1e-6 >= meta.thresholds[i].t) idx = i;
-  }
-  return idx;
+// A notch is filled once the progress line has passed it. Notches sit evenly between this
+// item's dot and the next dot (or the end of the rail).
+function notchPassed(itemIdx, k) {
+  const list = items.value;
+  const start = dotTs.value[itemIdx];
+  if (start === undefined) return false;
+  const end = itemIdx + 1 < list.length ? (dotTs.value[itemIdx + 1] ?? 1) : 1;
+  const frac = (28 + (k - 1) * NOTCH_PITCH + 1 - 10) / segmentHeight(list[itemIdx]);
+  return progress01.value + 1e-6 >= start + (end - start) * frac;
 }
 
 function isActive(item) {
@@ -286,9 +350,25 @@ function isPassed(item) {
   return idx <= activeIndex.value;
 }
 
+// Passed dots fill in; the active one also grows a little and gets a soft halo.
 function dotClasses(item) {
-  if (isActive(item) || isPassed(item)) return "border-sky-300 bg-sky-300";
+  if (isActive(item)) return "border-sky-300 bg-sky-300 scale-125 rail-dot-active";
+  if (isPassed(item)) return "border-sky-300 bg-sky-300";
   return "border-slate-700 bg-slate-700";
+}
+
+// Short pulse on the dot that was clicked while the page glides to its year.
+const pingKey = ref(null);
+let pingTimer = 0;
+async function pingDot(key) {
+  clearTimeout(pingTimer);
+  releaseNavTarget();
+  pingKey.value = null;
+  await nextTick();
+  pingKey.value = key;
+  pingTimer = setTimeout(() => {
+    pingKey.value = null;
+  }, 700);
 }
 
 function cleanup() {
@@ -316,20 +396,6 @@ function cleanup() {
     // no-op
   }
   onWindowLoad = null;
-}
-
-function getRenderedIndexForActiveYear(year) {
-  if (!year || !items.value.length) return 0;
-
-  // If the active year is part of the collapsed range, map it to the 'Earlier' item.
-  const cutoff = Number(props.collapseBeforeYear);
-  if (Number.isFinite(cutoff) && year <= cutoff) {
-    const idx = items.value.findIndex((it) => it.type === "earlier");
-    return idx === -1 ? items.value.length - 1 : idx;
-  }
-
-  const idx = items.value.findIndex((it) => it.type === "year" && it.year === year);
-  return idx === -1 ? 0 : idx;
 }
 
 // New helpers: compute geometry using getBoundingClientRect (robust to layout shifts)
@@ -395,24 +461,55 @@ onMounted(async () => {
     const currentYear = tops[activeIdx]?.year ?? tops[0]?.year ?? null;
     activeYear.value = currentYear;
 
-    // Clamp to last item when at the very bottom so the final bubble always fills.
-    const renderedIdx = isNearBottom(scrollerEl)
-      ? items.value.length - 1
-      : getRenderedIndexForActiveYear(currentYear);
+    const list = items.value;
+    const lastIdx = list.length - 1;
+    const nearBottom = isNearBottom(scrollerEl);
 
-    activeIndex.value = Math.max(0, Math.min(items.value.length - 1, renderedIdx));
+    // Where each rail item's section starts, in scroll coordinates (same targets the
+    // click-to-jump uses), and where each dot sits along the track (0..1).
+    const itemTops = list.map((it) => {
+      const el = document.getElementById(`year-${it.year}`);
+      return el ? getElementTopInScroller(el, scrollerEl) : Infinity;
+    });
+    const thr = computeBubbleThresholds()?.thresholds;
+    const dotT = thr
+      ? list.map((it) => thr.find((x) => x.key === it.key)?.t ?? 1)
+      : null;
 
-    // Progress: based on true scroll range so it reaches 100% at the bottom.
-    const max = getScrollMax(scrollerEl);
-    const p = max > 0 ? clamp01(scrollTop / max) : 0;
-    progress01.value = p;
+    if (dotT) dotTs.value = dotT;
 
-    // Active bubble is the last one whose center has been intersected by the fill.
-    activeIndex.value = Math.max(0, Math.min(items.value.length - 1, getPassedIndexByIntersection()));
+    let idx = 0;
+    for (let i = 0; i < itemTops.length; i++) {
+      if (itemTops[i] <= viewLine) idx = i;
+    }
+    if (nearBottom) idx = lastIdx;
+
+    // Progress runs from dot to dot as sections pass the view line, so the fill reaches
+    // each dot exactly when its year becomes active (raw scroll fraction drifts from that).
+    let p;
+    if (nearBottom) {
+      p = 1;
+    } else if (dotT) {
+      if (idx >= lastIdx) {
+        p = dotT[lastIdx];
+      } else {
+        const span = itemTops[idx + 1] - itemTops[idx];
+        const f = span > 0 ? clamp01((viewLine - itemTops[idx]) / span) : 0;
+        const from = viewLine < itemTops[0] ? 0 : dotT[idx];
+        p = from + (dotT[idx + 1] - from) * f;
+      }
+    } else {
+      const max = getScrollMax(scrollerEl);
+      p = max > 0 ? clamp01(scrollTop / max) : 0;
+    }
+    progress01.value = clamp01(p);
+
+    // Dots light up as the progress line reaches them, including during click-to-jump glides.
+    activeIndex.value = Math.max(0, Math.min(lastIdx, idx));
 
     if (progressRef.value) {
       gsap.to(progressRef.value, {
-        scaleY: p,
+        scaleY: progress01.value,
         duration: 0.12,
         ease: "none",
         overwrite: true,
@@ -491,6 +588,83 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(pingTimer);
   cleanup();
 });
 </script>
+
+<style scoped>
+@media (prefers-reduced-motion: no-preference) {
+  .rail-dot {
+    transition:
+      transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      background-color 280ms ease-out,
+      border-color 280ms ease-out,
+      box-shadow 360ms ease-out;
+  }
+
+  .rail-dot-ping::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 9999px;
+    border: 2px solid rgb(125 211 252);
+    animation: rail-ping 650ms ease-out forwards;
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-dot {
+    transition: none;
+  }
+}
+
+.rail-label::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -4px;
+  left: 0;
+  height: 2px;
+  border-radius: 9999px;
+  background-color: rgb(125 211 252);
+  transform: scaleX(0);
+  transform-origin: right center;
+}
+
+.rail-label-active::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rail-label::after {
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+.rail-notch {
+  transition: background-color 250ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-notch {
+    transition: none;
+  }
+}
+
+.rail-dot-active {
+  box-shadow: 0 0 0 4px rgb(125 211 252 / 0.2);
+}
+
+@keyframes rail-ping {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+</style>
