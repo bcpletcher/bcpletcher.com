@@ -48,22 +48,23 @@
 
         <ProjectsLoadState variant="page" :count="4">
           <div class="flex flex-col gap-6">
-            <div v-for="section in projectSections" :key="section.key">
-              <!-- Year anchor/section for timeline tracking -->
-              <div
-                v-if="section.year"
-                :id="`year-${section.year}`"
+            <section
+              v-for="[year, entries] in projectsByYear"
+              :key="year"
+              :aria-labelledby="`year-${year}`"
+            >
+              <h2
+                :id="`year-${year}`"
                 data-project-year-section
-                :data-year="section.year"
-                class="scroll-mt-28"
-              />
-
-              <!-- Semantic heading so cards (h3) don't skip levels -->
-              <h2 class="sr-only">{{ section.year || "Featured projects" }}</h2>
+                :data-year="year"
+                class="mb-6 scroll-mt-28 border-b border-white/10 pb-2 text-sm font-semibold tracking-widest text-slate-300"
+              >
+                {{ year }}
+              </h2>
 
               <ul class="grid gap-4 list-none p-0 m-0">
                 <ProjectsCard
-                  v-for="project in section.projects"
+                  v-for="project in entries"
                   :key="project.id"
                   :project-id="project.id"
                   :project-name="project.projectName"
@@ -75,7 +76,7 @@
                   :featured="project.featured"
                   :meta="project.meta"
                   :show-featured="false"
-                  :priority="project.id === projectSections[0]?.projects[0]?.id"
+                  :priority="project.id === projects[0]?.id"
                   :show-admin-controls="isAdmin"
                   :is-hidden="settingsStore.projects?.[project.id]?.hidden"
                   :on-edit="(id) => openEditById(id)"
@@ -83,7 +84,7 @@
                   @open-gallery="openGallery"
                 />
               </ul>
-            </div>
+            </section>
           </div>
         </ProjectsLoadState>
       </div>
@@ -136,8 +137,8 @@ const adminActions = useAdminActions();
 
 const isAdmin = computed(() => settingsStore.isAdminView);
 
-const featuredIds = ["communityTransit", "coverlabs", "lytx", "united-community-bank"];
 const yearPriority = [
+  "communityTransit", "coverlabs", "lytx", "united-community-bank",
   "flow", "smartmove", "steinbach-credit-union", "pemco",
   "american-society-for-microbiology", "asla", "samson-rope", "advancial",
   "eastman-credit-union", "alzheimers-association", "livanova", "americanhealthlaw",
@@ -206,16 +207,9 @@ const projects = computed(() => {
     });
 });
 
-const featuredProjects = computed(() =>
-  featuredIds.map((id) => projects.value.find((project) => project.id === id)).filter(Boolean),
-);
-
-const pinnedIds = new Set(featuredIds);
-
 const projectsByYear = computed(() => {
   const grouped = new Map();
   for (const project of projects.value) {
-    if (pinnedIds.has(project.id)) continue;
     if (!grouped.has(project.year)) grouped.set(project.year, []);
     grouped.get(project.year).push(project);
   }
@@ -226,10 +220,6 @@ const years = computed(() => [...projectsByYear.value.keys()]);
 const yearCounts = computed(() =>
   Object.fromEntries([...projectsByYear.value].map(([year, items]) => [year, items.length])),
 );
-const projectSections = computed(() => [
-  ...(featuredProjects.value.length ? [{ key: "featured", projects: featuredProjects.value }] : []),
-  ...[...projectsByYear.value].map(([year, items]) => ({ key: year, year, projects: items })),
-]);
 
 const pageHeaderMeasureRef = ref(null);
 const headerContentHeightPx = ref(0);
