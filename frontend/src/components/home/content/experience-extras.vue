@@ -54,11 +54,31 @@
       </div>
     </section>
 
-    <p class="text-sm leading-normal text-slate-400">
-      <span class="font-semibold text-slate-300">Education</span>
-      <span class="text-slate-600"> · </span>
-      Bachelor of Computer Programming, Baker College, 2008 – 2012
-    </p>
+    <section
+      class="flex items-start gap-4 rounded-xl border border-white/10 bg-white/5 p-5 sm:p-6"
+      aria-labelledby="education-heading"
+    >
+      <AppIcon
+        icon="fa-light fa-graduation-cap"
+        class="mt-0.5 h-6 w-6 shrink-0 text-sky-300"
+        aria-hidden="true"
+      />
+      <div class="min-w-0">
+        <h3
+          id="education-heading"
+          class="text-xs font-semibold tracking-widest text-slate-400 uppercase"
+        >
+          Education
+        </h3>
+        <p class="mt-2 font-semibold leading-snug text-slate-100">
+          Bachelor of Computer Programming
+        </p>
+        <p class="mt-1 flex flex-wrap items-baseline gap-x-3 text-sm leading-normal text-slate-400">
+          <span>Baker College</span>
+          <span class="whitespace-nowrap tabular-nums">2008–2012</span>
+        </p>
+      </div>
+    </section>
   </div>
 </template>
 
