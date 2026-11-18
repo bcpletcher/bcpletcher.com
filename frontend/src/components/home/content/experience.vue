@@ -11,7 +11,6 @@
         :href="job.href"
         :highlights="job.highlights"
         :technology="job.technology"
-        :case-studies="resolveCaseStudies(job.caseStudies)"
         :projects-link="resolveProjectsLink(job)"
         :is-last="idx === jobs.length - 1"
         :collapsible="job.highlights.length > 1"
@@ -27,21 +26,11 @@
 import ExperienceCard from "@/components/home/content/experience-card.vue";
 import ExperienceExtras from "@/components/home/content/experience-extras.vue";
 import { useSettingsStore } from "@/stores/settings.js";
-import { caseStudyHrefFor } from "@/utils/caseStudyData.js";
 import { matchesProjectCompany, projectsFilterLocation } from "@/utils/projectCompany.js";
 import { normalizeProjectDate } from "@/utils/projectDate.js";
 import { slugify } from "@/utils/slug.js";
 
 const settingsStore = useSettingsStore();
-
-function resolveCaseStudies(specs = []) {
-  return specs
-    .map(({ caseStudy, label }) => {
-      const to = caseStudyHrefFor(settingsStore.projects, caseStudy);
-      return to ? { label, to } : null;
-    })
-    .filter(Boolean);
-}
 
 function resolveProjectsLink(job) {
   const company = slugify(job.company);
@@ -71,12 +60,6 @@ const jobs = [
       "Work on accessibility remediation (WCAG) across client sites, verifying fixes with keyboard and screen-reader testing.",
     ],
     technology: ["C#", ".NET", "Kentico", "Sitefinity", "React", "TypeScript", "Azure DevOps"],
-    caseStudies: [
-      { caseStudy: "Community Transit", label: "Community Transit" },
-      { caseStudy: "Flow", label: "Flow Waterjet" },
-      { caseStudy: "United Community", label: "United Community" },
-      { caseStudy: "Lytx", label: "Lytx" },
-    ],
     projectsLabel: "More client work",
   },
   {
